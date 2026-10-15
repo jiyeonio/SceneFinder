@@ -1,0 +1,98 @@
+{
+  "test_count": 3,
+  "ground_truth_source": "[REDACTED]",
+  "summary": {
+    "기존 Fusion": {
+      "mean_top1_iou": 0.1870646759240543,
+      "mean_top5_best_iou": 0.2884093519728609,
+      "recall_at_1_iou05": 0.0,
+      "recall_at_5_iou05": 0.0
+    },
+    "Fine-tuning Fusion": {
+      "mean_top1_iou": 0.1870646759240543,
+      "mean_top5_best_iou": 0.2322166257887001,
+      "recall_at_1_iou05": 0.0,
+      "recall_at_5_iou05": 0.0
+    },
+    "Consensus Fusion": {
+      "mean_top1_iou": 0.07816772668821463,
+      "mean_top5_best_iou": 0.3121500146313312,
+      "recall_at_1_iou05": 0.0,
+      "recall_at_5_iou05": 0.0
+    }
+  },
+  "results": [
+    {
+      "name": "case_001",
+      "model": "기존 Fusion",
+      "top1_iou": 0.0,
+      "top5_best_iou": 0.10647803425167533,
+      "recall_at_1": 0,
+      "recall_at_5": 0
+    },
+    {
+      "name": "case_001",
+      "model": "Fine-tuning Fusion",
+      "top1_iou": 0.0,
+      "top5_best_iou": 0.11906744379683593,
+      "recall_at_1": 0,
+      "recall_at_5": 0
+    },
+    {
+      "name": "case_001",
+      "model": "Consensus Fusion",
+      "top1_iou": 0.10260869565217388,
+      "top5_best_iou": 0.35886761032472925,
+      "recall_at_1": 0,
+      "recall_at_5": 0
+    },
+    {
+      "name": "case_002",
+      "model": "기존 Fusion",
+      "top1_iou": 0.26091576690259777,
+      "top5_best_iou": 0.4584717607973422,
+      "recall_at_1": 0,
+      "recall_at_5": 0
+    },
+    {
+      "name": "case_002",
+      "model": "Fine-tuning Fusion",
+      "top1_iou": 0.26091576690259777,
+      "top5_best_iou": 0.26091576690259777,
+      "recall_at_1": 0,
+      "recall_at_5": 0
+    },
+    {
+      "name": "case_002",
+      "model": "Consensus Fusion",
+      "top1_iou": 0.13189448441246998,
+      "top5_best_iou": 0.26091576690259777,
+      "recall_at_1": 0,
+      "recall_at_5": 0
+    },
+    {
+      "name": "case_003",
+      "model": "기존 Fusion",
+      "top1_iou": 0.3002782608695651,
+      "top5_best_iou": 0.3002782608695651,
+      "recall_at_1": 0,
+      "recall_at_5": 0
+    },
+    {
+      "name": "case_003",
+      "model": "Fine-tuning Fusion",
+      "top1_iou": 0.3002782608695651,
+      "top5_best_iou": 0.31666666666666654,
+      "recall_at_1": 0,
+      "recall_at_5": 0
+    },
+    {
+      "name": "case_003",
+      "model": "Consensus Fusion",
+      "top1_iou": 0.0,
+      "top5_best_iou": 0.31666666666666654,
+      "recall_at_1": 0,
+      "recall_at_5": 0
+    }
+  ]
+}

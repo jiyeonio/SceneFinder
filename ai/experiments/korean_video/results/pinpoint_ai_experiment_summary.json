@@ -1,0 +1,23 @@
+{
+  "project": "[REDACTED]",
+  "evaluation_type": "[REDACTED]",
+  "video_count": 3,
+  "query_count": 6,
+  "baseline": {
+    "model": "Moment-DETR Hybrid",
+    "mean_top1_iou": 0.2542,
+    "mean_best_iou_reference": 0.2542
+  },
+  "fusion": {
+    "model": "category_001",
+    "mean_top1_iou": 0.2542,
+    "mean_best_iou_top5": 0.5887
+  },
+  "limitations": [
+    "[REDACTED]",
+    "[REDACTED]",
+    "[REDACTED]",
+    "[REDACTED]",
+    "[REDACTED]"
+  ]
+}

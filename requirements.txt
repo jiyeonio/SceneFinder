@@ -1,0 +1,16 @@
+torch
+torchvision
+torchaudio
+numpy
+pandas
+scipy
+opencv-python
+ffmpeg-python
+ftfy
+regex
+matplotlib
+easydict
+tensorboard
+tqdm
+tabulate
+scikit-learn==1.9.1

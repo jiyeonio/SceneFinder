@@ -1,0 +1,15 @@
+{
+  "evaluation": "[REDACTED]",
+  "sample_size": 100,
+  "random_seed": 42,
+  "original": {
+    "recall_at_1": 0.67,
+    "recall_at_5": 0.84,
+    "mrr": 0.7545881026774643
+  },
+  "finetuned": {
+    "recall_at_1": 0.85,
+    "recall_at_5": 0.93,
+    "mrr": 0.8812919998277252
+  }
+}

@@ -1,0 +1,23 @@
+[
+  {
+    "video_id": "video_004",
+    "korean_query": "query_007",
+    "english_query": "query_008",
+    "gt_start": 3.0,
+    "gt_end": 7.0
+  },
+  {
+    "video_id": "video_004",
+    "korean_query": "query_009",
+    "english_query": "query_010",
+    "gt_start": 11.0,
+    "gt_end": 21.0
+  },
+  {
+    "video_id": "video_004",
+    "korean_query": "query_011",
+    "english_query": "query_012",
+    "gt_start": 22.0,
+    "gt_end": 30.0
+  }
+]

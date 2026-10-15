@@ -1,0 +1,835 @@
+{
+  "test_count": 6,
+  "summary": {
+    "기존 Fusion": {
+      "mean_top1_iou": 0.2539795296562724,
+      "mean_top5_best_iou": 0.5883301663005404,
+      "recall_at_1_iou05": 0.16666666666666666,
+      "recall_at_5_iou05": 0.6666666666666666
+    },
+    "Fine-tuning Fusion": {
+      "mean_top1_iou": 0.2539795296562724,
+      "mean_top5_best_iou": 0.5836585887473009,
+      "recall_at_1_iou05": 0.16666666666666666,
+      "recall_at_5_iou05": 0.6666666666666666
+    }
+  },
+  "results": [
+    {
+      "name": "case_004",
+      "model": "기존 Fusion",
+      "top1_iou": 0.0,
+      "top5_best_iou": 0.7436363636363634,
+      "recall_at_1": 0,
+      "recall_at_5": 1,
+      "candidates": [
+        {
+          "video_id": "video_003",
+          "query": "query_019",
+          "start_time": 98.5,
+          "end_time": 118.9581,
+          "score": 0.9842,
+          "source": "hybrid",
+          "hybrid_source": "visual",
+          "visual_score": 0.9842,
+          "subtitle_score": null,
+          "language": null
+        },
+        {
+          "video_id": "video_003",
+          "query": "query_019",
+          "start_time": 140.86,
+          "end_time": 143.58,
+          "score": null,
+          "source": "subtitle",
+          "hybrid_source": null,
+          "visual_score": null,
+          "subtitle_score": 0.6732,
+          "language": "ko"
+        },
+        {
+          "video_id": "video_003",
+          "query": "query_019",
+          "start_time": 12.88,
+          "end_time": 21.06,
+          "score": null,
+          "source": "subtitle",
+          "hybrid_source": null,
+          "visual_score": null,
+          "subtitle_score": 0.5538,
+          "language": "en"
+        },
+        {
+          "video_id": "video_003",
+          "query": "query_019",
+          "start_time": 84.5,
+          "end_time": 102.7782,
+          "score": 0.9608,
+          "source": "hybrid",
+          "hybrid_source": "visual",
+          "visual_score": 0.9608,
+          "subtitle_score": null,
+          "language": null
+        },
+        {
+          "video_id": "video_003",
+          "query": "query_019",
+          "start_time": 135.06,
+          "end_time": 137.58,
+          "score": null,
+          "source": "subtitle",
+          "hybrid_source": null,
+          "visual_score": null,
+          "subtitle_score": 0.6575,
+          "language": "ko"
+        }
+      ]
+    },
+    {
+      "name": "case_004",
+      "model": "Fine-tuning Fusion",
+      "top1_iou": 0.0,
+      "top5_best_iou": 0.3127272727272727,
+      "recall_at_1": 0,
+      "recall_at_5": 0,
+      "candidates": [
+        {
+          "video_id": "video_003",
+          "query": "query_019",
+          "start_time": 98.5,
+          "end_time": 118.9581,
+          "score": 0.9842,
+          "source": "hybrid",
+          "hybrid_source": "visual",
+          "visual_score": 0.9842,
+          "subtitle_score": null,
+          "language": null
+        },
+        {
+          "video_id": "video_003",
+          "query": "query_019",
+          "start_time": 4.74,
+          "end_time": 8.7,
+          "score": null,
+          "source": "subtitle",
+          "hybrid_source": null,
+          "visual_score": null,
+          "subtitle_score": 0.3667,
+          "language": "ko"
+        },
+        {
+          "video_id": "video_003",
+          "query": "query_019",
+          "start_time": 12.88,
+          "end_time": 16.32,
+          "score": null,
+          "source": "subtitle",
+          "hybrid_source": null,
+          "visual_score": null,
+          "subtitle_score": 0.3233,
+          "language": "en"
+        },
+        {
+          "video_id": "video_003",
+          "query": "query_019",
+          "start_time": 84.5,
+          "end_time": 102.7782,
+          "score": 0.9608,
+          "source": "hybrid",
+          "hybrid_source": "visual",
+          "visual_score": 0.9608,
+          "subtitle_score": null,
+          "language": null
+        },
+        {
+          "video_id": "video_003",
+          "query": "query_019",
+          "start_time": 23.72,
+          "end_time": 26.46,
+          "score": null,
+          "source": "subtitle",
+          "hybrid_source": null,
+          "visual_score": null,
+          "subtitle_score": 0.351,
+          "language": "ko"
+        }
+      ]
+    },
+    {
+      "name": "case_005",
+      "model": "기존 Fusion",
+      "top1_iou": 0.5163775000000002,
+      "top5_best_iou": 0.5163775000000002,
+      "recall_at_1": 1,
+      "recall_at_5": 1,
+      "candidates": [
+        {
+          "video_id": "video_003",
+          "query": "query_005",
+          "start_time": 98.5,
+          "end_time": 119.1551,
+          "score": 0.986,
+          "source": "hybrid",
+          "hybrid_source": "visual",
+          "visual_score": 0.986,
+          "subtitle_score": null,
+          "language": null
+        },
+        {
+          "video_id": "video_003",
+          "query": "query_005",
+          "start_time": 140.86,
+          "end_time": 143.58,
+          "score": null,
+          "source": "subtitle",
+          "hybrid_source": null,
+          "visual_score": null,
+          "subtitle_score": 0.7338,
+          "language": "ko"
+        },
+        {
+          "video_id": "video_003",
+          "query": "query_005",
+          "start_time": 108.82,
+          "end_time": 117.9,
+          "score": null,
+          "source": "subtitle",
+          "hybrid_source": null,
+          "visual_score": null,
+          "subtitle_score": 0.553,
+          "language": "en"
+        },
+        {
+          "video_id": "video_003",
+          "query": "query_005",
+          "start_time": 134.5,
+          "end_time": 151.3155,
+          "score": 0.9176,
+          "source": "hybrid",
+          "hybrid_source": "visual",
+          "visual_score": 0.9176,
+          "subtitle_score": null,
+          "language": null
+        },
+        {
+          "video_id": "video_003",
+          "query": "query_005",
+          "start_time": 157.5,
+          "end_time": 158.74,
+          "score": null,
+          "source": "subtitle",
+          "hybrid_source": null,
+          "visual_score": null,
+          "subtitle_score": 0.7228,
+          "language": "ko"
+        }
+      ]
+    },
+    {
+      "name": "case_005",
+      "model": "Fine-tuning Fusion",
+      "top1_iou": 0.5163775000000002,
+      "top5_best_iou": 0.5163775000000002,
+      "recall_at_1": 1,
+      "recall_at_5": 1,
+      "candidates": [
+        {
+          "video_id": "video_003",
+          "query": "query_005",
+          "start_time": 98.5,
+          "end_time": 119.1551,
+          "score": 0.986,
+          "source": "hybrid",
+          "hybrid_source": "visual",
+          "visual_score": 0.986,
+          "subtitle_score": null,
+          "language": null
+        },
+        {
+          "video_id": "video_003",
+          "query": "query_005",
+          "start_time": 137.58,
+          "end_time": 143.58,
+          "score": null,
+          "source": "subtitle",
+          "hybrid_source": null,
+          "visual_score": null,
+          "subtitle_score": 0.7083,
+          "language": "ko"
+        },
+        {
+          "video_id": "video_003",
+          "query": "query_005",
+          "start_time": 111.26,
+          "end_time": 116.02,
+          "score": null,
+          "source": "subtitle",
+          "hybrid_source": null,
+          "visual_score": null,
+          "subtitle_score": 0.2509,
+          "language": "en"
+        },
+        {
+          "video_id": "video_003",
+          "query": "query_005",
+          "start_time": 134.5,
+          "end_time": 151.3155,
+          "score": 0.9176,
+          "source": "hybrid",
+          "hybrid_source": "visual",
+          "visual_score": 0.9176,
+          "subtitle_score": null,
+          "language": null
+        },
+        {
+          "video_id": "video_003",
+          "query": "query_005",
+          "start_time": 4.74,
+          "end_time": 8.7,
+          "score": null,
+          "source": "subtitle",
+          "hybrid_source": null,
+          "visual_score": null,
+          "subtitle_score": 0.2393,
+          "language": "en"
+        }
+      ]
+    },
+    {
+      "name": "case_006",
+      "model": "기존 Fusion",
+      "top1_iou": 0.48826530612244906,
+      "top5_best_iou": 0.48826530612244906,
+      "recall_at_1": 0,
+      "recall_at_5": 0,
+      "candidates": [
+        {
+          "video_id": "video_002",
+          "query": "query_020",
+          "start_time": 2.5,
+          "end_time": 10.2665,
+          "score": 0.8601,
+          "source": "hybrid",
+          "hybrid_source": "visual",
+          "visual_score": 0.8601,
+          "subtitle_score": null,
+          "language": null
+        },
+        {
+          "video_id": "video_002",
+          "query": "query_020",
+          "start_time": 5.96,
+          "end_time": 8.08,
+          "score": null,
+          "source": "subtitle",
+          "hybrid_source": null,
+          "visual_score": null,
+          "subtitle_score": 0.8635,
+          "language": "ko"
+        },
+        {
+          "video_id": "video_002",
+          "query": "query_020",
+          "start_time": 21.52,
+          "end_time": 26.56,
+          "score": null,
+          "source": "subtitle",
+          "hybrid_source": null,
+          "visual_score": null,
+          "subtitle_score": 0.4822,
+          "language": "en"
+        },
+        {
+          "video_id": "video_002",
+          "query": "query_020",
+          "start_time": 20.5,
+          "end_time": 31.6789,
+          "score": 0.6314,
+          "source": "hybrid",
+          "hybrid_source": "visual",
+          "visual_score": 0.6314,
+          "subtitle_score": null,
+          "language": null
+        },
+        {
+          "video_id": "video_002",
+          "query": "query_020",
+          "start_time": 33.52,
+          "end_time": 34.8,
+          "score": null,
+          "source": "subtitle",
+          "hybrid_source": null,
+          "visual_score": null,
+          "subtitle_score": 0.8609,
+          "language": "ko"
+        }
+      ]
+    },
+    {
+      "name": "case_006",
+      "model": "Fine-tuning Fusion",
+      "top1_iou": 0.48826530612244906,
+      "top5_best_iou": 0.48826530612244906,
+      "recall_at_1": 0,
+      "recall_at_5": 0,
+      "candidates": [
+        {
+          "video_id": "video_002",
+          "query": "query_020",
+          "start_time": 2.5,
+          "end_time": 10.2665,
+          "score": 0.8601,
+          "source": "hybrid",
+          "hybrid_source": "visual",
+          "visual_score": 0.8601,
+          "subtitle_score": null,
+          "language": null
+        },
+        {
+          "video_id": "video_002",
+          "query": "query_020",
+          "start_time": 5.96,
+          "end_time": 8.08,
+          "score": null,
+          "source": "subtitle",
+          "hybrid_source": null,
+          "visual_score": null,
+          "subtitle_score": 0.5815,
+          "language": "ko"
+        },
+        {
+          "video_id": "video_002",
+          "query": "query_020",
+          "start_time": 23.32,
+          "end_time": 26.56,
+          "score": null,
+          "source": "subtitle",
+          "hybrid_source": null,
+          "visual_score": null,
+          "subtitle_score": 0.232,
+          "language": "en"
+        },
+        {
+          "video_id": "video_002",
+          "query": "query_020",
+          "start_time": 20.5,
+          "end_time": 31.6789,
+          "score": 0.6314,
+          "source": "hybrid",
+          "hybrid_source": "visual",
+          "visual_score": 0.6314,
+          "subtitle_score": null,
+          "language": null
+        },
+        {
+          "video_id": "video_002",
+          "query": "query_020",
+          "start_time": 10.5,
+          "end_time": 20.5038,
+          "score": 0.0139,
+          "source": "hybrid",
+          "hybrid_source": "visual",
+          "visual_score": 0.0139,
+          "subtitle_score": null,
+          "language": null
+        }
+      ]
+    },
+    {
+      "name": "case_007",
+      "model": "기존 Fusion",
+      "top1_iou": 0.21542283912940452,
+      "top5_best_iou": 0.8133333333333326,
+      "recall_at_1": 0,
+      "recall_at_5": 1,
+      "candidates": [
+        {
+          "video_id": "video_002",
+          "query": "query_003",
+          "start_time": 22.5,
+          "end_time": 36.4261,
+          "score": 0.9413,
+          "source": "hybrid",
+          "hybrid_source": "visual",
+          "visual_score": 0.9413,
+          "subtitle_score": null,
+          "language": null
+        },
+        {
+          "video_id": "video_002",
+          "query": "query_003",
+          "start_time": 29.28,
+          "end_time": 31.72,
+          "score": null,
+          "source": "subtitle",
+          "hybrid_source": null,
+          "visual_score": null,
+          "subtitle_score": 0.7839,
+          "language": "ko"
+        },
+        {
+          "video_id": "video_002",
+          "query": "query_003",
+          "start_time": 4.5,
+          "end_time": 14.4361,
+          "score": 0.0024,
+          "source": "hybrid",
+          "hybrid_source": "visual",
+          "visual_score": 0.0024,
+          "subtitle_score": null,
+          "language": null
+        },
+        {
+          "video_id": "video_002",
+          "query": "query_003",
+          "start_time": 26.56,
+          "end_time": 31.72,
+          "score": null,
+          "source": "subtitle",
+          "hybrid_source": null,
+          "visual_score": null,
+          "subtitle_score": 0.7741,
+          "language": "ko"
+        },
+        {
+          "video_id": "video_002",
+          "query": "query_003",
+          "start_time": 29.28,
+          "end_time": 34.8,
+          "score": null,
+          "source": "subtitle",
+          "hybrid_source": null,
+          "visual_score": null,
+          "subtitle_score": 0.7225,
+          "language": "en"
+        }
+      ]
+    },
+    {
+      "name": "case_007",
+      "model": "Fine-tuning Fusion",
+      "top1_iou": 0.21542283912940452,
+      "top5_best_iou": 0.8133333333333326,
+      "recall_at_1": 0,
+      "recall_at_5": 1,
+      "candidates": [
+        {
+          "video_id": "video_002",
+          "query": "query_003",
+          "start_time": 22.5,
+          "end_time": 36.4261,
+          "score": 0.9413,
+          "source": "hybrid",
+          "hybrid_source": "visual",
+          "visual_score": 0.9413,
+          "subtitle_score": null,
+          "language": null
+        },
+        {
+          "video_id": "video_002",
+          "query": "query_003",
+          "start_time": 29.28,
+          "end_time": 31.72,
+          "score": null,
+          "source": "subtitle",
+          "hybrid_source": null,
+          "visual_score": null,
+          "subtitle_score": 0.7528,
+          "language": "ko"
+        },
+        {
+          "video_id": "video_002",
+          "query": "query_003",
+          "start_time": 4.5,
+          "end_time": 14.4361,
+          "score": 0.0024,
+          "source": "hybrid",
+          "hybrid_source": "visual",
+          "visual_score": 0.0024,
+          "subtitle_score": null,
+          "language": null
+        },
+        {
+          "video_id": "video_002",
+          "query": "query_003",
+          "start_time": 26.56,
+          "end_time": 31.72,
+          "score": null,
+          "source": "subtitle",
+          "hybrid_source": null,
+          "visual_score": null,
+          "subtitle_score": 0.6289,
+          "language": "ko"
+        },
+        {
+          "video_id": "video_002",
+          "query": "query_003",
+          "start_time": 29.28,
+          "end_time": 34.8,
+          "score": null,
+          "source": "subtitle",
+          "hybrid_source": null,
+          "visual_score": null,
+          "subtitle_score": 0.6287,
+          "language": "en"
+        }
+      ]
+    },
+    {
+      "name": "case_008",
+      "model": "기존 Fusion",
+      "top1_iou": 0.0,
+      "top5_best_iou": 0.6645569620253164,
+      "recall_at_1": 0,
+      "recall_at_5": 1,
+      "candidates": [
+        {
+          "video_id": "video_001",
+          "query": "query_021",
+          "start_time": 14.5,
+          "end_time": 25.0213,
+          "score": 0.8893,
+          "source": "hybrid",
+          "hybrid_source": "visual",
+          "visual_score": 0.8893,
+          "subtitle_score": 0.0,
+          "language": null
+        },
+        {
+          "video_id": "video_001",
+          "query": "query_021",
+          "start_time": 2.08,
+          "end_time": 7.28,
+          "score": null,
+          "source": "subtitle",
+          "hybrid_source": null,
+          "visual_score": null,
+          "subtitle_score": 0.6598,
+          "language": "ko"
+        },
+        {
+          "video_id": "video_001",
+          "query": "query_021",
+          "start_time": 24.5,
+          "end_time": 28.508,
+          "score": 0.8883,
+          "source": "hybrid",
+          "hybrid_source": "visual",
+          "visual_score": 0.8883,
+          "subtitle_score": 0.0,
+          "language": null
+        },
+        {
+          "video_id": "video_001",
+          "query": "query_021",
+          "start_time": 4.68,
+          "end_time": 10.0,
+          "score": null,
+          "source": "subtitle",
+          "hybrid_source": null,
+          "visual_score": null,
+          "subtitle_score": 0.5107,
+          "language": "en"
+        }
+      ]
+    },
+    {
+      "name": "case_008",
+      "model": "Fine-tuning Fusion",
+      "top1_iou": 0.0,
+      "top5_best_iou": 0.699248120300752,
+      "recall_at_1": 0,
+      "recall_at_5": 1,
+      "candidates": [
+        {
+          "video_id": "video_001",
+          "query": "query_021",
+          "start_time": 14.5,
+          "end_time": 25.0213,
+          "score": 0.8893,
+          "source": "hybrid",
+          "hybrid_source": "visual",
+          "visual_score": 0.8893,
+          "subtitle_score": 0.0,
+          "language": null
+        },
+        {
+          "video_id": "video_001",
+          "query": "query_021",
+          "start_time": 2.08,
+          "end_time": 7.28,
+          "score": null,
+          "source": "subtitle",
+          "hybrid_source": null,
+          "visual_score": null,
+          "subtitle_score": 0.6242,
+          "language": "ko"
+        },
+        {
+          "video_id": "video_001",
+          "query": "query_021",
+          "start_time": 24.5,
+          "end_time": 28.508,
+          "score": 0.8883,
+          "source": "hybrid",
+          "hybrid_source": "visual",
+          "visual_score": 0.8883,
+          "subtitle_score": 0.0,
+          "language": null
+        },
+        {
+          "video_id": "video_001",
+          "query": "query_021",
+          "start_time": 4.68,
+          "end_time": 8.4,
+          "score": null,
+          "source": "subtitle",
+          "hybrid_source": null,
+          "visual_score": null,
+          "subtitle_score": 0.5186,
+          "language": "ko"
+        }
+      ]
+    },
+    {
+      "name": "case_009",
+      "model": "기존 Fusion",
+      "top1_iou": 0.30381153268578076,
+      "top5_best_iou": 0.30381153268578076,
+      "recall_at_1": 0,
+      "recall_at_5": 0,
+      "candidates": [
+        {
+          "video_id": "video_001",
+          "query": "query_001",
+          "start_time": 14.5,
+          "end_time": 24.5203,
+          "score": 0.9745,
+          "source": "hybrid",
+          "hybrid_source": "visual",
+          "visual_score": 0.9745,
+          "subtitle_score": 0.0,
+          "language": null
+        },
+        {
+          "video_id": "video_001",
+          "query": "query_001",
+          "start_time": 3.08,
+          "end_time": 4.68,
+          "score": null,
+          "source": "subtitle",
+          "hybrid_source": null,
+          "visual_score": null,
+          "subtitle_score": 0.423,
+          "language": "ko"
+        },
+        {
+          "video_id": "video_001",
+          "query": "query_001",
+          "start_time": 22.68,
+          "end_time": 29.0,
+          "score": null,
+          "source": "subtitle",
+          "hybrid_source": null,
+          "visual_score": null,
+          "subtitle_score": 0.3968,
+          "language": "en"
+        },
+        {
+          "video_id": "video_001",
+          "query": "query_001",
+          "start_time": 3.08,
+          "end_time": 8.4,
+          "score": null,
+          "source": "subtitle",
+          "hybrid_source": null,
+          "visual_score": null,
+          "subtitle_score": 0.4087,
+          "language": "ko"
+        },
+        {
+          "video_id": "video_001",
+          "query": "query_001",
+          "start_time": 20.6,
+          "end_time": 24.48,
+          "score": null,
+          "source": "subtitle",
+          "hybrid_source": null,
+          "visual_score": null,
+          "subtitle_score": 0.3878,
+          "language": "en"
+        }
+      ]
+    },
+    {
+      "name": "case_009",
+      "model": "Fine-tuning Fusion",
+      "top1_iou": 0.30381153268578076,
+      "top5_best_iou": 0.6719999999999995,
+      "recall_at_1": 0,
+      "recall_at_5": 1,
+      "candidates": [
+        {
+          "video_id": "video_001",
+          "query": "query_001",
+          "start_time": 14.5,
+          "end_time": 24.5203,
+          "score": 0.9745,
+          "source": "hybrid",
+          "hybrid_source": "visual",
+          "visual_score": 0.9745,
+          "subtitle_score": 0.0,
+          "language": null
+        },
+        {
+          "video_id": "video_001",
+          "query": "query_001",
+          "start_time": 13.72,
+          "end_time": 15.16,
+          "score": null,
+          "source": "subtitle",
+          "hybrid_source": null,
+          "visual_score": null,
+          "subtitle_score": 0.5068,
+          "language": "ko"
+        },
+        {
+          "video_id": "video_001",
+          "query": "query_001",
+          "start_time": 22.68,
+          "end_time": 26.8,
+          "score": null,
+          "source": "subtitle",
+          "hybrid_source": null,
+          "visual_score": null,
+          "subtitle_score": 0.3398,
+          "language": "en"
+        },
+        {
+          "video_id": "video_001",
+          "query": "query_001",
+          "start_time": 13.72,
+          "end_time": 17.08,
+          "score": null,
+          "source": "subtitle",
+          "hybrid_source": null,
+          "visual_score": null,
+          "subtitle_score": 0.4634,
+          "language": "ko"
+        },
+        {
+          "video_id": "video_001",
+          "query": "query_001",
+          "start_time": 2.5,
+          "end_time": 14.7242,
+          "score": 0.2676,
+          "source": "hybrid",
+          "hybrid_source": "visual",
+          "visual_score": 0.2676,
+          "subtitle_score": 0.0,
+          "language": null
+        }
+      ]
+    }
+  ]
+}

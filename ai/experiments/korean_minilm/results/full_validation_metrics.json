@@ -1,0 +1,18 @@
+{
+  "task": "Korean summary-to-transcript text retrieval",
+  "dataset": "AI-Hub validation pairs",
+  "sample_size": 1948,
+  "evaluation_note": "Each query is matched against validation transcripts. The transcript at the same index is treated as the single correct result. These are text retrieval metrics, not temporal video moment retrieval metrics.",
+  "base_model": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+  "original": {
+    "recall_at_1": 0.5102669404517454,
+    "recall_at_5": 0.6555441478439425,
+    "mrr": 0.577302482579806
+  },
+  "finetuned": {
+    "recall_at_1": 0.7515400410677618,
+    "recall_at_5": 0.858829568788501,
+    "mrr": 0.7996197008399655
+  },
+  "verification": "Metrics reproduced on the full 1,948-pair validation dataset in the earlier Colab experiment."
+}

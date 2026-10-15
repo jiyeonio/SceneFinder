@@ -1,0 +1,54 @@
+# ===== 환경변수: 실제 값은 커밋하지 않고 예시 파일만 포함 =====
+.env
+.env.*
+!.env.example
+
+# ===== Python =====
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+
+# ===== Node / 프론트엔드 빌드 결과 =====
+node_modules/
+dist/
+build/
+.vite/
+coverage/
+*.log
+
+# ===== 데이터·모델 (용량이 커서 저장소에 포함하지 않음) =====
+# data/: 다운로드한 영상, Whisper 자막, 영상 특징 파일 (실행 중 자동 생성)
+/data/
+# models/: Moment-DETR 체크포인트 등 학습된 가중치
+/models/
+# Moment-DETR 원본 체크아웃·실험 산출물
+/ai/external/
+*.ckpt
+*.pt
+*.pth
+*.safetensors
+*.bin
+*.onnx
+*.npy
+*.npz
+*.mp4
+*.mov
+*.mp3
+*.wav
+*.tar
+*.zip
+
+# ===== 작업용 파일 =====
+*.bak
+*.bak_*
+ai/features/test_*.py
+*.ipynb_checkpoints/
+cookies*.txt
+
+# ===== OS / 에디터 =====
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

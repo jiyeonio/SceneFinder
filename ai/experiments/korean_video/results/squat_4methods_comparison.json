@@ -1,0 +1,801 @@
+{
+  "video_id": "video_004",
+  "video_duration": 42.0,
+  "summary": {
+    "hybrid": {
+      "mean_top1_iou": 0.0,
+      "mean_best5_iou": 0.3473,
+      "r1_at_05": 0,
+      "r5_at_05": 1,
+      "total_queries": 3
+    },
+    "original_fusion": {
+      "mean_top1_iou": 0.0,
+      "mean_best5_iou": 0.5203,
+      "r1_at_05": 0,
+      "r5_at_05": 2,
+      "total_queries": 3
+    },
+    "finetuned_fusion": {
+      "mean_top1_iou": 0.0,
+      "mean_best5_iou": 0.375,
+      "r1_at_05": 0,
+      "r5_at_05": 1,
+      "total_queries": 3
+    },
+    "consensus_fusion": {
+      "mean_top1_iou": 0.2843,
+      "mean_best5_iou": 0.6184,
+      "r1_at_05": 1,
+      "r5_at_05": 2,
+      "total_queries": 3
+    }
+  },
+  "results": {
+    "hybrid": [
+      {
+        "query": "query_007",
+        "ground_truth": [
+          3.0,
+          7.0
+        ],
+        "top1_iou": 0.0,
+        "best5_iou": 0.4408,
+        "predictions": [
+          {
+            "video_id": "video_004",
+            "query": "query_008",
+            "start_time": 10.5,
+            "end_time": 19.8222,
+            "score": 0.814,
+            "source": "visual",
+            "subtitle_score": 0.0
+          },
+          {
+            "video_id": "video_004",
+            "query": "query_008",
+            "start_time": 20.5,
+            "end_time": 30.5083,
+            "score": 0.5893,
+            "source": "visual",
+            "subtitle_score": 0.0
+          },
+          {
+            "video_id": "video_004",
+            "query": "query_008",
+            "start_time": 0.5,
+            "end_time": 9.5745,
+            "score": 0.0851,
+            "source": "visual",
+            "subtitle_score": 0.0
+          },
+          {
+            "video_id": "video_004",
+            "query": "query_008",
+            "start_time": 34.5,
+            "end_time": 40.7119,
+            "score": 0.002,
+            "source": "visual",
+            "subtitle_score": 0.0
+          }
+        ]
+      },
+      {
+        "query": "query_009",
+        "ground_truth": [
+          11.0,
+          21.0
+        ],
+        "top1_iou": 0.0,
+        "best5_iou": 0.6011,
+        "predictions": [
+          {
+            "video_id": "video_004",
+            "query": "query_010",
+            "start_time": 0.0,
+            "end_time": 5.7956,
+            "score": 0.9684,
+            "source": "visual",
+            "subtitle_score": 0.0
+          },
+          {
+            "video_id": "video_004",
+            "query": "query_010",
+            "start_time": 22.5,
+            "end_time": 30.8574,
+            "score": 0.9532,
+            "source": "visual",
+            "subtitle_score": 0.0
+          },
+          {
+            "video_id": "video_004",
+            "query": "query_010",
+            "start_time": 32.5,
+            "end_time": 40.3556,
+            "score": 0.9251,
+            "source": "visual",
+            "subtitle_score": 0.0
+          },
+          {
+            "video_id": "video_004",
+            "query": "query_010",
+            "start_time": 12.5,
+            "end_time": 18.5107,
+            "score": 0.8874,
+            "source": "visual",
+            "subtitle_score": 0.0
+          }
+        ]
+      },
+      {
+        "query": "query_011",
+        "ground_truth": [
+          22.0,
+          30.0
+        ],
+        "top1_iou": 0.0,
+        "best5_iou": 0.0,
+        "predictions": [
+          {
+            "video_id": "video_004",
+            "query": "query_012",
+            "start_time": 32.5,
+            "end_time": 41.888,
+            "score": 0.9963,
+            "source": "visual",
+            "subtitle_score": 0.0
+          },
+          {
+            "video_id": "video_004",
+            "query": "query_012",
+            "start_time": 6.5,
+            "end_time": 19.4864,
+            "score": 0.0371,
+            "source": "visual",
+            "subtitle_score": 0.0
+          }
+        ]
+      }
+    ],
+    "original_fusion": [
+      {
+        "query": "query_007",
+        "ground_truth": [
+          3.0,
+          7.0
+        ],
+        "top1_iou": 0.0,
+        "best5_iou": 0.6051,
+        "predictions": [
+          {
+            "video_id": "video_004",
+            "query": "query_007",
+            "start_time": 10.5,
+            "end_time": 19.8222,
+            "score": 0.814,
+            "source": "hybrid",
+            "hybrid_source": "visual",
+            "visual_score": 0.814,
+            "subtitle_score": 0.0,
+            "language": null
+          },
+          {
+            "video_id": "video_004",
+            "query": "query_007",
+            "start_time": 3.66,
+            "end_time": 8.52,
+            "score": null,
+            "source": "subtitle",
+            "hybrid_source": null,
+            "visual_score": null,
+            "subtitle_score": 0.6336,
+            "language": "ko"
+          },
+          {
+            "video_id": "video_004",
+            "query": "query_007",
+            "start_time": 3.66,
+            "end_time": 13.76,
+            "score": null,
+            "source": "subtitle",
+            "hybrid_source": null,
+            "visual_score": null,
+            "subtitle_score": 0.5828,
+            "language": "en"
+          },
+          {
+            "video_id": "video_004",
+            "query": "query_007",
+            "start_time": 20.5,
+            "end_time": 30.5083,
+            "score": 0.5893,
+            "source": "hybrid",
+            "hybrid_source": "visual",
+            "visual_score": 0.5893,
+            "subtitle_score": 0.0,
+            "language": null
+          },
+          {
+            "video_id": "video_004",
+            "query": "query_007",
+            "start_time": 34.5,
+            "end_time": 40.7119,
+            "score": 0.002,
+            "source": "hybrid",
+            "hybrid_source": "visual",
+            "visual_score": 0.002,
+            "subtitle_score": 0.0,
+            "language": null
+          }
+        ]
+      },
+      {
+        "query": "query_009",
+        "ground_truth": [
+          11.0,
+          21.0
+        ],
+        "top1_iou": 0.0,
+        "best5_iou": 0.272,
+        "predictions": [
+          {
+            "video_id": "video_004",
+            "query": "query_009",
+            "start_time": 0.0,
+            "end_time": 5.7956,
+            "score": 0.9684,
+            "source": "hybrid",
+            "hybrid_source": "visual",
+            "visual_score": 0.9684,
+            "subtitle_score": 0.0,
+            "language": null
+          },
+          {
+            "video_id": "video_004",
+            "query": "query_009",
+            "start_time": 11.04,
+            "end_time": 13.76,
+            "score": null,
+            "source": "subtitle",
+            "hybrid_source": null,
+            "visual_score": null,
+            "subtitle_score": 0.5416,
+            "language": "ko"
+          },
+          {
+            "video_id": "video_004",
+            "query": "query_009",
+            "start_time": 30.02,
+            "end_time": 33.54,
+            "score": null,
+            "source": "subtitle",
+            "hybrid_source": null,
+            "visual_score": null,
+            "subtitle_score": 0.7078,
+            "language": "en"
+          },
+          {
+            "video_id": "video_004",
+            "query": "query_009",
+            "start_time": 22.5,
+            "end_time": 30.8574,
+            "score": 0.9532,
+            "source": "hybrid",
+            "hybrid_source": "visual",
+            "visual_score": 0.9532,
+            "subtitle_score": 0.0,
+            "language": null
+          },
+          {
+            "video_id": "video_004",
+            "query": "query_009",
+            "start_time": 3.66,
+            "end_time": 8.52,
+            "score": null,
+            "source": "subtitle",
+            "hybrid_source": null,
+            "visual_score": null,
+            "subtitle_score": 0.5067,
+            "language": "ko"
+          }
+        ]
+      },
+      {
+        "query": "query_011",
+        "ground_truth": [
+          22.0,
+          30.0
+        ],
+        "top1_iou": 0.0,
+        "best5_iou": 0.6838,
+        "predictions": [
+          {
+            "video_id": "video_004",
+            "query": "query_011",
+            "start_time": 32.5,
+            "end_time": 41.888,
+            "score": 0.9963,
+            "source": "hybrid",
+            "hybrid_source": "visual",
+            "visual_score": 0.9963,
+            "subtitle_score": 0.0,
+            "language": null
+          },
+          {
+            "video_id": "video_004",
+            "query": "query_011",
+            "start_time": 11.04,
+            "end_time": 13.76,
+            "score": null,
+            "source": "subtitle",
+            "hybrid_source": null,
+            "visual_score": null,
+            "subtitle_score": 0.635,
+            "language": "ko"
+          },
+          {
+            "video_id": "video_004",
+            "query": "query_011",
+            "start_time": 21.84,
+            "end_time": 33.54,
+            "score": null,
+            "source": "subtitle",
+            "hybrid_source": null,
+            "visual_score": null,
+            "subtitle_score": 0.7082,
+            "language": "en"
+          },
+          {
+            "video_id": "video_004",
+            "query": "query_011",
+            "start_time": 6.5,
+            "end_time": 19.4864,
+            "score": 0.0371,
+            "source": "hybrid",
+            "hybrid_source": "visual",
+            "visual_score": 0.0371,
+            "subtitle_score": 0.0,
+            "language": null
+          },
+          {
+            "video_id": "video_004",
+            "query": "query_011",
+            "start_time": 21.84,
+            "end_time": 27.14,
+            "score": null,
+            "source": "subtitle",
+            "hybrid_source": null,
+            "visual_score": null,
+            "subtitle_score": 0.6739,
+            "language": "en"
+          }
+        ]
+      }
+    ],
+    "finetuned_fusion": [
+      {
+        "query": "query_007",
+        "ground_truth": [
+          3.0,
+          7.0
+        ],
+        "top1_iou": 0.0,
+        "best5_iou": 0.6051,
+        "predictions": [
+          {
+            "video_id": "video_004",
+            "query": "query_007",
+            "start_time": 10.5,
+            "end_time": 19.8222,
+            "score": 0.814,
+            "source": "hybrid",
+            "hybrid_source": "visual",
+            "visual_score": 0.814,
+            "subtitle_score": 0.0,
+            "language": null
+          },
+          {
+            "video_id": "video_004",
+            "query": "query_007",
+            "start_time": 3.66,
+            "end_time": 8.52,
+            "score": null,
+            "source": "subtitle",
+            "hybrid_source": null,
+            "visual_score": null,
+            "subtitle_score": 0.5743,
+            "language": "ko"
+          },
+          {
+            "video_id": "video_004",
+            "query": "query_007",
+            "start_time": 20.5,
+            "end_time": 30.5083,
+            "score": 0.5893,
+            "source": "hybrid",
+            "hybrid_source": "visual",
+            "visual_score": 0.5893,
+            "subtitle_score": 0.0,
+            "language": null
+          },
+          {
+            "video_id": "video_004",
+            "query": "query_007",
+            "start_time": 27.14,
+            "end_time": 30.02,
+            "score": null,
+            "source": "subtitle",
+            "hybrid_source": null,
+            "visual_score": null,
+            "subtitle_score": 0.5102,
+            "language": "ko"
+          },
+          {
+            "video_id": "video_004",
+            "query": "query_007",
+            "start_time": 3.66,
+            "end_time": 13.76,
+            "score": null,
+            "source": "subtitle",
+            "hybrid_source": null,
+            "visual_score": null,
+            "subtitle_score": 0.4376,
+            "language": "en"
+          }
+        ]
+      },
+      {
+        "query": "query_009",
+        "ground_truth": [
+          11.0,
+          21.0
+        ],
+        "top1_iou": 0.0,
+        "best5_iou": 0.272,
+        "predictions": [
+          {
+            "video_id": "video_004",
+            "query": "query_009",
+            "start_time": 0.0,
+            "end_time": 5.7956,
+            "score": 0.9684,
+            "source": "hybrid",
+            "hybrid_source": "visual",
+            "visual_score": 0.9684,
+            "subtitle_score": 0.0,
+            "language": null
+          },
+          {
+            "video_id": "video_004",
+            "query": "query_009",
+            "start_time": 30.02,
+            "end_time": 33.54,
+            "score": null,
+            "source": "subtitle",
+            "hybrid_source": null,
+            "visual_score": null,
+            "subtitle_score": 0.5092,
+            "language": "ko"
+          },
+          {
+            "video_id": "video_004",
+            "query": "query_009",
+            "start_time": 22.5,
+            "end_time": 30.8574,
+            "score": 0.9532,
+            "source": "hybrid",
+            "hybrid_source": "visual",
+            "visual_score": 0.9532,
+            "subtitle_score": 0.0,
+            "language": null
+          },
+          {
+            "video_id": "video_004",
+            "query": "query_009",
+            "start_time": 11.04,
+            "end_time": 13.76,
+            "score": null,
+            "source": "subtitle",
+            "hybrid_source": null,
+            "visual_score": null,
+            "subtitle_score": 0.4955,
+            "language": "ko"
+          },
+          {
+            "video_id": "video_004",
+            "query": "query_009",
+            "start_time": 32.5,
+            "end_time": 40.3556,
+            "score": 0.9251,
+            "source": "hybrid",
+            "hybrid_source": "visual",
+            "visual_score": 0.9251,
+            "subtitle_score": 0.0,
+            "language": null
+          }
+        ]
+      },
+      {
+        "query": "query_011",
+        "ground_truth": [
+          22.0,
+          30.0
+        ],
+        "top1_iou": 0.0,
+        "best5_iou": 0.2478,
+        "predictions": [
+          {
+            "video_id": "video_004",
+            "query": "query_011",
+            "start_time": 32.5,
+            "end_time": 41.888,
+            "score": 0.9963,
+            "source": "hybrid",
+            "hybrid_source": "visual",
+            "visual_score": 0.9963,
+            "subtitle_score": 0.0,
+            "language": null
+          },
+          {
+            "video_id": "video_004",
+            "query": "query_011",
+            "start_time": 27.14,
+            "end_time": 33.54,
+            "score": null,
+            "source": "subtitle",
+            "hybrid_source": null,
+            "visual_score": null,
+            "subtitle_score": 0.6334,
+            "language": "ko"
+          },
+          {
+            "video_id": "video_004",
+            "query": "query_011",
+            "start_time": 30.02,
+            "end_time": 36.3,
+            "score": null,
+            "source": "subtitle",
+            "hybrid_source": null,
+            "visual_score": null,
+            "subtitle_score": 0.581,
+            "language": "en"
+          },
+          {
+            "video_id": "video_004",
+            "query": "query_011",
+            "start_time": 6.5,
+            "end_time": 19.4864,
+            "score": 0.0371,
+            "source": "hybrid",
+            "hybrid_source": "visual",
+            "visual_score": 0.0371,
+            "subtitle_score": 0.0,
+            "language": null
+          },
+          {
+            "video_id": "video_004",
+            "query": "query_011",
+            "start_time": 33.54,
+            "end_time": 36.3,
+            "score": null,
+            "source": "subtitle",
+            "hybrid_source": null,
+            "visual_score": null,
+            "subtitle_score": 0.5524,
+            "language": "en"
+          }
+        ]
+      }
+    ],
+    "consensus_fusion": [
+      {
+        "query": "query_007",
+        "ground_truth": [
+          3.0,
+          7.0
+        ],
+        "top1_iou": 0.6051,
+        "best5_iou": 0.6051,
+        "predictions": [
+          {
+            "start_time": 3.66,
+            "end_time": 8.52,
+            "text": "[REDACTED]",
+            "score": 0.5743,
+            "source": "subtitle",
+            "rank_source": "ko",
+            "original_rank": 1,
+            "rank_score": 1.0,
+            "consensus_score": 2.5355666978896907
+          },
+          {
+            "video_id": "video_004",
+            "query": "query_008",
+            "start_time": 20.5,
+            "end_time": 30.5083,
+            "score": 0.5893,
+            "source": "visual",
+            "subtitle_score": 0.0,
+            "rank_source": "hybrid",
+            "original_rank": 2,
+            "rank_score": 0.5,
+            "consensus_score": 1.5305051673566636
+          },
+          {
+            "start_time": 3.66,
+            "end_time": 13.76,
+            "text": "[REDACTED]",
+            "score": 0.4376,
+            "source": "subtitle",
+            "rank_source": "en",
+            "original_rank": 3,
+            "rank_score": 0.3333333333333333,
+            "consensus_score": 1.5100671266221644
+          },
+          {
+            "video_id": "video_004",
+            "query": "query_008",
+            "start_time": 10.5,
+            "end_time": 19.8222,
+            "score": 0.814,
+            "source": "visual",
+            "subtitle_score": 0.0,
+            "rank_source": "hybrid",
+            "original_rank": 1,
+            "rank_score": 1.0,
+            "consensus_score": 1.2351165064162057
+          },
+          {
+            "start_time": 27.14,
+            "end_time": 30.02,
+            "text": "[REDACTED]",
+            "score": 0.5102,
+            "source": "subtitle",
+            "rank_source": "ko",
+            "original_rank": 2,
+            "rank_score": 0.5,
+            "consensus_score": 1.1021716385880067
+          }
+        ]
+      },
+      {
+        "query": "query_009",
+        "ground_truth": [
+          11.0,
+          21.0
+        ],
+        "top1_iou": 0.0,
+        "best5_iou": 0.272,
+        "predictions": [
+          {
+            "start_time": 30.02,
+            "end_time": 33.54,
+            "text": "[REDACTED]",
+            "score": 0.5092,
+            "source": "subtitle",
+            "rank_source": "ko",
+            "original_rank": 1,
+            "rank_score": 1.0,
+            "consensus_score": 2.1006230891288364
+          },
+          {
+            "video_id": "video_004",
+            "query": "query_010",
+            "start_time": 0.0,
+            "end_time": 5.7956,
+            "score": 0.9684,
+            "source": "visual",
+            "subtitle_score": 0.0,
+            "rank_source": "hybrid",
+            "original_rank": 1,
+            "rank_score": 1.0,
+            "consensus_score": 1.8354382301561307
+          },
+          {
+            "start_time": 11.04,
+            "end_time": 13.76,
+            "text": "[REDACTED]",
+            "score": 0.4955,
+            "source": "subtitle",
+            "rank_source": "ko",
+            "original_rank": 2,
+            "rank_score": 0.5,
+            "consensus_score": 1.6686588940795373
+          },
+          {
+            "start_time": 3.66,
+            "end_time": 13.76,
+            "text": "[REDACTED]",
+            "score": 0.5302,
+            "source": "subtitle",
+            "rank_source": "en",
+            "original_rank": 4,
+            "rank_score": 0.25,
+            "consensus_score": 0.9415406976744186
+          },
+          {
+            "video_id": "video_004",
+            "query": "query_010",
+            "start_time": 22.5,
+            "end_time": 30.8574,
+            "score": 0.9532,
+            "source": "visual",
+            "subtitle_score": 0.0,
+            "rank_source": "hybrid",
+            "original_rank": 2,
+            "rank_score": 0.5,
+            "consensus_score": 0.9125724637681156
+          }
+        ]
+      },
+      {
+        "query": "query_011",
+        "ground_truth": [
+          22.0,
+          30.0
+        ],
+        "top1_iou": 0.2478,
+        "best5_iou": 0.978,
+        "predictions": [
+          {
+            "start_time": 27.14,
+            "end_time": 33.54,
+            "text": "[REDACTED]",
+            "score": 0.6334,
+            "source": "subtitle",
+            "rank_source": "ko",
+            "original_rank": 1,
+            "rank_score": 1.0,
+            "consensus_score": 2.070518036343911
+          },
+          {
+            "start_time": 30.02,
+            "end_time": 36.3,
+            "text": "[REDACTED]",
+            "score": 0.581,
+            "source": "subtitle",
+            "rank_source": "en",
+            "original_rank": 1,
+            "rank_score": 1.0,
+            "consensus_score": 2.0057782624885383
+          },
+          {
+            "video_id": "video_004",
+            "query": "query_012",
+            "start_time": 32.5,
+            "end_time": 41.888,
+            "score": 0.9963,
+            "source": "visual",
+            "subtitle_score": 0.0,
+            "rank_source": "hybrid",
+            "original_rank": 1,
+            "rank_score": 1.0,
+            "consensus_score": 1.5778507987098656
+          },
+          {
+            "start_time": 33.54,
+            "end_time": 36.3,
+            "text": "[REDACTED]",
+            "score": 0.5524,
+            "source": "subtitle",
+            "rank_source": "en",
+            "original_rank": 3,
+            "rank_score": 0.3333333333333333,
+            "consensus_score": 0.9286357076363083
+          },
+          {
+            "start_time": 21.84,
+            "end_time": 30.02,
+            "text": "[REDACTED]",
+            "score": 0.5867,
+            "source": "subtitle",
+            "rank_source": "ko",
+            "original_rank": 5,
+            "rank_score": 0.2,
+            "consensus_score": 0.8991452991452993
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,71 @@
+{
+  "ground_truth": {
+    "video_id": "video_001",
+    "query_ko": "query_001",
+    "query_en": "query_002",
+    "start_time": 13.0,
+    "end_time": 18.0
+  },
+  "hybrid_results": [
+    {
+      "rank": 1,
+      "start_time": 14.5,
+      "end_time": 24.5127,
+      "iou": 0.3040120909951619
+    },
+    {
+      "rank": 2,
+      "start_time": 22.5,
+      "end_time": 29.1065,
+      "iou": 0.0
+    },
+    {
+      "rank": 3,
+      "start_time": 2.5,
+      "end_time": 14.7196,
+      "iou": 0.11094193548387095
+    }
+  ],
+  "fusion_results": [
+    {
+      "rank": 1,
+      "source": "hybrid",
+      "language": null,
+      "start_time": 14.5,
+      "end_time": 24.5127,
+      "iou": 0.3040120909951619
+    },
+    {
+      "rank": 2,
+      "source": "subtitle",
+      "language": "ko",
+      "start_time": 3.08,
+      "end_time": 4.68,
+      "iou": 0.0
+    },
+    {
+      "rank": 3,
+      "source": "subtitle",
+      "language": "en",
+      "start_time": 22.68,
+      "end_time": 29.0,
+      "iou": 0.0
+    },
+    {
+      "rank": 4,
+      "source": "subtitle",
+      "language": "ko",
+      "start_time": 3.08,
+      "end_time": 8.4,
+      "iou": 0.0
+    },
+    {
+      "rank": 5,
+      "source": "subtitle",
+      "language": "en",
+      "start_time": 20.6,
+      "end_time": 24.48,
+      "iou": 0.0
+    }
+  ]
+}

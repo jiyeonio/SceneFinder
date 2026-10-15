@@ -1,0 +1,74 @@
+[
+  {
+    "name": "case_001",
+    "model": "기존 Fusion",
+    "predicted_start": 104.5,
+    "ground_truth_start": 38.0,
+    "start_error_seconds": 66.5,
+    "top1_iou": 0.0
+  },
+  {
+    "name": "case_001",
+    "model": "Fine-tuning Fusion",
+    "predicted_start": 104.5,
+    "ground_truth_start": 38.0,
+    "start_error_seconds": 66.5,
+    "top1_iou": 0.0
+  },
+  {
+    "name": "case_001",
+    "model": "Consensus Fusion",
+    "predicted_start": 50.9,
+    "ground_truth_start": 38.0,
+    "start_error_seconds": 12.899999999999999,
+    "top1_iou": 0.10260869565217388
+  },
+  {
+    "name": "case_002",
+    "model": "기존 Fusion",
+    "predicted_start": 22.5,
+    "ground_truth_start": 16.0,
+    "start_error_seconds": 6.5,
+    "top1_iou": 0.26091576690259777
+  },
+  {
+    "name": "case_002",
+    "model": "Fine-tuning Fusion",
+    "predicted_start": 22.5,
+    "ground_truth_start": 16.0,
+    "start_error_seconds": 6.5,
+    "top1_iou": 0.26091576690259777
+  },
+  {
+    "name": "case_002",
+    "model": "Consensus Fusion",
+    "predicted_start": 11.32,
+    "ground_truth_start": 16.0,
+    "start_error_seconds": 4.68,
+    "top1_iou": 0.13189448441246998
+  },
+  {
+    "name": "case_003",
+    "model": "기존 Fusion",
+    "predicted_start": 14.5,
+    "ground_truth_start": 22.0,
+    "start_error_seconds": 7.5,
+    "top1_iou": 0.3002782608695651
+  },
+  {
+    "name": "case_003",
+    "model": "Fine-tuning Fusion",
+    "predicted_start": 14.5,
+    "ground_truth_start": 22.0,
+    "start_error_seconds": 7.5,
+    "top1_iou": 0.3002782608695651
+  },
+  {
+    "name": "case_003",
+    "model": "Consensus Fusion",
+    "predicted_start": 15.16,
+    "ground_truth_start": 22.0,
+    "start_error_seconds": 6.84,
+    "top1_iou": 0.0
+  }
+]
