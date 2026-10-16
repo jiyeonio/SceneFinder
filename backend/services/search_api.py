@@ -1,10 +1,13 @@
 import logging
 import os
 import re
+import shutil
+import subprocess
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 
 import requests
-from fastapi import APIRouter, BackgroundTasks, Depends, Header, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, Header, HTTPException, UploadFile
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
@@ -31,6 +34,31 @@ PAGE_TOKEN_RE = re.compile(r"^[A-Za-z0-9_-]{1,200}$")
 MAX_MULTI_VIDEOS = 30  # /api/search/multi 한 번에 다룰 최대 영상 수
 # YouTube가 다운로드를 막아 실패한 영상은 이 시간(분) 동안 다시 받지 않습니다. (.env로 조정, 0이면 끔)
 DOWNLOAD_BLOCK_COOLDOWN_MIN = float(os.getenv("DOWNLOAD_BLOCK_COOLDOWN_MIN", "10"))
+# 로컬 파일 분석: 서버 경로는 이 폴더들 안의 파일만 허용 (.env의 LOCAL_VIDEO_DIRS, 여러 개는 ':'로 구분)
+LOCAL_VIDEO_DIRS = [Path(d).expanduser().resolve() for d in
+                    os.getenv("LOCAL_VIDEO_DIRS", "~/scenefinder_eval/videos").split(os.pathsep) if d.strip()]
+LOCAL_VIDEO_EXTS = {".mp4", ".mkv", ".webm", ".mov", ".m4v"}
+UPLOAD_DIR = indexer.ROOT / "data" / "uploads"   # 업로드한 영상을 두는 곳 (분석 후에도 지우지 않음)
+
+
+def _video_duration(path: Path) -> float | None:
+    """ffprobe로 영상 길이(초). 읽을 수 없으면 None."""
+    try:
+        out = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", str(path)],
+                             capture_output=True, text=True, timeout=30)
+        return float(out.stdout.strip())
+    except (OSError, ValueError, subprocess.TimeoutExpired):
+        return None
+
+
+def _allowed_local_path(raw: str) -> Path | None:
+    """허용된 폴더 안의 영상 파일이면 실제 경로, 아니면 None. (심볼릭 링크·..은 실제 경로로 바꿔 확인)"""
+    p = Path(raw).expanduser().resolve()
+    if p.suffix.lower() not in LOCAL_VIDEO_EXTS:
+        return None
+    if not any(p == d or d in p.parents for d in LOCAL_VIDEO_DIRS):
+        return None
+    return p
 
 
 def _recently_blocked(row: dict | None) -> bool:
@@ -278,6 +306,73 @@ def create_search_router(get_current_user) -> APIRouter:
                 "status": s["status"],
                 # 예전에 저장된 영어 원문 오류도 한국어 안내로 바꿔서 전달
                 "error_message": indexer.user_error_message(s["error_message"])}
+
+    @router.post("/api/videos/youtube/{youtube_video_id}/analyze-local")
+    def analyze_local(youtube_video_id: str, background_tasks: BackgroundTasks,
+                      path: str | None = Form(None), file: UploadFile | None = File(None),
+                      force: bool = Form(False)):
+        """YouTube에서 받지 않고 서버의 영상 파일(path) 또는 업로드한 파일(file)로 분석합니다.
+        분석 방식은 YouTube 영상과 같고(Whisper 자막, 필요하면 영상 feature), 분석 후 파일을 지우지 않습니다.
+        검색은 기존처럼 youtube_video_id로 합니다."""
+        yid = youtube_video_id.strip()
+        if not YOUTUBE_ID_RE.match(yid):
+            return _err(400, "INVALID_YOUTUBE_ID", "올바르지 않은 영상 ID입니다.")
+        if (path is None) == (file is None):
+            return _err(400, "LOCAL_SOURCE_REQUIRED", "path(서버 경로)와 file(업로드) 중 하나만 보내 주세요.")
+
+        if path is not None:
+            local = _allowed_local_path(path)
+            if local is None:
+                return _err(403, "LOCAL_PATH_NOT_ALLOWED",
+                            "허용된 폴더(LOCAL_VIDEO_DIRS) 안의 영상 파일(mp4·mkv·webm·mov·m4v)만 분석할 수 있습니다.")
+            if not local.is_file():
+                return _err(404, "LOCAL_FILE_NOT_FOUND", "서버에 해당 영상 파일이 없습니다.")
+        else:
+            ext = Path(file.filename or "").suffix.lower()
+            if ext not in LOCAL_VIDEO_EXTS:
+                return _err(400, "UNSUPPORTED_FILE", "mp4·mkv·webm·mov·m4v 영상 파일만 올릴 수 있습니다.")
+            UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+            local = UPLOAD_DIR / f"{yid}{ext}"
+            with local.open("wb") as f:
+                shutil.copyfileobj(file.file, f)
+
+        duration = _video_duration(local)
+        if duration is None or duration > MAX_DURATION_SEC:
+            if file is not None:
+                local.unlink(missing_ok=True)   # 분석하지 않을 업로드 파일은 남기지 않음 (서버 경로 파일은 그대로)
+            if duration is None:
+                return _err(400, "INVALID_VIDEO_FILE", "영상 파일을 읽을 수 없습니다.")
+            return _err(422, "VIDEO_TOO_LONG", f"{MAX_DURATION_SEC // 60}분 이하 영상만 분석할 수 있습니다.")
+
+        row = indexer.get_video(yid)
+        meta = {}
+        if row is None:
+            # 제목 등은 YouTube Data API로 가져옴 (영상 다운로드 아님). 없으면 파일 이름을 제목으로
+            try:
+                info = fetch_video_meta(yid)
+            except requests.RequestException:
+                info = None
+            title = info["title"] if info else local.stem
+            if info:
+                meta = {"channel_name": info["channel_name"], "published_at": info["published_at"],
+                        "thumbnail_url": info["thumbnail_url"]}
+        else:
+            title = row["title"]
+
+        r = indexer.prepare(yid, title, force=force, **meta)
+        if r["state"] == "STARTED":
+            background_tasks.add_task(indexer.run_indexing, r["video_id"], yid, str(local))
+            return JSONResponse(status_code=202, content={
+                "status": "PROCESSING", "youtube_video_id": yid, "source": "local",
+                "message": "로컬 영상 파일을 분석 중입니다.",
+            })
+        if r["state"] == "PROCESSING":
+            return JSONResponse(status_code=202, content={
+                "status": "PROCESSING", "youtube_video_id": yid,
+                "message": "이미 분석 중인 영상입니다.",
+            })
+        return {"status": "INDEXED", "youtube_video_id": yid,
+                "message": "이미 분석된 영상입니다. 다시 분석하려면 force=true로 보내 주세요."}
 
     @router.post("/api/search")
     def search(body: SearchRequest, background_tasks: BackgroundTasks,

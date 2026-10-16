@@ -109,6 +109,38 @@
 ```
 `status`는 `PENDING` / `PROCESSING` / `INDEXED` / `FAILED` 중 하나예요. 다운로드나 분석이 실패하면 `FAILED`가 되고 `error_message`에 사유가 들어가요. 등록되지 않은 영상이면 404(`VIDEO_NOT_FOUND`)예요. `FAILED` 영상은 `POST /api/search`로 다시 시도할 수 있어요.
 
+## 3-1. 로컬 영상 파일 분석 (YouTube 다운로드 없이)
+
+`POST /api/videos/youtube/{youtube_video_id}/analyze-local` (form-data)
+
+서버에 있는 영상 파일(`path`)이나 업로드한 파일(`file`)로 YouTube 영상과 같은 분석(Whisper 자막, 한국어 자막이 없으면 영상 feature)을 해요.
+YouTube에서 영상을 받지 않고, **분석이 끝나도 파일을 지우지 않아요.** 검색은 분석 후 기존처럼 `youtube_video_id`로 해요(2번, 4번).
+
+| 필드 | 설명 |
+|---|---|
+| `path` | 서버의 영상 파일 경로. `.env`의 `LOCAL_VIDEO_DIRS`(기본 `~/scenefinder_eval/videos`) 안의 mp4·mkv·webm·mov·m4v만 허용 |
+| `file` | 업로드할 영상 파일. 서버의 `data/uploads/{youtube_video_id}.{확장자}`에 저장하고 지우지 않음 |
+| `force` | 선택, 기본 `false`. `true`면 이미 분석된 영상도 다시 분석 |
+
+- `path`와 `file` 중 하나만 보내요. 영상은 `youtube_video_id`로 등록돼요. DB에 없는 영상이면 제목은 YouTube Data API로 가져오고, 못 찾으면 파일 이름을 써요.
+- 30분이 넘는 영상은 422(`VIDEO_TOO_LONG`)예요.
+
+```bash
+curl -F path=/home/team22/scenefinder_eval/videos/x54thOO7NHU.mp4 -F force=true \
+  http://localhost:8000/api/videos/youtube/x54thOO7NHU/analyze-local
+```
+
+응답 (202, 분석 시작)
+
+```json
+{ "status": "PROCESSING", "youtube_video_id": "x54thOO7NHU", "source": "local", "message": "로컬 영상 파일을 분석 중입니다." }
+```
+
+- 이미 분석된 영상이고 `force`가 없으면 200 `{"status": "INDEXED", ...}`, 이미 분석 중이면 202예요.
+- 이후 `GET .../status`로 `INDEXED`가 될 때까지 확인해요(3번).
+- 에러: `INVALID_YOUTUBE_ID`(400), `LOCAL_SOURCE_REQUIRED`(400, path·file이 없거나 둘 다), `UNSUPPORTED_FILE`(400),
+  `INVALID_VIDEO_FILE`(400, 영상을 읽을 수 없음), `LOCAL_PATH_NOT_ALLOWED`(403), `LOCAL_FILE_NOT_FOUND`(404), `VIDEO_TOO_LONG`(422)
+
 ## 4. 다중 장면 검색
 `POST /api/search/multi`
 
