@@ -39,11 +39,15 @@ def to_py(labels_path, out):
              f"# 영상 키 → ({LOCAL_VIDEO_DIR} 파일명 또는 저장소 기준 경로, 인수인계 폴더의 파일명)",
              "VIDEO_FILES = {"]
     for k in keys:
-        file = qs.videos[k]["file"]
+        file = qs.videos[k]["file"] or f"{qs.videos[k]['youtube_id']}.mp4"   # YouTube만 있으면 <ID>.mp4로 찾음
         rest = file[len(LOCAL_VIDEO_DIR) + 1:]
         local = rest if file.startswith(LOCAL_VIDEO_DIR + "/") and "/" not in rest else file
         lines.append(f"    {k!r}: ({local!r}, {qs.videos[k].get('handoff')!r}),")
     lines += ["}", "", "VIDEO_NAMES = {" + ", ".join(f"{k!r}: {qs.name(k)!r}" for k in keys) + "}", ""]
+    youtube = {k: qs.videos[k]["youtube_id"] for k in keys if qs.videos[k].get("youtube_id")}
+    if youtube:
+        lines += ["# 영상 키 → YouTube ID (파일이 없으면 ~/scenefinder_eval/videos/<ID>.mp4에서 찾음)",
+                  "VIDEO_YOUTUBE = {" + ", ".join(f"{k!r}: {v!r}" for k, v in youtube.items()) + "}", ""]
     domains = {k: data["videos"][k].get("domain", "") for k in keys}
     if any(domains.values()):
         lines += ["VIDEO_DOMAINS = {" + ", ".join(f"{k!r}: {v!r}" for k, v in domains.items()) + "}", ""]
@@ -82,8 +86,9 @@ def from_py(out):
             duration = None
         file = info["file"] if "/" in info["file"] else f"{LOCAL_VIDEO_DIR}/{info['file']}"
         videos[k] = {"file": file, "name": qs.name(k), "domain": "", "duration": duration}
-        if info.get("handoff"):
-            videos[k]["handoff"] = info["handoff"]
+        for extra in ("handoff", "youtube_id"):
+            if info.get(extra):
+                videos[k][extra] = info[extra]
     queries = [{"num": num, "video": key, "type": typ, "query": ko, "gt": [list(g) for g in gts]}
                for num, key, typ, ko, gts in qs.queries]
     data = {"format": FORMAT, "videos": videos, "queries": queries}

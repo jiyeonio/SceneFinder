@@ -1,6 +1,6 @@
 # 평가 질의 라벨링 도구
 
-로컬 영상을 브라우저에서 재생하며 질의를 쓰고, 정답 구간의 시작·끝을 버튼(또는 단축키)으로 찍어 JSON으로 저장합니다.
+로컬 영상이나 YouTube 영상을 브라우저에서 재생하며 질의를 쓰고, 정답 구간의 시작·끝을 버튼(또는 단축키)으로 찍어 JSON으로 저장합니다.
 저장한 JSON은 `ai/experiments/translation_compare`의 `run.py`·`captions.py`·`fusion.py`가 `--queries`로 바로 읽습니다.
 
 표준 라이브러리만 쓰므로 따로 설치할 것은 없습니다 (`convert.py from-py`의 영상 길이 확인에만 ffprobe 사용).
@@ -18,10 +18,27 @@
 http://127.0.0.1:8765 에 접속합니다. 원격 서버에서 실행했다면 VS Code의 포트 포워딩을 쓰거나
 `ssh -L 8765:127.0.0.1:8765 <서버>`로 연결합니다. 서버는 기본으로 127.0.0.1에서만 받습니다.
 
+- `--videos`를 생략하면 `data/raw/korean_test`와 `~/scenefinder_eval/videos` 중 있는 폴더를 씁니다.
 - `--labels` 파일이 없으면 빈 세트로 시작하고, 첫 저장 때 만듭니다.
 - 질의를 저장·수정·삭제할 때마다 바로 파일에 씁니다. 이전 내용은 `<labels>.bak`으로 남습니다.
 - 저장이 실패하면 상단에 빨간 글씨로 표시됩니다. 이때는 「JSON 내려받기」로 백업하세요.
 - 영상 파일은 저장소에 넣지 않습니다(`.gitignore`의 `*.mp4`). 라벨 JSON에는 경로만 기록합니다.
+
+## YouTube 영상 라벨링
+
+mp4가 없어도 YouTube 임베드로 재생하며 라벨링할 수 있습니다.
+
+    python tools/labeler/server.py --labels ai/experiments/translation_compare/labels.json \
+        --youtube-list docs/experiments/eval_youtube_videos.tsv [--youtube 영상ID ...]
+
+- `--youtube-list`: 머리행에 `youtube_id`가 있는 TSV(선택 열: `key`, `title`, `domain`은 영상 정보에 미리 채워짐) 또는 한 줄에 ID 하나인 텍스트 파일.
+- 페이지 왼쪽 위 입력칸에 YouTube 주소(`watch?v=`, `youtu.be/`, `shorts/`)나 ID를 넣어 바로 추가할 수도 있습니다.
+- 재생은 **사용자 브라우저에서** YouTube로 합니다. 서버는 영상을 받지 않습니다.
+- 라벨에는 `youtube_id`만 저장합니다(`file` 없음). 실험 스크립트는 `~/scenefinder_eval/videos/<ID>.mp4`를 찾아 씁니다. 폴더는 `SCENEFINDER_EVAL_VIDEO_DIRS`로 바꿀 수 있습니다.
+- `--videos` 폴더에 `<ID>.mp4`가 있으면 같은 항목에 「파일」 표시가 붙고, 재생을 YouTube ↔ 로컬 파일로 바꿀 수 있습니다. 받은 mp4가 YouTube와 시간이 맞는지 확인할 때 씁니다.
+- 찍은 시간은 YouTube 재생 시간 기준입니다. 나중에 받는 mp4는 앞뒤를 자르지 않은 전체 영상이어야 합니다.
+- 업로더가 임베드를 막은 영상은 재생되지 않고 오류 문구가 나옵니다([인벤토리](../../docs/experiments/analyzed_youtube_inventory.tsv)의 `임베드` 열).
+- YouTube 화면을 클릭해도 키보드 포커스를 이 페이지로 되돌리므로 단축키는 계속 동작합니다. YouTube 자체 단축키는 꺼 두었습니다.
 
 ## 사용법
 
@@ -61,6 +78,7 @@ http://127.0.0.1:8765 에 접속합니다. 원격 서버에서 실행했다면 V
     }
 
 - `file`: 저장소 안이면 루트 기준 상대 경로, 밖이면 절대 경로. 실험 스크립트는 이 경로에 없으면 `data/raw/korean_test/<파일명>`에서도 찾습니다.
+- `youtube_id`: YouTube 영상이면 `file` 대신 저장합니다. 예: `"steak_camp": {"youtube_id": "05f8sG4OhZs", "name": "야외 스테이크", "domain": "요리", "title": "…", "duration": 882.0}`
 - `num`: 세트 안에서 고유한 번호입니다. 새 질의는 가장 큰 번호 + 1을 받고, 삭제해도 다른 번호는 바뀌지 않습니다.
 - `handoff`(선택): 인수인계 폴더의 원래 파일명입니다. `from-py`로 만든 기존 영상에만 있습니다.
 

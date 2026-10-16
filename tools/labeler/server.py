@@ -1,13 +1,17 @@
 """평가 질의 라벨링 도구 서버. 로컬 영상을 브라우저로 재생하며 질의와 정답 구간을 JSON으로 저장합니다.
 
-    python tools/labeler/server.py --labels labels.json --videos data/raw/korean_test [다른 영상 폴더 ...]
+    python tools/labeler/server.py --labels labels.json --videos data/raw/korean_test [다른 영상 폴더 ...] \
+        [--youtube-list docs/experiments/eval_youtube_videos.tsv] [--youtube 영상ID ...]
     → http://127.0.0.1:8765 접속 (원격 서버라면 VS Code 포트 포워딩이나 ssh -L 8765:127.0.0.1:8765)
 
 - 표준 라이브러리만 사용합니다. 영상 탐색(seek)이 되도록 HTTP Range 요청을 지원합니다.
 - 저장 형식은 README.md 참고. 저장할 때마다 이전 파일을 <labels>.bak으로 남깁니다.
 - 목록에 있는 영상 파일만 내려주고, 다른 경로는 열지 않습니다.
+- YouTube 영상은 브라우저에서 YouTube 임베드로 재생합니다(서버는 영상을 받지 않음). --videos 폴더에
+  <영상ID>.mp4가 있으면 같은 항목에서 로컬 파일 재생으로도 바꿀 수 있습니다.
 """
 import argparse
+import csv
 import json
 import mimetypes
 import os
@@ -22,6 +26,8 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
 FORMAT = "scenefinder-labels/1"
 VIDEO_EXT = {".mp4", ".webm", ".mov", ".mkv", ".m4v"}
+YOUTUBE_ID = re.compile(r"[A-Za-z0-9_-]{11}")
+EVAL_VIDEO_DIR = Path.home() / "scenefinder_eval/videos"
 CHUNK = 1 << 20
 
 
@@ -32,14 +38,41 @@ def repo_path(path: Path) -> str:
     return absolute if rel.startswith("..") else rel
 
 
-def scan_videos(dirs):
+def read_youtube_list(path):
+    """TSV(머리행에 youtube_id, 선택: key·title·domain) 또는 한 줄에 ID 하나. #으로 시작하는 줄은 무시."""
+    lines = [l for l in Path(path).read_text(encoding="utf-8").splitlines() if l.strip() and not l.startswith("#")]
+    if lines and "youtube_id" in lines[0].split("\t"):
+        return list(csv.DictReader(lines, delimiter="\t"))
+    return [{"youtube_id": l.split()[0]} for l in lines]
+
+
+def scan_videos(dirs, youtube=()):
+    """로컬 영상 파일과 YouTube 항목 목록. <ID>.mp4 같은 로컬 파일은 해당 YouTube 항목에 붙임."""
     files = []
     for d in dirs:
         d = Path(d)
         if not d.is_dir():
             sys.exit(f"영상 폴더가 없습니다: {d}")
         files += sorted(p for p in d.rglob("*") if p.suffix.lower() in VIDEO_EXT and p.is_file())
-    return [{"id": i, "file": repo_path(p), "basename": p.name, "path": p} for i, p in enumerate(files)]
+    by_stem = {p.stem: p for p in files}
+    items, used = [], set()
+    for y in youtube:
+        yid = (y.get("youtube_id") or "").strip()
+        if not YOUTUBE_ID.fullmatch(yid):
+            sys.exit(f"YouTube ID 형식이 아닙니다: {yid!r}")
+        if any(it["youtube_id"] == yid for it in items):
+            continue
+        local = by_stem.get(yid)
+        if local:
+            used.add(local)
+        items.append({"youtube_id": yid, "title": y.get("title") or "", "key": y.get("key") or "",
+                      "domain": y.get("domain") or "", "path": local})
+    items += [{"youtube_id": None, "path": p} for p in files if p not in used]
+    for i, it in enumerate(items):
+        it["id"] = i
+        it["file"] = repo_path(it["path"]) if it["path"] else None
+        it["basename"] = it["path"].name if it["path"] else None
+    return items
 
 
 def validate(data):
@@ -51,8 +84,10 @@ def validate(data):
     for key, v in videos.items():
         if not re.fullmatch(r"[A-Za-z0-9_-]+", key):
             errors.append(f"영상 키 {key!r}: 영문·숫자·_·-만 사용")
-        if not v.get("file"):
-            errors.append(f"영상 {key}: file이 비어 있음")
+        if not v.get("file") and not v.get("youtube_id"):
+            errors.append(f"영상 {key}: file 또는 youtube_id가 필요함")
+        if v.get("youtube_id") and not YOUTUBE_ID.fullmatch(str(v["youtube_id"])):
+            errors.append(f"영상 {key}: YouTube ID 형식이 아님")
     for q in data.get("queries", []):
         num = q.get("num")
         if num in nums:
@@ -73,7 +108,7 @@ def validate(data):
 
 
 def make_handler(videos, labels_path: Path):
-    by_id = {v["id"]: v for v in videos}
+    by_id = {v["id"]: v for v in videos if v["path"]}
 
     class Handler(BaseHTTPRequestHandler):
         def log_message(self, fmt, *args):  # 영상 Range 요청 로그가 너무 많아 오류만 출력
@@ -99,7 +134,8 @@ def make_handler(videos, labels_path: Path):
                 self.end_headers()
                 self.wfile.write(body)
             elif url.path == "/api/videos":
-                self.send_json([{k: v[k] for k in ("id", "file", "basename")} for v in videos])
+                self.send_json([{k: v.get(k) for k in ("id", "file", "basename", "youtube_id", "title", "key", "domain")}
+                                for v in videos])
             elif url.path == "/api/labels":
                 if labels_path.exists():
                     self.send_json(json.loads(labels_path.read_text(encoding="utf-8")))
@@ -178,14 +214,21 @@ def make_handler(videos, labels_path: Path):
 def main():
     parser = argparse.ArgumentParser(description="평가 질의 라벨링 도구")
     parser.add_argument("--labels", required=True, help="읽고 저장할 라벨 JSON (없으면 새로 만듦)")
-    parser.add_argument("--videos", nargs="+", default=[str(ROOT / "data/raw/korean_test")], help="영상 폴더 (여러 개 가능)")
+    parser.add_argument("--videos", nargs="+", default=None,
+                        help=f"영상 폴더 (여러 개 가능, 기본: data/raw/korean_test와 {EVAL_VIDEO_DIR} 중 있는 것)")
+    parser.add_argument("--youtube-list", help="YouTube 영상 목록 TSV (예: docs/experiments/eval_youtube_videos.tsv)")
+    parser.add_argument("--youtube", nargs="+", default=[], help="YouTube 영상 ID (여러 개 가능)")
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8765)
     args = parser.parse_args()
 
-    videos = scan_videos(args.videos)
+    dirs = args.videos or [d for d in (ROOT / "data/raw/korean_test", EVAL_VIDEO_DIR) if d.is_dir()]
+    youtube = (read_youtube_list(args.youtube_list) if args.youtube_list else []) + [{"youtube_id": y} for y in args.youtube]
+    videos = scan_videos(dirs, youtube)
     labels_path = Path(args.labels).absolute()
-    print(f"영상 {len(videos)}개, 라벨 파일: {labels_path}")
+    n_yt = sum(1 for v in videos if v["youtube_id"])
+    n_local = sum(1 for v in videos if v["path"])
+    print(f"영상 {len(videos)}개 (YouTube {n_yt}개, 로컬 파일 {n_local}개), 라벨 파일: {labels_path}")
     server = ThreadingHTTPServer((args.host, args.port), make_handler(videos, labels_path))
     print(f"http://{args.host}:{args.port} 에서 실행 중 (Ctrl+C로 종료)")
     try:

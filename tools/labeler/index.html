@@ -20,6 +20,12 @@
   #videoList button.on { border-color: var(--accent); background: #eef3ff; }
   #videoList small { color: var(--muted); display: block; }
   video { width: 100%; max-height: 58vh; background: #000; border-radius: 6px; }
+  #ytWrap { position: relative; width: 100%; aspect-ratio: 16 / 9; max-height: 58vh; background: #000; border-radius: 6px; overflow: hidden; }
+  #ytWrap iframe, #ytWrap > div { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .badge { display: inline-block; font-size: 10px; font-weight: 700; border-radius: 4px; padding: 0 4px; margin-right: 4px; color: #fff; background: #c4302b; vertical-align: 1px; }
+  .badge.local { background: var(--muted); }
+  #addYt { display: flex; gap: 4px; margin-bottom: 8px; }
+  #addYt input { flex: 1; min-width: 0; }
   .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 6px 0; }
   .time { font: 600 20px ui-monospace, monospace; min-width: 120px; }
   label.f { display: flex; flex-direction: column; gap: 2px; font-size: 12px; color: var(--muted); }
@@ -53,11 +59,13 @@
 <main>
   <section>
     <h2>영상</h2>
+    <div id="addYt"><input id="ytInput" placeholder="YouTube 주소 또는 ID"><button class="b" id="ytAdd">추가</button></div>
     <div id="videoList"></div>
   </section>
 
   <section>
     <video id="player" controls preload="metadata"></video>
+    <div id="ytWrap" hidden><div id="yt"></div></div>
     <div class="row">
       <span class="time" id="now">0.0</span>
       <span class="muted" id="dur"></span>
@@ -65,7 +73,12 @@
         <option value="0.5">0.5×</option><option value="0.75">0.75×</option>
         <option value="1" selected>1×</option><option value="1.5">1.5×</option><option value="2">2×</option>
       </select>
+      <span id="modeBox" hidden>재생:
+        <label><input type="radio" name="pmode" value="yt"> YouTube</label>
+        <label><input type="radio" name="pmode" value="local"> 로컬 파일</label>
+      </span>
     </div>
+    <div id="playerMsg" class="muted"></div>
     <h2>영상 정보</h2>
     <div class="row">
       <label class="f">키 (영문·숫자·_·-)<input id="vKey" size="14"></label>
@@ -78,6 +91,7 @@
       <kbd>Space</kbd> 재생/정지 · <kbd>←</kbd><kbd>→</kbd> 1초 · <kbd>Shift</kbd>+<kbd>←</kbd><kbd>→</kbd> 5초 ·
       <kbd>,</kbd><kbd>.</kbd> 0.1초 · <kbd>[</kbd> 시작 찍기 · <kbd>]</kbd> 끝 찍기 · <kbd>Enter</kbd>(입력칸 밖) 구간 추가.
       입력칸에 글을 쓰는 동안에는 단축키가 동작하지 않습니다 (<kbd>Esc</kbd>로 입력칸에서 나가기).
+      YouTube 화면을 눌러도 단축키는 이 페이지로 돌아옵니다. 시간은 YouTube 재생 시간 기준이라, 나중에 받는 mp4는 자르지 않은 전체 영상이어야 합니다.
     </div>
   </section>
 
@@ -110,12 +124,12 @@
 <script>
 const FORMAT = "scenefinder-labels/1";
 const $ = (id) => document.getElementById(id);
-const player = $("player");
-let videos = [];                 // 서버의 영상 파일 목록 [{id, file, basename}]
+const video = $("player");
+let videos = [];                 // 영상 목록 [{id, file, basename, youtube_id, title, key, domain}]
 let labels = { format: FORMAT, videos: {}, queries: [] };
-let current = null;              // 선택한 영상 파일
+let current = null;              // 선택한 영상 항목
 let draft = { gt: [], editing: null };
-let previewEnd = null;
+let previewEnd = null;           // 구간 미리보기의 끝 시간
 
 const r1 = (t) => Math.round(t * 10) / 10;
 const fmt = (t) => (t == null || isNaN(t) ? "-" : r1(t).toFixed(1));
@@ -132,75 +146,203 @@ async function api(path, opts) {
   return body;
 }
 
+// ---------- 재생기: 로컬 <video>와 YouTube 임베드를 같은 방식으로 다룸 ----------
+let yt = null;                   // YT.Player
+let ytReady = null;              // IFrame API 로딩 Promise
+let ytTitle = "";
+const media = {
+  mode: "local",
+  time() { return this.mode === "yt" ? (yt && yt.getCurrentTime ? yt.getCurrentTime() : 0) : video.currentTime; },
+  duration() {
+    const d = this.mode === "yt" ? (yt && yt.getDuration ? yt.getDuration() : 0) : video.duration;
+    return d > 0 && isFinite(d) ? d : null;
+  },
+  seek(t) {
+    t = Math.max(0, this.duration() ? Math.min(this.duration(), t) : t);
+    if (this.mode === "yt") { if (yt) yt.seekTo(t, true); } else video.currentTime = t;
+  },
+  play() { this.mode === "yt" ? yt && yt.playVideo() : video.play(); },
+  pause() { this.mode === "yt" ? yt && yt.pauseVideo() : video.pause(); },
+  paused() { return this.mode === "yt" ? !yt || !yt.getPlayerState || yt.getPlayerState() !== 1 : video.paused; },
+  setRate(r) { this.mode === "yt" ? yt && yt.setPlaybackRate && yt.setPlaybackRate(r) : (video.playbackRate = r); },
+};
+
+function loadYouTubeApi() {
+  if (!ytReady) {
+    ytReady = new Promise((resolve, reject) => {
+      window.onYouTubeIframeAPIReady = resolve;
+      const s = document.createElement("script");
+      s.src = "https://www.youtube.com/iframe_api";
+      s.onerror = () => reject(new Error("YouTube 재생기를 불러오지 못했습니다 (인터넷 연결 확인)"));
+      document.head.appendChild(s);
+    });
+  }
+  return ytReady;
+}
+
+const YT_ERRORS = { 2: "영상 ID가 잘못됐습니다", 5: "브라우저에서 재생할 수 없는 영상입니다", 100: "삭제됐거나 비공개인 영상입니다",
+  101: "업로더가 다른 사이트에서의 재생(임베드)을 막았습니다", 150: "업로더가 다른 사이트에서의 재생(임베드)을 막았습니다" };
+
+async function loadMedia(item, mode) {
+  media.pause();
+  previewEnd = null;
+  ytTitle = "";
+  $("playerMsg").textContent = "";
+  media.mode = mode;
+  video.hidden = mode === "yt";
+  $("ytWrap").hidden = mode !== "yt";
+  if (mode === "local") {
+    video.src = `/media?id=${item.id}`;
+    return;
+  }
+  video.removeAttribute("src");
+  try {
+    await loadYouTubeApi();
+  } catch (e) { $("playerMsg").textContent = e.message; return; }
+  if (current !== item || media.mode !== "yt") return;     // 기다리는 사이 다른 영상을 골랐으면 무시
+  if (yt) { yt.cueVideoById(item.youtube_id); return; }
+  yt = new YT.Player("yt", {
+    videoId: item.youtube_id,
+    playerVars: { rel: 0, playsinline: 1, disablekb: 1 },
+    events: {
+      onReady: () => media.setRate(parseFloat($("rate").value)),
+      onError: (ev) => { $("playerMsg").textContent = "YouTube 재생 오류: " + (YT_ERRORS[ev.data] || ev.data); },
+    },
+  });
+}
+
+// 100ms마다: 현재 시간 표시, 미리보기 끝에서 멈춤, YouTube 화면으로 간 키보드 포커스를 페이지로 되돌림
+function tick() {
+  const t = media.time();
+  $("now").textContent = fmt(t);
+  const d = media.duration();
+  $("dur").textContent = d ? `/ ${fmt(d)}초` : "";
+  // YouTube는 seekTo 직후 잠깐 이전 시간을 돌려주므로, 끝 시간 바로 뒤(1.5초 안)일 때만 멈춤
+  if (previewEnd != null && t >= previewEnd && t < previewEnd + 1.5) { media.pause(); previewEnd = null; }
+  if (document.activeElement && document.activeElement.tagName === "IFRAME") document.activeElement.blur();
+  if (media.mode === "yt" && yt && yt.getVideoData && !ytTitle) {
+    ytTitle = (yt.getVideoData() || {}).title || "";
+    if (ytTitle && current && !current.title) { current.title = ytTitle; renderVideoList(); }
+  }
+}
+setInterval(tick, 100);
+video.addEventListener("loadedmetadata", () => media.setRate(parseFloat($("rate").value)));
+$("rate").onchange = () => media.setRate(parseFloat($("rate").value));
+document.querySelectorAll("input[name=pmode]").forEach((r) => {
+  r.onchange = () => { if (r.checked && current) loadMedia(current, r.value); };
+});
+
 // ---------- 저장 ----------
 let saving = Promise.resolve();
 function save() {
   const snapshot = JSON.stringify(labels);
   setStatus("저장 중…");
   saving = saving.then(() => api("/api/labels", { method: "PUT", headers: { "Content-Type": "application/json" }, body: snapshot }))
-    .then((r) => { setStatus(`저장됨 (${new Date().toLocaleTimeString()})`); $("errors").textContent = ""; })
+    .then(() => { setStatus(`저장됨 (${new Date().toLocaleTimeString()})`); $("errors").textContent = ""; })
     .catch((e) => { setStatus("저장 실패 — JSON 내려받기로 백업하세요", true); $("errors").textContent = e.message; });
   renderCounts();
 }
 
 // ---------- 영상 ----------
-const keyOf = (file) => Object.keys(labels.videos).find((k) => labels.videos[k].file === file);
-function defaultKey(basename) {
-  let k = basename.replace(/\.[^.]+$/, "").replace(/[^A-Za-z0-9_-]+/g, "_").replace(/^_+|_+$/g, "") || "video";
-  let base = k, i = 2;
+// YouTube 항목은 youtube_id로, 로컬 파일은 file 경로로 라벨의 영상과 짝지음
+function keyOf(item) {
+  return Object.keys(labels.videos).find((k) => {
+    const v = labels.videos[k];
+    return item.youtube_id ? v.youtube_id === item.youtube_id : !v.youtube_id && v.file === item.file;
+  });
+}
+function sanitizeKey(text) {
+  return text.replace(/\.[^.]+$/, "").replace(/[^A-Za-z0-9_-]+/g, "_").replace(/^_+|_+$/g, "") || "video";
+}
+function defaultKey(item) {
+  let base = item.key || (item.youtube_id ? item.youtube_id : sanitizeKey(item.basename));
+  let k = base, i = 2;
   while (labels.videos[k]) k = `${base}_${i++}`;
   return k;
 }
+const label = (item) => item.youtube_id ? (item.title || item.youtube_id) : item.basename;
+
+// 라벨에만 있는 YouTube 영상(서버 목록에 없음)과 직접 추가한 영상도 목록에 넣음
+function addYouTubeItem(yid, extra = {}) {
+  let item = videos.find((v) => v.youtube_id === yid);
+  if (!item) {
+    item = { id: null, file: null, basename: null, youtube_id: yid, title: "", key: "", domain: "", ...extra };
+    videos.push(item);
+  }
+  return item;
+}
+function parseYouTubeId(text) {
+  text = text.trim();
+  const m = text.match(/(?:v=|youtu\.be\/|shorts\/|embed\/|live\/)([A-Za-z0-9_-]{11})/) || text.match(/^([A-Za-z0-9_-]{11})$/);
+  return m ? m[1] : null;
+}
+$("ytAdd").onclick = () => {
+  const yid = parseYouTubeId($("ytInput").value);
+  if (!yid) { $("errors").textContent = "YouTube 주소나 11자리 영상 ID를 넣으세요"; return; }
+  $("ytInput").value = "";
+  const item = addYouTubeItem(yid);
+  selectVideo(item);
+};
+$("ytInput").addEventListener("keydown", (ev) => { if (ev.key === "Enter") { ev.preventDefault(); $("ytAdd").onclick(); } });
 
 function renderVideoList() {
   const box = $("videoList");
   box.innerHTML = "";
   for (const v of videos) {
-    const key = keyOf(v.file);
+    const key = keyOf(v);
     const n = key ? labels.queries.filter((q) => q.video === key).length : 0;
     const b = document.createElement("button");
-    b.className = current && current.id === v.id ? "on" : "";
-    b.innerHTML = `${esc(v.basename)}<small>${key ? esc(key) + " · " : ""}질의 ${n}개</small>`;
+    b.className = current === v ? "on" : "";
+    const badges = (v.youtube_id ? '<span class="badge">YT</span>' : "") + (v.id != null ? '<span class="badge local">파일</span>' : "");
+    b.innerHTML = `${badges}${esc(label(v))}<small>${key ? esc(key) + " · " : ""}질의 ${n}개</small>`;
     b.onclick = () => selectVideo(v);
     box.appendChild(b);
   }
-  if (!videos.length) box.textContent = "영상이 없습니다. --videos 폴더를 확인하세요.";
+  if (!videos.length) box.textContent = "영상이 없습니다. --videos 폴더나 --youtube-list를 확인하거나 위에 YouTube 주소를 넣으세요.";
 }
 
 function selectVideo(v) {
   current = v;
-  player.src = `/media?id=${v.id}`;
-  const key = keyOf(v.file);
+  const key = keyOf(v);
   const info = key ? labels.videos[key] : {};
-  $("vKey").value = key || defaultKey(v.basename);
+  $("vKey").value = key || defaultKey(v);
   $("vName").value = info.name || "";
-  $("vDomain").value = info.domain || "";
-  $("vFile").textContent = v.file;
+  $("vDomain").value = info.domain || v.domain || "";
+  $("vFile").textContent = v.youtube_id
+    ? `YouTube ${v.youtube_id}` + (v.file ? ` · 로컬 파일 ${v.file}` : " · 로컬 파일 없음")
+    : v.file;
+  const both = v.youtube_id && v.id != null;
+  $("modeBox").hidden = !both;
+  const mode = v.youtube_id ? "yt" : "local";
+  document.querySelectorAll("input[name=pmode]").forEach((r) => { r.checked = r.value === mode; });
+  loadMedia(v, mode);
   resetDraft();
   renderVideoList();
-  renderQueries();
 }
 
 // 질의를 처음 저장할 때 영상 정보를 등록
 function ensureVideo() {
-  let key = keyOf(current.file);
+  let key = keyOf(current);
   const wanted = $("vKey").value.trim();
   if (!/^[A-Za-z0-9_-]+$/.test(wanted)) throw new Error("영상 키는 영문·숫자·_·-만 쓸 수 있습니다");
   if (!key) {
     if (labels.videos[wanted]) throw new Error(`키 ${wanted}는 다른 영상이 쓰고 있습니다`);
     key = wanted;
-    labels.videos[key] = { file: current.file };
+    // YouTube 영상은 ID만 저장 (mp4는 실험할 때 ~/scenefinder_eval/videos/<ID>.mp4에서 찾음)
+    labels.videos[key] = current.youtube_id ? { youtube_id: current.youtube_id } : { file: current.file };
   }
-  Object.assign(labels.videos[key], {
+  const v = labels.videos[key];
+  Object.assign(v, {
     name: $("vName").value.trim() || key,
     domain: $("vDomain").value.trim(),
-    duration: isFinite(player.duration) ? r1(player.duration) : labels.videos[key].duration ?? null,
+    duration: media.duration() ? r1(media.duration()) : v.duration ?? null,
   });
+  if (current.youtube_id && current.title) v.title = current.title;
   return key;
 }
 
 function updateVideoInfo() {
-  const key = current && keyOf(current.file);
+  const key = current && keyOf(current);
   if (!key) return;                       // 아직 질의가 없으면 첫 저장 때 등록
   const wanted = $("vKey").value.trim();
   try {
@@ -224,7 +366,7 @@ function readTime(id) {
   return isNaN(t) ? null : r1(t);
 }
 function mark(which) {
-  $(which === "start" ? "segStart" : "segEnd").value = fmt(player.currentTime);
+  $(which === "start" ? "segStart" : "segEnd").value = fmt(media.time());
 }
 function addSegment() {
   const s = readTime("segStart"), e = readTime("segEnd");
@@ -309,7 +451,7 @@ function deleteQuery(q) {
 
 function renderQueries() {
   const box = $("queryList");
-  const key = current && keyOf(current.file);
+  const key = current && keyOf(current);
   const list = key ? labels.queries.filter((q) => q.video === key).sort((a, b) => a.num - b.num) : [];
   if (!list.length) { box.textContent = "없음"; return; }
   box.innerHTML = "";
@@ -341,27 +483,15 @@ function renderCounts() {
   $("counts").textContent = `전체 질의 ${labels.queries.length}개 (S ${S} · V ${V}) · 영상 ${Object.keys(labels.videos).length}개`;
 }
 
-// ---------- 재생 ----------
+// ---------- 재생 조작 ----------
 function preview(s, e) {
-  player.currentTime = s;
+  media.seek(s);
+  media.play();
   previewEnd = e;
-  player.play();
 }
-player.addEventListener("timeupdate", () => {
-  $("now").textContent = fmt(player.currentTime);
-  if (previewEnd != null && player.currentTime >= previewEnd) { player.pause(); previewEnd = null; }
-});
-player.addEventListener("seeking", () => { $("now").textContent = fmt(player.currentTime); });
-player.addEventListener("loadedmetadata", () => {
-  $("dur").textContent = `/ ${fmt(player.duration)}초`;
-  player.playbackRate = parseFloat($("rate").value);
-});
-player.addEventListener("pause", () => { previewEnd = null; });
-$("rate").onchange = () => { player.playbackRate = parseFloat($("rate").value); };
-
 function seek(delta) {
   previewEnd = null;
-  player.currentTime = Math.max(0, Math.min(player.duration || 0, player.currentTime + delta));
+  media.seek(media.time() + delta);
 }
 
 document.addEventListener("keydown", (ev) => {
@@ -369,7 +499,7 @@ document.addEventListener("keydown", (ev) => {
   if (ev.key === "Escape" && typing) { document.activeElement.blur(); return; }
   if (typing || ev.ctrlKey || ev.metaKey || ev.altKey || !current) return;
   const handlers = {
-    " ": () => (player.paused ? player.play() : player.pause()),
+    " ": () => { previewEnd = null; media.paused() ? media.play() : media.pause(); },
     ArrowLeft: () => seek(ev.shiftKey ? -5 : -1),
     ArrowRight: () => seek(ev.shiftKey ? 5 : 1),
     ",": () => seek(-0.1),
@@ -412,7 +542,11 @@ window.addEventListener("beforeunload", (ev) => {
 (async () => {
   try {
     [videos, labels] = await Promise.all([api("/api/videos"), api("/api/labels")]);
-    labels.videos ||= {}; labels.queries ||= [];
+    labels.videos = labels.videos || {};
+    labels.queries = labels.queries || [];
+    for (const v of Object.values(labels.videos)) {
+      if (v.youtube_id) addYouTubeItem(v.youtube_id, { title: v.title || "" });
+    }
     setStatus("준비됨");
     renderCounts();
     renderVideoList();
