@@ -113,3 +113,30 @@
     새 형식 키를 쓰면 4번 절의 확인(검색·회원가입·로그인)으로 백엔드(supabase-py 2.31.0)와 동작하는지 꼭 확인하세요.
 - [ ] anon(publishable) 키는 필요 없습니다. 어디에도 넣지 않습니다.
 - [ ] 키·URL은 `backend/.env*` 파일에만 두고 채팅·문서·커밋에 붙여넣지 않습니다.
+
+## 6. 이전 기록 (2026-10-16 완료)
+
+새 프로젝트(서울 리전)로 옮기고 백엔드를 새 DB로 전환했습니다. 팀 DB는 그대로 남아 있고, `bash tools/supabase/use_env.sh team`으로 되돌릴 수 있습니다.
+
+| 단계 | 결과 |
+|---|---|
+| 키 | `backend/.env.new`의 `SUPABASE_SERVICE_KEY`는 새 형식 secret 키(`sb_secret_`). supabase-py 2.31.0에서 읽기·쓰기·삭제·Auth admin 모두 동작 확인. 처음에 publishable 키가 들어가 있었는데, 이 경우 import 스크립트가 `--apply`를 거부하도록 고침 |
+| 스키마 | 대시보드 SQL Editor에서 `schema.sql` 실행, 테이블 4개 생성 |
+| Auth | Confirm email 끔 |
+| 데이터 | 팀 DB export(2026-10-16 11:10) → dry-run 통과 → `--apply`. videos 498행(INDEXED 365, PENDING 78, FAILED 55. PROCESSING 3개는 PENDING으로), video_features 110행. export 파일과 내용 차이 0 |
+| 번호 이어 붙이기 | `setval` 결과 225. 이후 새 video_features id가 226부터 나오는 것 확인 (실행 전에는 다음 번호 3이 기존 id와 겹쳐 새 feature 저장이 실패하는 상태였음) |
+| 전환 | `use_env.sh new` → 백엔드 재시작 |
+| 기능 확인 | 분석된 영상 상태 조회·검색, 회원가입, 로그인, 로그인 검색, 검색기록 조회, 즐겨찾기 추가·조회·삭제 모두 정상. 검색기록이 새 DB에만 저장되고 팀 DB에는 없는 것 확인. 테스트 계정·기록은 삭제(새 DB 회원 0명) |
+
+**schema.sql의 [추정] 항목 확인 결과** (SQL Editor 조회 + 동작 확인)
+
+| 항목 | schema.sql | 새 DB | 일치 |
+|---|---|---|---|
+| 인덱스 | 기본키 4개 + `favorites_user_idx`, `search_history_user_searched_idx`, `video_features_video_id_idx`, `videos_status_source_last_used_idx`, `videos_youtube_video_id_key` | 9개, 이름 같음. `videos_youtube_video_id_key`는 중복 등록 거부(23505)로도 확인 | ✅ |
+| 외래키 | `video_features.video_id` → `videos` | 없는 영상을 가리키는 feature 거부(23503) | ✅ |
+| 트리거 | `videos_set_updated_at` | 1개, 수정 시 `updated_at` 바뀜 | ✅ |
+| RLS | 4개 테이블 켜기, 정책 없음 | 4개 모두 true, 정책 0개 | ✅ |
+| `video_features.id` | identity | `pg_get_serial_sequence`로 setval 성공 | ✅ |
+
+- 1절의 선택 사항(`revoke ... from anon, authenticated`)은 실행하지 않았습니다. RLS를 켜고 정책이 없어서 anon·authenticated 키로는 이미 행을 읽고 쓸 수 없습니다.
+- 확인용으로 넣은 임시 행은 모두 지웠습니다(videos 498, video_features 110 유지).
