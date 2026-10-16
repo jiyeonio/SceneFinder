@@ -1,0 +1,424 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SceneFinder 라벨링</title>
+<style>
+  :root { --bg: #f6f7f9; --panel: #fff; --line: #d9dde3; --text: #1d2330; --muted: #677085; --accent: #2f6fed; --s: #1f8a5b; --v: #b4581b; --err: #c62828; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 14px/1.45 system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif; background: var(--bg); color: var(--text); }
+  header { display: flex; align-items: center; gap: 16px; padding: 10px 16px; background: var(--panel); border-bottom: 1px solid var(--line); }
+  header h1 { font-size: 16px; margin: 0; }
+  #status { margin-left: auto; color: var(--muted); }
+  #status.err { color: var(--err); font-weight: 600; }
+  main { display: grid; grid-template-columns: 240px minmax(0, 1fr) 380px; gap: 12px; padding: 12px; height: calc(100vh - 49px); }
+  section { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px; overflow: auto; }
+  h2 { font-size: 13px; margin: 0 0 8px; color: var(--muted); font-weight: 600; }
+  #videoList button { display: block; width: 100%; text-align: left; border: 1px solid transparent; background: none; padding: 6px 8px; border-radius: 6px; cursor: pointer; font: inherit; color: inherit; word-break: break-all; }
+  #videoList button:hover { background: var(--bg); }
+  #videoList button.on { border-color: var(--accent); background: #eef3ff; }
+  #videoList small { color: var(--muted); display: block; }
+  video { width: 100%; max-height: 58vh; background: #000; border-radius: 6px; }
+  .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 6px 0; }
+  .time { font: 600 20px ui-monospace, monospace; min-width: 120px; }
+  label.f { display: flex; flex-direction: column; gap: 2px; font-size: 12px; color: var(--muted); }
+  input, textarea, select { font: inherit; color: inherit; border: 1px solid var(--line); border-radius: 6px; padding: 5px 7px; background: #fff; }
+  input.num { width: 84px; font-family: ui-monospace, monospace; }
+  textarea { width: 100%; resize: vertical; min-height: 54px; }
+  button.b { font: inherit; border: 1px solid var(--line); background: #fff; border-radius: 6px; padding: 5px 10px; cursor: pointer; }
+  button.b:hover { border-color: var(--accent); }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  button.danger { color: var(--err); }
+  .seg { display: inline-flex; gap: 4px; align-items: center; background: var(--bg); border: 1px solid var(--line); border-radius: 12px; padding: 1px 4px 1px 8px; font: 12px ui-monospace, monospace; margin: 2px 4px 2px 0; }
+  .seg button { border: 0; background: none; cursor: pointer; padding: 0 3px; font: inherit; }
+  .q { border-top: 1px solid var(--line); padding: 8px 0; }
+  .q.editing { background: #fff8e6; }
+  .tag { display: inline-block; font-weight: 700; font-size: 11px; color: #fff; border-radius: 4px; padding: 0 5px; margin-right: 4px; }
+  .tag.S { background: var(--s); } .tag.V { background: var(--v); }
+  .muted { color: var(--muted); font-size: 12px; }
+  .help { color: var(--muted); font-size: 12px; margin-top: 8px; }
+  kbd { font: 11px ui-monospace, monospace; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 4px; background: #fff; }
+  .types label { margin-right: 10px; }
+  #errors { color: var(--err); font-size: 12px; white-space: pre-line; }
+</style>
+</head>
+<body>
+<header>
+  <h1>SceneFinder 평가 질의 라벨링</h1>
+  <span id="counts" class="muted"></span>
+  <span id="status">불러오는 중…</span>
+  <button class="b" id="download">JSON 내려받기</button>
+</header>
+<main>
+  <section>
+    <h2>영상</h2>
+    <div id="videoList"></div>
+  </section>
+
+  <section>
+    <video id="player" controls preload="metadata"></video>
+    <div class="row">
+      <span class="time" id="now">0.0</span>
+      <span class="muted" id="dur"></span>
+      <select id="rate" title="재생 속도">
+        <option value="0.5">0.5×</option><option value="0.75">0.75×</option>
+        <option value="1" selected>1×</option><option value="1.5">1.5×</option><option value="2">2×</option>
+      </select>
+    </div>
+    <h2>영상 정보</h2>
+    <div class="row">
+      <label class="f">키 (영문·숫자·_·-)<input id="vKey" size="14"></label>
+      <label class="f">표시 이름<input id="vName" size="12"></label>
+      <label class="f">분야<input id="vDomain" size="10" list="domains"></label>
+      <datalist id="domains"><option>요리</option><option>운동</option><option>쇼핑·리뷰</option><option>생활</option><option>교육</option><option>뉴스</option><option>여행</option></datalist>
+    </div>
+    <div class="muted" id="vFile"></div>
+    <div class="help">
+      <kbd>Space</kbd> 재생/정지 · <kbd>←</kbd><kbd>→</kbd> 1초 · <kbd>Shift</kbd>+<kbd>←</kbd><kbd>→</kbd> 5초 ·
+      <kbd>,</kbd><kbd>.</kbd> 0.1초 · <kbd>[</kbd> 시작 찍기 · <kbd>]</kbd> 끝 찍기 · <kbd>Enter</kbd>(입력칸 밖) 구간 추가.
+      입력칸에 글을 쓰는 동안에는 단축키가 동작하지 않습니다 (<kbd>Esc</kbd>로 입력칸에서 나가기).
+    </div>
+  </section>
+
+  <section>
+    <h2 id="formTitle">새 질의</h2>
+    <div class="types row">
+      <label><input type="radio" name="qtype" value="S" checked> S 말로 설명됨</label>
+      <label><input type="radio" name="qtype" value="V"> V 화면에만 보임</label>
+    </div>
+    <textarea id="qText" placeholder="예: 두부를 반으로 자르는 장면"></textarea>
+    <div class="row">
+      <label class="f">시작<input class="num" id="segStart" inputmode="decimal"></label>
+      <button class="b" id="markStart" title="단축키 [">시작 [</button>
+      <label class="f">끝<input class="num" id="segEnd" inputmode="decimal"></label>
+      <button class="b" id="markEnd" title="단축키 ]">끝 ]</button>
+      <button class="b" id="addSeg">구간 추가</button>
+    </div>
+    <div id="draftSegs" class="muted">정답 구간: 없음</div>
+    <label class="f" style="margin-top:6px">메모 (선택)<input id="qNote"></label>
+    <div class="row">
+      <button class="b primary" id="saveQ">질의 저장</button>
+      <button class="b" id="cancelEdit" hidden>편집 취소</button>
+    </div>
+    <div id="errors"></div>
+    <h2 style="margin-top:14px">이 영상의 질의</h2>
+    <div id="queryList" class="muted">없음</div>
+  </section>
+</main>
+
+<script>
+const FORMAT = "scenefinder-labels/1";
+const $ = (id) => document.getElementById(id);
+const player = $("player");
+let videos = [];                 // 서버의 영상 파일 목록 [{id, file, basename}]
+let labels = { format: FORMAT, videos: {}, queries: [] };
+let current = null;              // 선택한 영상 파일
+let draft = { gt: [], editing: null };
+let previewEnd = null;
+
+const r1 = (t) => Math.round(t * 10) / 10;
+const fmt = (t) => (t == null || isNaN(t) ? "-" : r1(t).toFixed(1));
+
+function setStatus(text, isErr = false) {
+  $("status").textContent = text;
+  $("status").className = isErr ? "err" : "";
+}
+
+async function api(path, opts) {
+  const res = await fetch(path, opts);
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error((body.errors || [res.statusText]).join("\n"));
+  return body;
+}
+
+// ---------- 저장 ----------
+let saving = Promise.resolve();
+function save() {
+  const snapshot = JSON.stringify(labels);
+  setStatus("저장 중…");
+  saving = saving.then(() => api("/api/labels", { method: "PUT", headers: { "Content-Type": "application/json" }, body: snapshot }))
+    .then((r) => { setStatus(`저장됨 (${new Date().toLocaleTimeString()})`); $("errors").textContent = ""; })
+    .catch((e) => { setStatus("저장 실패 — JSON 내려받기로 백업하세요", true); $("errors").textContent = e.message; });
+  renderCounts();
+}
+
+// ---------- 영상 ----------
+const keyOf = (file) => Object.keys(labels.videos).find((k) => labels.videos[k].file === file);
+function defaultKey(basename) {
+  let k = basename.replace(/\.[^.]+$/, "").replace(/[^A-Za-z0-9_-]+/g, "_").replace(/^_+|_+$/g, "") || "video";
+  let base = k, i = 2;
+  while (labels.videos[k]) k = `${base}_${i++}`;
+  return k;
+}
+
+function renderVideoList() {
+  const box = $("videoList");
+  box.innerHTML = "";
+  for (const v of videos) {
+    const key = keyOf(v.file);
+    const n = key ? labels.queries.filter((q) => q.video === key).length : 0;
+    const b = document.createElement("button");
+    b.className = current && current.id === v.id ? "on" : "";
+    b.innerHTML = `${esc(v.basename)}<small>${key ? esc(key) + " · " : ""}질의 ${n}개</small>`;
+    b.onclick = () => selectVideo(v);
+    box.appendChild(b);
+  }
+  if (!videos.length) box.textContent = "영상이 없습니다. --videos 폴더를 확인하세요.";
+}
+
+function selectVideo(v) {
+  current = v;
+  player.src = `/media?id=${v.id}`;
+  const key = keyOf(v.file);
+  const info = key ? labels.videos[key] : {};
+  $("vKey").value = key || defaultKey(v.basename);
+  $("vName").value = info.name || "";
+  $("vDomain").value = info.domain || "";
+  $("vFile").textContent = v.file;
+  resetDraft();
+  renderVideoList();
+  renderQueries();
+}
+
+// 질의를 처음 저장할 때 영상 정보를 등록
+function ensureVideo() {
+  let key = keyOf(current.file);
+  const wanted = $("vKey").value.trim();
+  if (!/^[A-Za-z0-9_-]+$/.test(wanted)) throw new Error("영상 키는 영문·숫자·_·-만 쓸 수 있습니다");
+  if (!key) {
+    if (labels.videos[wanted]) throw new Error(`키 ${wanted}는 다른 영상이 쓰고 있습니다`);
+    key = wanted;
+    labels.videos[key] = { file: current.file };
+  }
+  Object.assign(labels.videos[key], {
+    name: $("vName").value.trim() || key,
+    domain: $("vDomain").value.trim(),
+    duration: isFinite(player.duration) ? r1(player.duration) : labels.videos[key].duration ?? null,
+  });
+  return key;
+}
+
+function updateVideoInfo() {
+  const key = current && keyOf(current.file);
+  if (!key) return;                       // 아직 질의가 없으면 첫 저장 때 등록
+  const wanted = $("vKey").value.trim();
+  try {
+    if (wanted !== key) {
+      if (!/^[A-Za-z0-9_-]+$/.test(wanted)) throw new Error("영상 키는 영문·숫자·_·-만 쓸 수 있습니다");
+      if (labels.videos[wanted]) throw new Error(`키 ${wanted}는 다른 영상이 쓰고 있습니다`);
+      labels.videos[wanted] = labels.videos[key];
+      delete labels.videos[key];
+      labels.queries.forEach((q) => { if (q.video === key) q.video = wanted; });
+    }
+    ensureVideo();
+    save();
+    renderVideoList();
+  } catch (e) { $("errors").textContent = e.message; $("vKey").value = key; }
+}
+["vKey", "vName", "vDomain"].forEach((id) => $(id).addEventListener("change", updateVideoInfo));
+
+// ---------- 질의 작성 ----------
+function readTime(id) {
+  const t = parseFloat($(id).value);
+  return isNaN(t) ? null : r1(t);
+}
+function mark(which) {
+  $(which === "start" ? "segStart" : "segEnd").value = fmt(player.currentTime);
+}
+function addSegment() {
+  const s = readTime("segStart"), e = readTime("segEnd");
+  if (s == null || e == null) { $("errors").textContent = "시작과 끝을 모두 찍으세요"; return false; }
+  if (e <= s) { $("errors").textContent = "끝이 시작보다 뒤여야 합니다"; return false; }
+  draft.gt.push([s, e]);
+  draft.gt.sort((a, b) => a[0] - b[0]);
+  $("segStart").value = $("segEnd").value = "";
+  $("errors").textContent = "";
+  renderDraft();
+  return true;
+}
+function renderDraft() {
+  const box = $("draftSegs");
+  if (!draft.gt.length) { box.textContent = "정답 구간: 없음"; return; }
+  box.innerHTML = "정답 구간: ";
+  draft.gt.forEach(([s, e], i) => {
+    const span = document.createElement("span");
+    span.className = "seg";
+    span.innerHTML = `${fmt(s)}–${fmt(e)}`;
+    span.append(btn("▶", () => preview(s, e), "구간 재생"), btn("✕", () => { draft.gt.splice(i, 1); renderDraft(); }, "구간 삭제"));
+    box.appendChild(span);
+  });
+}
+function resetDraft() {
+  draft = { gt: [], editing: null };
+  $("qText").value = $("qNote").value = $("segStart").value = $("segEnd").value = "";
+  $("formTitle").textContent = "새 질의";
+  $("cancelEdit").hidden = true;
+  $("saveQ").textContent = "질의 저장";
+  $("errors").textContent = "";
+  renderDraft();
+  renderQueries();
+}
+
+function saveQuery() {
+  if (!current) return;
+  // 시작·끝을 찍고 '구간 추가'를 누르지 않았으면 함께 추가
+  if ($("segStart").value || $("segEnd").value) { if (!addSegment()) return; }
+  const text = $("qText").value.trim();
+  const type = document.querySelector("input[name=qtype]:checked").value;
+  if (!text) { $("errors").textContent = "질의를 입력하세요"; return; }
+  if (!draft.gt.length) { $("errors").textContent = "정답 구간을 하나 이상 추가하세요"; return; }
+  let key;
+  try { key = ensureVideo(); } catch (e) { $("errors").textContent = e.message; return; }
+  const item = { video: key, type, query: text, gt: draft.gt.map((g) => [...g]) };
+  const note = $("qNote").value.trim();
+  if (note) item.note = note;
+  if (draft.editing != null) {
+    const i = labels.queries.findIndex((q) => q.num === draft.editing);
+    labels.queries[i] = { num: draft.editing, ...item };
+  } else {
+    const num = labels.queries.reduce((m, q) => Math.max(m, q.num), 0) + 1;
+    labels.queries.push({ num, ...item });
+  }
+  save();
+  resetDraft();
+  renderVideoList();
+  $("qText").focus();
+}
+
+function editQuery(q) {
+  draft = { gt: q.gt.map((g) => [...g]), editing: q.num };
+  $("qText").value = q.query;
+  $("qNote").value = q.note || "";
+  document.querySelector(`input[name=qtype][value=${q.type}]`).checked = true;
+  $("formTitle").textContent = `#${q.num} 편집`;
+  $("cancelEdit").hidden = false;
+  $("saveQ").textContent = "수정 저장";
+  renderDraft();
+  renderQueries();
+}
+
+function deleteQuery(q) {
+  if (!confirm(`#${q.num} "${q.query}"를 삭제할까요?`)) return;
+  labels.queries = labels.queries.filter((x) => x.num !== q.num);
+  if (draft.editing === q.num) resetDraft();
+  save();
+  renderQueries();
+  renderVideoList();
+}
+
+function renderQueries() {
+  const box = $("queryList");
+  const key = current && keyOf(current.file);
+  const list = key ? labels.queries.filter((q) => q.video === key).sort((a, b) => a.num - b.num) : [];
+  if (!list.length) { box.textContent = "없음"; return; }
+  box.innerHTML = "";
+  for (const q of list) {
+    const div = document.createElement("div");
+    div.className = "q" + (draft.editing === q.num ? " editing" : "");
+    div.innerHTML = `<div><span class="tag ${q.type}">${q.type}</span><b>#${q.num}</b> ${esc(q.query)}</div>`;
+    const segs = document.createElement("div");
+    for (const [s, e] of q.gt) {
+      const span = document.createElement("span");
+      span.className = "seg";
+      span.textContent = `${fmt(s)}–${fmt(e)}`;
+      span.append(btn("▶", () => preview(s, e), "구간 재생"));
+      segs.appendChild(span);
+    }
+    div.appendChild(segs);
+    if (q.note) div.insertAdjacentHTML("beforeend", `<div class="muted">${esc(q.note)}</div>`);
+    const actions = document.createElement("div");
+    actions.className = "row";
+    actions.append(btn("편집", () => editQuery(q), "", "b"), btn("삭제", () => deleteQuery(q), "", "b danger"));
+    div.appendChild(actions);
+    box.appendChild(div);
+  }
+}
+
+function renderCounts() {
+  const S = labels.queries.filter((q) => q.type === "S").length;
+  const V = labels.queries.length - S;
+  $("counts").textContent = `전체 질의 ${labels.queries.length}개 (S ${S} · V ${V}) · 영상 ${Object.keys(labels.videos).length}개`;
+}
+
+// ---------- 재생 ----------
+function preview(s, e) {
+  player.currentTime = s;
+  previewEnd = e;
+  player.play();
+}
+player.addEventListener("timeupdate", () => {
+  $("now").textContent = fmt(player.currentTime);
+  if (previewEnd != null && player.currentTime >= previewEnd) { player.pause(); previewEnd = null; }
+});
+player.addEventListener("seeking", () => { $("now").textContent = fmt(player.currentTime); });
+player.addEventListener("loadedmetadata", () => {
+  $("dur").textContent = `/ ${fmt(player.duration)}초`;
+  player.playbackRate = parseFloat($("rate").value);
+});
+player.addEventListener("pause", () => { previewEnd = null; });
+$("rate").onchange = () => { player.playbackRate = parseFloat($("rate").value); };
+
+function seek(delta) {
+  previewEnd = null;
+  player.currentTime = Math.max(0, Math.min(player.duration || 0, player.currentTime + delta));
+}
+
+document.addEventListener("keydown", (ev) => {
+  const typing = ["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement.tagName);
+  if (ev.key === "Escape" && typing) { document.activeElement.blur(); return; }
+  if (typing || ev.ctrlKey || ev.metaKey || ev.altKey || !current) return;
+  const handlers = {
+    " ": () => (player.paused ? player.play() : player.pause()),
+    ArrowLeft: () => seek(ev.shiftKey ? -5 : -1),
+    ArrowRight: () => seek(ev.shiftKey ? 5 : 1),
+    ",": () => seek(-0.1),
+    ".": () => seek(0.1),
+    "[": () => mark("start"),
+    "]": () => mark("end"),
+    Enter: () => addSegment(),
+  };
+  if (handlers[ev.key]) { ev.preventDefault(); handlers[ev.key](); }
+});
+
+// ---------- 기타 ----------
+function btn(text, onclick, title = "", cls = "") {
+  const b = document.createElement("button");
+  b.textContent = text;
+  if (cls) b.className = cls;
+  if (title) b.title = title;
+  b.onclick = onclick;
+  return b;
+}
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+$("markStart").onclick = () => mark("start");
+$("markEnd").onclick = () => mark("end");
+$("addSeg").onclick = addSegment;
+$("saveQ").onclick = saveQuery;
+$("cancelEdit").onclick = resetDraft;
+$("download").onclick = () => {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(labels, null, 1)], { type: "application/json" }));
+  a.download = "labels.json";
+  a.click();
+};
+window.addEventListener("beforeunload", (ev) => {
+  if ($("status").classList.contains("err")) { ev.preventDefault(); ev.returnValue = ""; }
+});
+
+(async () => {
+  try {
+    [videos, labels] = await Promise.all([api("/api/videos"), api("/api/labels")]);
+    labels.videos ||= {}; labels.queries ||= [];
+    setStatus("준비됨");
+    renderCounts();
+    renderVideoList();
+    if (videos.length) selectVideo(videos[0]);
+  } catch (e) { setStatus("불러오기 실패: " + e.message, true); }
+})();
+</script>
+</body>
+</html>
