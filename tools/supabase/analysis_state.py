@@ -44,6 +44,24 @@ def read_env(path):
     return v["SUPABASE_URL"].rstrip("/"), v["SUPABASE_SERVICE_KEY"]
 
 
+def key_kind(key):
+    """키 종류만 판별 (값은 출력하지 않음): secret / service_role / publishable / anon / unknown."""
+    import base64
+    key = key.strip()
+    if key.startswith("sb_secret_"):
+        return "secret"
+    if key.startswith("sb_publishable_"):
+        return "publishable"
+    if key.startswith("eyJ") and key.count(".") == 2:
+        try:
+            payload = key.split(".")[1]
+            payload += "=" * (-len(payload) % 4)
+            return json.loads(base64.urlsafe_b64decode(payload)).get("role") or "unknown"
+        except ValueError:
+            return "unknown"
+    return "unknown"
+
+
 def client(url, key):
     from supabase import create_client
     return create_client(url, key)
@@ -139,6 +157,15 @@ def import_(folder: Path, apply: bool, keep_processing: bool):
     target = read_env(TARGET_ENV)
     if SOURCE_ENV.exists() and read_env(SOURCE_ENV)[0] == target[0]:
         sys.exit("backend/.env.new가 backend/.env와 같은 DB를 가리킵니다. 새 프로젝트 값을 넣었는지 확인하세요")
+    kind = key_kind(target[1])
+    if kind in ("publishable", "anon"):
+        msg = (f"backend/.env.new의 SUPABASE_SERVICE_KEY가 {kind} 키입니다. RLS 때문에 쓸 수 없으니 "
+               "대시보드 Project Settings → API Keys의 secret(또는 service_role) 키로 바꾸세요")
+        if apply:
+            sys.exit(msg)
+        print("경고:", msg)
+    elif kind not in ("secret", "service_role"):
+        print(f"경고: 키 종류를 알 수 없습니다({kind}). secret 또는 service_role 키인지 확인하세요")
     if not keep_processing:
         for r in data["videos"]:
             if r["status"] == "PROCESSING":
