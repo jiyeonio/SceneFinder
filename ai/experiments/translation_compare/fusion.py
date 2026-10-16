@@ -1,9 +1,11 @@
 """(d) 자막 검색 + (e) VLM 설명문 검색(Qwen3-VL-4B, 화면 글자 포함)의 실제 융합 실험.
 
-    python ai/experiments/translation_compare/fusion.py --out /tmp/translation_compare
+    python ai/experiments/translation_compare/fusion.py --out /tmp/translation_compare [--queries 라벨링.json]
 
 run.py와 captions.py가 --out에 만든 results.json, bench_<영상>_subtitles.json, captions_*.json을 읽고
 결과를 --out/fusion_results.json으로 저장합니다. 서비스 코드는 바꾸지 않습니다.
+질의·정답 구간은 --queries의 JSON에서 읽습니다. 생략하면 run.py가 쓴 질의 세트(results.json의 queries_source),
+그 기록도 없으면 queries.py를 씁니다. 자막이 없는 영상(말소리 없음)은 (d) 없이 설명문만으로 검색합니다.
 
 방식
   (e) 단독: 설명문만 검색. 구간 규칙 M0(그대로) / M1(앞뒤 1칸 확장) / M2(점수가 비슷한 이웃 칸 병합)
@@ -21,6 +23,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from run import ROOT, SUBTITLE_MIN_LEN, SUBTITLE_PAD_BEFORE, best_iou  # noqa: E402  (ROOT를 sys.path에 추가)
+import query_set  # noqa: E402
 
 from sentence_transformers import util  # noqa: E402
 
@@ -43,6 +46,8 @@ class Searcher:
         self.model = model
 
     def rank(self, query, items):
+        if not items:
+            return []
         windows = []
         for size in (1, 2, 3):
             for i in range(len(items) - size + 1):
@@ -88,9 +93,15 @@ def caption_span(top, caps, rule, single=None, dur=None):
     return (float(caps[first]["start_time"]), float(end))
 
 
+def load_json(path):
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--out", default=os.path.join(tempfile.gettempdir(), "translation_compare"))
+    parser.add_argument("--queries", default=None,
+                        help="라벨링 도구가 저장한 질의 JSON (생략하면 run.py가 쓴 질의 세트)")
     args = parser.parse_args()
     out = Path(args.out).resolve()
     os.chdir(ROOT)
@@ -98,32 +109,54 @@ def main():
     load_dotenv(ROOT / "backend" / ".env")
     from ai.features.fusion_search import get_semantic_model
 
-    res = json.loads((out / "results.json").read_text(encoding="utf-8"))
-    caps_all = {v: json.loads((out / f"captions_{v}.json").read_text(encoding="utf-8"))["videos"]
-                for v in (CAPTION_VARIANT, "qwen_excl")}
-    subs_all = {k: json.loads((out / f"bench_{k}_subtitles.json").read_text(encoding="utf-8"))["segments"]
-                for k in res["meta"]["durations"]}
+    res = load_json(out / "results.json")
+    source = res["meta"].get("queries_source")
+    queries_path = args.queries or (source if source and source.endswith(".json") else None)
+    if queries_path and not Path(queries_path).is_absolute() and not Path(queries_path).exists():
+        queries_path = ROOT / queries_path   # results.json에는 저장소 루트 기준 경로로 기록됨
+    qs = query_set.load(queries_path)
+    print("질의:", qs.source, f"({len(qs.queries)}개)")
+
     durs = res["meta"]["durations"]
+    missing = []
+    for key in qs.video_keys:
+        if key not in durs:
+            missing.append(f"results.json에 {key} 영상이 없음 → run.py를 같은 --queries로 다시 실행")
+        if not (out / f"bench_{key}_subtitles.json").exists():
+            missing.append(f"bench_{key}_subtitles.json 없음 → run.py를 같은 --queries로 다시 실행")
+    caps_all = {}
+    for v in (CAPTION_VARIANT, "qwen_excl"):
+        path = out / f"captions_{v}.json"
+        caps_all[v] = load_json(path)["videos"] if path.exists() else {}
+    for key in qs.video_keys:
+        if key not in caps_all[CAPTION_VARIANT]:
+            missing.append(f"captions_{CAPTION_VARIANT}.json에 {key} 영상이 없음 → captions.py를 같은 --queries로 실행")
+    if missing:
+        sys.exit("\n".join(missing))
+    subs_all = {k: load_json(out / f"bench_{k}_subtitles.json")["segments"] for k in qs.video_keys}
+    prev_rows = {r["num"]: r for r in res["rows"]}
     S = Searcher(get_semantic_model(model_type="finetuned"))
 
-    rows, mismatch = [], 0
-    for r in res["rows"]:
-        key, ko, gts = r["video"], r["query"], [tuple(g) for g in r["gt"]]
+    rows, mismatch, checked = [], 0, 0
+    for num, key, typ, ko, gts in qs.queries:
         subs = [dict(s, source="sub") for s in subs_all[key]]
         caps = [dict(c, source="cap") for c in caps_all[CAPTION_VARIANT][key]]
-        out_row = {"num": r["num"], "type": r["type"], "query": ko, "gt": gts}
+        out_row = {"num": num, "video": key, "type": typ, "query": ko, "gt": gts}
 
-        # (d) 재현: run.py의 (d)와 같아야 함
-        sub_rank = S.rank(ko, subs)
-        sub_top = sub_rank[0]
-        d_seg = widen_subtitle((sub_top["start_time"], sub_top["end_time"]))
-        if abs(best_iou(d_seg, gts) - r["d"]["iou"]) > 1e-6:
-            mismatch += 1
-        out_row["d"] = {"seg": d_seg, "iou": best_iou(d_seg, gts), "score": sub_top["score"]}
+        # (d) 재현: 같은 질의면 run.py의 (d) 1위 구간과 같아야 함 (정답 구간을 고쳐도 비교되도록 IoU 대신 구간 비교)
+        sub_top = (S.rank(ko, subs) or [None])[0]
+        d_seg = widen_subtitle((sub_top["start_time"], sub_top["end_time"])) if sub_top else None
+        prev = prev_rows.get(num)
+        if prev and prev["query"] == ko and prev["video"] == key:
+            checked += 1
+            prev_seg = tuple(prev["d"]["seg"]) if "d" in prev else None
+            if (d_seg is None) != (prev_seg is None) or (d_seg and any(abs(x - y) > 1e-6 for x, y in zip(d_seg, prev_seg))):
+                mismatch += 1
+        out_row["d"] = ({"seg": d_seg, "iou": best_iou(d_seg, gts), "score": sub_top["score"]} if sub_top
+                        else {"seg": None, "iou": 0.0, "score": None})   # 자막 없음
 
         # (e) 단독 + 구간 규칙
-        cap_rank = S.rank(ko, caps)
-        cap_top = cap_rank[0]
+        cap_top = S.rank(ko, caps)[0]
         single = S.single_scores(ko, caps)
         for rule in ("M0", "M1", "M2"):
             seg = caption_span(cap_top, caps, rule, single, durs[key])
@@ -131,12 +164,12 @@ def main():
 
         # B: 각각 검색 후 점수가 높은 쪽
         for rule in ("M0", "M1", "M2"):
-            if sub_top["score"] >= cap_top["score"]:
+            if sub_top and sub_top["score"] >= cap_top["score"]:
                 pick = {"seg": d_seg, "from": "자막"}
             else:
                 pick = {"seg": out_row[f"e_{rule}"]["seg"], "from": "설명문"}
             out_row[f"B_{rule}"] = {**pick, "iou": best_iou(pick["seg"], gts),
-                                    "score": max(sub_top["score"], cap_top["score"])}
+                                    "score": max(sub_top["score"] if sub_top else -1.0, cap_top["score"])}
 
         # A: 하나의 시간순 목록으로 합쳐 검색 (창이 자막·설명문을 섞을 수 있음)
         merged = sorted(subs + caps, key=lambda x: (x["start_time"], x["source"]))
@@ -154,27 +187,29 @@ def main():
         stripped = [dict(c, text=strip_screen_text(c["text"])) for c in caps]
         st_top = S.rank(ko, stripped)[0]
         st_seg = (float(st_top["start_time"]), float(st_top["end_time"]))
-        excl_caps = [dict(c, source="cap") for c in caps_all["qwen_excl"][key]]
-        ex_top = S.rank(ko, excl_caps)[0]
+        excl = None
+        if key in caps_all["qwen_excl"]:
+            ex_top = S.rank(ko, [dict(c, source="cap") for c in caps_all["qwen_excl"][key]])[0]
+            ex_seg = (float(ex_top["start_time"]), float(ex_top["end_time"]))
+            excl = {"seg": ex_seg, "iou": best_iou(ex_seg, gts), "text": ex_top["text"]}
         out_row["text_ablation"] = {
             "incl": {"seg": out_row["e_M0"]["seg"], "iou": out_row["e_M0"]["iou"], "text": cap_top["text"]},
             "stripped": {"seg": st_seg, "iou": best_iou(st_seg, gts), "text": st_top["text"]},
-            "excl": {"seg": (float(ex_top["start_time"]), float(ex_top["end_time"])),
-                     "iou": best_iou((float(ex_top["start_time"]), float(ex_top["end_time"])), gts), "text": ex_top["text"]},
+            "excl": excl,
             "quoted": [m.group(0) for c in caps_all[CAPTION_VARIANT][key]
                        if any(min(c["end_time"], b) - max(c["start_time"], a) > 0 for a, b in gts)
                        for m in QUOTE_RE.finditer(c["text"])],
         }
         rows.append(out_row)
-        print(f"#{r['num']:2d} {r['type']} d={out_row['d']['iou']:.2f} e0={out_row['e_M0']['iou']:.2f} "
+        print(f"#{num:2d} {typ} d={out_row['d']['iou']:.2f} e0={out_row['e_M0']['iou']:.2f} "
               f"e1={out_row['e_M1']['iou']:.2f} e2={out_row['e_M2']['iou']:.2f} A={out_row['A']['iou']:.2f}({kind}) "
               f"B0={out_row['B_M0']['iou']:.2f}({out_row['B_M0']['from']}) B2={out_row['B_M2']['iou']:.2f}", flush=True)
 
-    meta = {"caption_variant": CAPTION_VARIANT, "merge_delta": MERGE_DELTA, "merge_max_bins": MERGE_MAX_BINS,
-            "d_reproduction_mismatches": mismatch}
+    meta = {"queries_source": qs.source, "caption_variant": CAPTION_VARIANT, "merge_delta": MERGE_DELTA,
+            "merge_max_bins": MERGE_MAX_BINS, "d_reproduction_checked": checked, "d_reproduction_mismatches": mismatch}
     (out / "fusion_results.json").write_text(json.dumps({"meta": meta, "rows": rows}, ensure_ascii=False, indent=1),
                                              encoding="utf-8")
-    print("(d) 재현 불일치:", mismatch, "| 저장:", out / "fusion_results.json")
+    print(f"(d) 재현 불일치: {mismatch}/{checked} | 저장:", out / "fusion_results.json")
 
 
 if __name__ == "__main__":

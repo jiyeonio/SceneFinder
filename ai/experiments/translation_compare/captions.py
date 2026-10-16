@@ -1,11 +1,12 @@
 """VLM으로 2초마다 한국어 장면 설명문을 만듭니다. (방식 (e)용)
 
-    python ai/experiments/translation_compare/captions.py --out /tmp/translation_compare [--variants qwen_excl,varco_excl,qwen_incl]
+    python ai/experiments/translation_compare/captions.py --out /tmp/translation_compare [--variants qwen_excl,varco_excl,qwen_incl] [--queries 라벨링.json]
 
 - 프레임: 각 2초 구간의 가운데 시점 1장 (CLIP feature와 같은 간격). 긴 변 640px로 축소
 - 생성: greedy(무작위 없음), 최대 80토큰
 - 시간: 1장씩 처리(batch 1)한 설명문을 결과로 쓰고, 같은 프레임을 묶음 처리(batch 8)한 시간도 따로 측정
-- 결과: --out/captions_<variant>.json (저장소에는 쓰지 않음)
+- 결과: --out/captions_<variant>.json (저장소에는 쓰지 않음). 실행한 질의 세트의 영상만 들어가고 기존 파일은 덮어씀
+- 영상: --queries를 주면 그 JSON에서 질의가 있는 영상, 없으면 queries.py의 영상
 """
 import argparse
 import json
@@ -21,8 +22,8 @@ import torch
 from PIL import Image
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from queries import VIDEO_FILES  # noqa: E402
-from run import duration, find_video  # noqa: E402
+import query_set  # noqa: E402
+from run import duration  # noqa: E402
 
 CLIP_LEN = 2.0
 MAX_SIDE = 640
@@ -101,10 +102,12 @@ def main():
     parser.add_argument("--out", default=os.path.join(tempfile.gettempdir(), "translation_compare"))
     parser.add_argument("--variants", default=",".join(VARIANTS))
     parser.add_argument("--skip-batch-timing", action="store_true", help="묶음 처리 시간 측정 생략")
+    parser.add_argument("--queries", default=None, help="라벨링 도구가 저장한 질의 JSON (없으면 queries.py)")
     args = parser.parse_args()
     out = Path(args.out).resolve(); out.mkdir(parents=True, exist_ok=True)
 
-    videos = {k: find_video(k) for k in VIDEO_FILES}
+    qs = query_set.load(args.queries)
+    videos = {k: qs.video_path(k) for k in qs.video_keys}
     t0 = time.perf_counter()
     frames = {k: extract_frames(p, duration(p)) for k, p in videos.items()}
     extract_sec = time.perf_counter() - t0
@@ -118,7 +121,7 @@ def main():
             (loaded[name]), load_sec = timed(load_model, name)
             print(f"{name} 로딩 {load_sec:.1f}초", flush=True)
         model, processor, dtype = loaded[name]
-        caption_batch(model, processor, dtype, [frames["squat"][0][2]], prompt)   # 워밍업
+        caption_batch(model, processor, dtype, [next(iter(frames.values()))[0][2]], prompt)   # 워밍업
 
         # 1장씩 처리 (결과로 사용)
         torch.cuda.reset_peak_memory_stats()
@@ -153,7 +156,7 @@ def main():
                 "frame_interval_sec": CLIP_LEN, "max_side_px": MAX_SIDE, "max_new_tokens": MAX_NEW_TOKENS,
                 "batch_size": BATCH_SIZE, "frame_extract_sec": extract_sec, "generated_tokens": tokens,
                 "single": single, "peak_gpu_gib_single": peak_single, "batch": batch,
-                "gpu": torch.cuda.get_device_name(0)}
+                "gpu": torch.cuda.get_device_name(0), "queries_source": qs.source}
         path = out / f"captions_{variant}.json"
         path.write_text(json.dumps({"meta": meta, "videos": result}, ensure_ascii=False, indent=1), encoding="utf-8")
         print("저장:", path, flush=True)

@@ -7,10 +7,12 @@
   (d) 자막 검색: 서비스와 같은 Whisper 자막 + Fine-tuned MiniLM 1위 구간 (서비스의 구간 보정 적용)
 
 실행 (프로젝트 루트에서, 가상환경과 backend/.env 준비 후):
-    python ai/experiments/translation_compare/run.py [--out 출력폴더]
+    python ai/experiments/translation_compare/run.py [--out 출력폴더] [--queries 라벨링.json]
     python ai/experiments/translation_compare/make_report.py [--results 출력폴더/results.json]
 
 영상 feature, 자막, 결과 JSON은 --out 폴더(기본: 시스템 임시 폴더)에 저장하고 저장소에는 쓰지 않습니다.
+--queries를 주면 queries.py 대신 라벨링 도구(tools/labeler)가 저장한 JSON의 질의·정답 구간·영상을 씁니다.
+feature·자막 캐시 파일 이름은 영상 키(bench_<키>)라, 같은 --out 폴더에서 같은 키를 다른 영상에 쓰면 안 됩니다.
 """
 import argparse
 import json
@@ -19,7 +21,6 @@ import random
 import subprocess
 import sys
 import tempfile
-import unicodedata
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -34,9 +35,8 @@ load_dotenv(ROOT / "backend" / ".env")
 import torch  # noqa: E402
 import torch.nn.functional as F  # noqa: E402
 
-from queries import QUERIES, VIDEO_FILES  # noqa: E402
+import query_set  # noqa: E402
 
-HANDOFF_VIDEO_DIR = ROOT / "ai/experiments/korean_ai_handoff/remaining_176_files/02_Korean_Video_Test"
 MULTI_CLIP_DIR = ROOT / "ai/experiments/korean_ai_handoff/model_assets/multilingual_clip"
 MULTI_CLIP_HF = "sentence-transformers/clip-ViT-B-32-multilingual-v1"  # 로컬 폴더가 없으면 HuggingFace에서 받음
 OPUS = "Helsinki-NLP/opus-mt-ko-en"
@@ -48,26 +48,20 @@ SUBTITLE_MIN_LEN = float(os.getenv("SUBTITLE_MIN_LEN", "6.0"))
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
 
-def find_video(key: str) -> Path:
-    """data/raw/korean_test에 있으면 그것을, 없으면 인수인계 폴더(있는 경우)에서 찾습니다.
-    테스트 영상은 저장소에 포함하지 않습니다. (인수인계 폴더의 한글 파일명은 NFD라 정규화해서 비교)"""
-    local_name, handoff_name = VIDEO_FILES[key]
-    local = ROOT / "data/raw/korean_test" / local_name
-    if local.exists():
-        return local
-    want = unicodedata.normalize("NFC", handoff_name)
-    for p in HANDOFF_VIDEO_DIR.glob("*.mp4"):
-        if unicodedata.normalize("NFC", p.name) == want:
-            return p
-    raise FileNotFoundError(f"테스트 영상을 찾을 수 없습니다: data/raw/korean_test/{local_name} 에 두세요")
-
-
 def duration(path: Path) -> float:
     out = subprocess.run(
         ["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", str(path)],
         capture_output=True, text=True,
     )
     return float(out.stdout.strip())
+
+
+def has_audio(path: Path) -> bool:
+    out = subprocess.run(
+        ["ffprobe", "-v", "error", "-select_streams", "a", "-show_entries", "stream=index", "-of", "csv=p=0", str(path)],
+        capture_output=True, text=True,
+    )
+    return bool(out.stdout.strip())
 
 
 def iou(a, b) -> float:
@@ -85,15 +79,19 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--out", default=os.path.join(tempfile.gettempdir(), "translation_compare"),
                         help="feature·자막·결과 JSON을 저장할 폴더 (저장소 밖 권장)")
+    parser.add_argument("--queries", default=None, help="라벨링 도구가 저장한 질의 JSON (없으면 queries.py)")
     args = parser.parse_args()
+    qs = query_set.load(args.queries)
+    QUERIES = qs.queries
     out = Path(args.out).resolve()
     out.mkdir(parents=True, exist_ok=True)
+    print("질의:", qs.source, f"({len(QUERIES)}개, 영상 {len(qs.video_keys)}개)")
     print("출력 폴더:", out)
 
     # ---------- 영상 feature (서비스와 같은 build_feature, 출력은 out 폴더) ----------
     from ai.features.moment_detr_features import build_feature
 
-    videos = {k: find_video(k) for k in VIDEO_FILES}
+    videos = {k: qs.video_path(k) for k in qs.video_keys}
     feats = {k: build_feature(str(p), f"bench_{k}", output_dir=str(out), overwrite=False) for k, p in videos.items()}
     durs = {k: duration(p) for k, p in videos.items()}
 
@@ -105,6 +103,9 @@ def main():
         cache = out / f"bench_{k}_subtitles.json"
         if cache.exists():
             subs[k] = json.loads(cache.read_text(encoding="utf-8"))
+        elif not has_audio(p):  # 오디오 트랙이 없는 영상: 자막 없음으로 처리 (Whisper 디코딩 오류 방지)
+            subs[k] = {"language": None, "segments": []}
+            cache.write_text(json.dumps(subs[k], ensure_ascii=False, indent=1), encoding="utf-8")
         else:
             items, language, _ = st._transcribe(str(p))
             subs[k] = {"language": language, "segments": items}
@@ -189,7 +190,7 @@ def main():
     # ---------- 무작위 기준선: 영상별 정답 평균 길이의 구간을 무작위 위치에 RANDOM_SAMPLES번 ----------
     rng = random.Random(RANDOM_SEED)
     gt_len = {}
-    for k in VIDEO_FILES:
+    for k in videos:
         spans = [g for (_, v, _, _, gts) in QUERIES if v == k for g in gts]
         gt_len[k] = sum(b - a for a, b in spans) / len(spans)
 
@@ -228,6 +229,7 @@ def main():
               f"d={row.get('d', {}).get('iou', float('nan')):.2f}", flush=True)
 
     meta = {
+        "queries_source": qs.source, "video_names": {k: qs.name(k) for k in videos},
         "nllb": NLLB_NAME, "opus": OPUS, "mclip": "sentence-transformers/clip-ViT-B-32-multilingual-v1",
         "whisper": st.WHISPER_MODEL_SIZE, "minilm": "fine-tuned MiniLM (SCENEFINDER_MINILM_MODEL_PATH)",
         "subtitle_pad_before": SUBTITLE_PAD_BEFORE, "subtitle_min_len": SUBTITLE_MIN_LEN,
