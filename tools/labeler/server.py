@@ -80,7 +80,8 @@ def validate(data):
     errors = []
     if data.get("format") != FORMAT:
         errors.append(f"format은 {FORMAT}이어야 합니다")
-    videos, nums = data.get("videos", {}), set()
+    videos = data.get("videos", {})
+    nums = {n.get("num") for n in data.get("negative_queries", [])}   # 정답 없음 질의와도 번호가 겹치면 안 됨
     for key, v in videos.items():
         if not re.fullmatch(r"[A-Za-z0-9_-]+", key):
             errors.append(f"영상 키 {key!r}: 영문·숫자·_·-만 사용")
@@ -99,6 +100,10 @@ def validate(data):
             errors.append(f"#{num}: 유형은 S 또는 V")
         if not str(q.get("query", "")).strip():
             errors.append(f"#{num}: 질의가 비어 있음")
+        if q.get("source", "human") not in ("ai_draft", "human_reviewed", "human"):
+            errors.append(f"#{num}: source는 ai_draft/human_reviewed/human 중 하나")
+        if q.get("overlay_text") not in (None, True, False):
+            errors.append(f"#{num}: overlay_text는 true/false")
         gt = q.get("gt")
         is_seg = lambda g: (isinstance(g, list) and len(g) == 2  # noqa: E731
                             and all(isinstance(x, (int, float)) for x in g) and g[1] > g[0])

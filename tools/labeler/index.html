@@ -42,6 +42,14 @@
   .q.editing { background: #fff8e6; }
   .tag { display: inline-block; font-weight: 700; font-size: 11px; color: #fff; border-radius: 4px; padding: 0 5px; margin-right: 4px; }
   .tag.S { background: var(--s); } .tag.V { background: var(--v); }
+  .src { display: inline-block; font-size: 11px; border-radius: 4px; padding: 0 5px; margin-left: 4px; border: 1px solid; }
+  .src.ai_draft { color: #a15c00; border-color: #e3b066; background: #fff6e6; }
+  .src.human_reviewed { color: var(--s); border-color: #8fcfb0; background: #eaf7f0; }
+  .src.human { color: var(--muted); border-color: var(--line); }
+  .src.overlay { color: #5b3fb5; border-color: #b9a8ea; background: #f3effd; }
+  #progress { font-weight: 600; }
+  .listHead { display: flex; align-items: center; justify-content: space-between; margin-top: 14px; }
+  .listHead h2 { margin: 0; }
   .muted { color: var(--muted); font-size: 12px; }
   .help { color: var(--muted); font-size: 12px; margin-top: 8px; }
   kbd { font: 11px ui-monospace, monospace; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 4px; background: #fff; }
@@ -53,6 +61,7 @@
 <header>
   <h1>SceneFinder 평가 질의 라벨링</h1>
   <span id="counts" class="muted"></span>
+  <span id="progress"></span>
   <span id="status">불러오는 중…</span>
   <button class="b" id="download">JSON 내려받기</button>
 </header>
@@ -110,13 +119,15 @@
       <button class="b" id="addSeg">구간 추가</button>
     </div>
     <div id="draftSegs" class="muted">정답 구간: 없음</div>
+    <label style="display:block;margin-top:6px"><input type="checkbox" id="qOverlay"> 화면 글자로 찾을 수 있음 (overlay_text)</label>
     <label class="f" style="margin-top:6px">메모 (선택)<input id="qNote"></label>
     <div class="row">
       <button class="b primary" id="saveQ">질의 저장</button>
+      <button class="b" id="saveReview" hidden>수정 저장 + 검수 완료</button>
       <button class="b" id="cancelEdit" hidden>편집 취소</button>
     </div>
     <div id="errors"></div>
-    <h2 style="margin-top:14px">이 영상의 질의</h2>
+    <div class="listHead"><h2>이 영상의 질의</h2><label class="muted"><input type="checkbox" id="onlyPending"> 미검수만 보기</label></div>
     <div id="queryList" class="muted">없음</div>
   </section>
 </main>
@@ -290,11 +301,13 @@ function renderVideoList() {
   box.innerHTML = "";
   for (const v of videos) {
     const key = keyOf(v);
-    const n = key ? labels.queries.filter((q) => q.video === key).length : 0;
+    const mine = key ? labels.queries.filter((q) => q.video === key) : [];
+    const n = mine.length;
+    const pending = mine.filter((q) => sourceOf(q) === "ai_draft").length;
     const b = document.createElement("button");
     b.className = current === v ? "on" : "";
     const badges = (v.youtube_id ? '<span class="badge">YT</span>' : "") + (v.id != null ? '<span class="badge local">파일</span>' : "");
-    b.innerHTML = `${badges}${esc(label(v))}<small>${key ? esc(key) + " · " : ""}질의 ${n}개</small>`;
+    b.innerHTML = `${badges}${esc(label(v))}<small>${key ? esc(key) + " · " : ""}질의 ${n}개${pending ? ` · 미검수 ${pending}` : ""}</small>`;
     b.onclick = () => selectVideo(v);
     box.appendChild(b);
   }
@@ -396,13 +409,20 @@ function resetDraft() {
   $("qText").value = $("qNote").value = $("segStart").value = $("segEnd").value = "";
   $("formTitle").textContent = "새 질의";
   $("cancelEdit").hidden = true;
+  $("saveReview").hidden = true;
+  $("qOverlay").checked = false;
   $("saveQ").textContent = "질의 저장";
   $("errors").textContent = "";
   renderDraft();
   renderQueries();
 }
 
-function saveQuery() {
+// 검수 상태: ai_draft(AI 초안) → human_reviewed(검수 완료). 처음부터 사람이 쓴 질의는 human
+const SOURCE_LABEL = { ai_draft: "AI 초안", human_reviewed: "검수 완료", human: "직접 작성" };
+const sourceOf = (q) => q.source || "human";
+const allNums = () => labels.queries.concat(labels.negative_queries || []).map((q) => q.num);
+
+function saveQuery(markReviewed = false) {
   if (!current) return;
   // 시작·끝을 찍고 '구간 추가'를 누르지 않았으면 함께 추가
   if ($("segStart").value || $("segEnd").value) { if (!addSegment()) return; }
@@ -412,15 +432,18 @@ function saveQuery() {
   if (!draft.gt.length) { $("errors").textContent = "정답 구간을 하나 이상 추가하세요"; return; }
   let key;
   try { key = ensureVideo(); } catch (e) { $("errors").textContent = e.message; return; }
-  const item = { video: key, type, query: text, gt: draft.gt.map((g) => [...g]) };
+  const item = { video: key, type, query: text, gt: draft.gt.map((g) => [...g]), overlay_text: $("qOverlay").checked };
   const note = $("qNote").value.trim();
-  if (note) item.note = note;
   if (draft.editing != null) {
+    // 수정해도 source 등 이 화면에 없는 필드는 그대로 둠
     const i = labels.queries.findIndex((q) => q.num === draft.editing);
-    labels.queries[i] = { num: draft.editing, ...item };
+    const next = { ...labels.queries[i], ...item };
+    if (note) next.note = note; else delete next.note;
+    if (markReviewed && next.source === "ai_draft") next.source = "human_reviewed";
+    labels.queries[i] = next;
   } else {
-    const num = labels.queries.reduce((m, q) => Math.max(m, q.num), 0) + 1;
-    labels.queries.push({ num, ...item });
+    const num = Math.max(0, ...allNums()) + 1;   // 정답 없음 질의와도 번호가 겹치지 않게
+    labels.queries.push({ num, ...item, ...(note ? { note } : {}), source: "human" });
   }
   save();
   resetDraft();
@@ -432,6 +455,8 @@ function editQuery(q) {
   draft = { gt: q.gt.map((g) => [...g]), editing: q.num };
   $("qText").value = q.query;
   $("qNote").value = q.note || "";
+  $("qOverlay").checked = !!q.overlay_text;
+  $("saveReview").hidden = sourceOf(q) !== "ai_draft";
   document.querySelector(`input[name=qtype][value=${q.type}]`).checked = true;
   $("formTitle").textContent = `#${q.num} 편집`;
   $("cancelEdit").hidden = false;
@@ -452,13 +477,17 @@ function deleteQuery(q) {
 function renderQueries() {
   const box = $("queryList");
   const key = current && keyOf(current);
-  const list = key ? labels.queries.filter((q) => q.video === key).sort((a, b) => a.num - b.num) : [];
-  if (!list.length) { box.textContent = "없음"; return; }
+  let list = key ? labels.queries.filter((q) => q.video === key).sort((a, b) => a.num - b.num) : [];
+  if ($("onlyPending").checked) list = list.filter((q) => sourceOf(q) === "ai_draft");
+  if (!list.length) { box.textContent = $("onlyPending").checked ? "미검수 질의 없음" : "없음"; return; }
   box.innerHTML = "";
   for (const q of list) {
     const div = document.createElement("div");
     div.className = "q" + (draft.editing === q.num ? " editing" : "");
-    div.innerHTML = `<div><span class="tag ${q.type}">${q.type}</span><b>#${q.num}</b> ${esc(q.query)}</div>`;
+    const src = sourceOf(q);
+    div.innerHTML = `<div><span class="tag ${q.type}">${q.type}</span><b>#${q.num}</b> ${esc(q.query)}` +
+      `<span class="src ${src}">${SOURCE_LABEL[src] || esc(src)}</span>` +
+      (q.overlay_text ? '<span class="src overlay" title="화면 글자로 찾을 수 있음">화면 글자</span>' : "") + "</div>";
     const segs = document.createElement("div");
     for (const [s, e] of q.gt) {
       const span = document.createElement("span");
@@ -471,16 +500,29 @@ function renderQueries() {
     if (q.note) div.insertAdjacentHTML("beforeend", `<div class="muted">${esc(q.note)}</div>`);
     const actions = document.createElement("div");
     actions.className = "row";
+    if (src === "ai_draft") actions.append(btn("검수 완료", () => setReviewed(q, true), "AI 초안을 확인했으면 누르세요", "b primary"));
+    if (src === "human_reviewed") actions.append(btn("검수 취소", () => setReviewed(q, false), "", "b"));
     actions.append(btn("편집", () => editQuery(q), "", "b"), btn("삭제", () => deleteQuery(q), "", "b danger"));
     div.appendChild(actions);
     box.appendChild(div);
   }
 }
 
+function setReviewed(q, done) {
+  q.source = done ? "human_reviewed" : "ai_draft";
+  save();
+  renderQueries();
+  renderVideoList();
+}
+
 function renderCounts() {
   const S = labels.queries.filter((q) => q.type === "S").length;
   const V = labels.queries.length - S;
   $("counts").textContent = `전체 질의 ${labels.queries.length}개 (S ${S} · V ${V}) · 영상 ${Object.keys(labels.videos).length}개`;
+  // 진행률: AI 초안 중 검수한 것 (직접 쓴 질의는 세지 않음)
+  const drafts = labels.queries.filter((q) => ["ai_draft", "human_reviewed"].includes(sourceOf(q)));
+  const done = drafts.filter((q) => sourceOf(q) === "human_reviewed").length;
+  $("progress").textContent = drafts.length ? `검수 ${done}/${drafts.length}` : "";
 }
 
 // ---------- 재생 조작 ----------
@@ -527,7 +569,9 @@ function esc(s) {
 $("markStart").onclick = () => mark("start");
 $("markEnd").onclick = () => mark("end");
 $("addSeg").onclick = addSegment;
-$("saveQ").onclick = saveQuery;
+$("saveQ").onclick = () => saveQuery(false);
+$("saveReview").onclick = () => saveQuery(true);
+$("onlyPending").onchange = () => renderQueries();
 $("cancelEdit").onclick = resetDraft;
 $("download").onclick = () => {
   const a = document.createElement("a");
