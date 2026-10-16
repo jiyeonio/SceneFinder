@@ -1,13 +1,13 @@
-youtube_id	key	title	domain	duration_sec	speech	subtitle	feature	mp4	note
-36h_8hJiO50	airpods_review	지금 에어팟 사지마세요! 노이즈 캔슬링이 추가된 애플 에어팟 프로 숨겨진 기능 총정리!	리뷰	366	많음	ko 133문장	N	N	말 많음 · 제품 리뷰
-HsV9CMmEvFo	battery_lecture	스마트폰 ‘이 기능’ 때문에 배터리 수명이 줄어듭니다!! 95%가 모르는 스마트폰 배터리 수명 2배 늘리는 법!	강의	901	많음	ko 253문장	N	N	말 많음 · 설명 위주 강의형, 약 15분
-T7YJviWhquo	eggroll_paik	[Sub] 정말 쉬운 달걀말이!	요리	472	많음	ko 217문장	N	N	말 많음 · 요리 과정을 말로 설명 (S 질의 기준선)
-VIPlJ-u0nOw	room_vlog	자취 시작, 실제 방 꾸미기 보여드립니다	브이로그	525	많음	ko 172문장	N	N	말 많음 · 실내 브이로그
-x54thOO7NHU	tofu_braise	두부조림. 두부만 굽지마세요. 감칠맛나게 ㅇㅍ 왕창 넣으세용~~ Braised Tofu. 양념장 만드는 법. 두부조림 맛있게 만드는법	요리	207	중간	ko 52문장	N	N	말 중간 · 3분대 요리
-OSEFivkqPtc	wc_goals	64경기 172골 다 돌려봤습니다...2022 카타르 월드컵 베스트 골 TOP 10 / 스포츠머그	스포츠	434	중간	ko 74문장	N	N	말 중간 · 골 장면 모음과 해설. 30초 넘는 자막 구간 1개
-iSHVe7ozhEk	ag_final	[주요장면_2026 아시안게임] 남자 축구결승 대한민국 vs 일본	스포츠	181	중간	ko 40문장	N	N	말 중간 · 경기 하이라이트
-05f8sG4OhZs	steak_camp	Garlic Butter Steaks and Campfire Potatoes Outdoors	요리	882	거의 없음	en 0문장	Y	N	말 없음 · 야외 요리, 약 15분. 한국어 자막이 없어 서비스에서는 영상 검색 경로
-ynXCtZHoGXk	airpods_fake	Airpods pro real vs fake. How to spot counterfeit / clone Apple air pods	리뷰	584	거의 없음	en 0문장	Y	N	말 없음 · 정품/가품 비교 리뷰
-dvlV6iA3UaA	mukbang_chicken	SUB)단짠바삭 bhc 뿌링클 치킨 먹방🍗신메뉴 카이막 치즈볼 새우튀김까지 야식 꿀조합 Chicken & Cheese Balls Mukbang Asmr	먹방	474	거의 없음	ko 3문장	N	N	말 거의 없음 · 처음 20초만 말함. Whisper가 24–473초를 한 문장으로 만든 영상이라 자막 검색 오탐 확인용
-2qtKMC5wzkU	piano_canon	피아노 연주곡의 끝판왕! 조지 윈스턴 - 캐논변주곡	음악	331	거의 없음	en 0문장	Y	N	말 없음 · 피아노 연주
-9fmd1LOTa-E	tofu_silent	두부조림 이렇게 하는게 가장 맛있습니다. 안보면 후회하는 뒤집어지게 맛있는 방법! 들기름으로 먼저 구우면 맛이 20배	요리	160	거의 없음	en 0문장	Y	N	말 없음 · 두부조림 (기존 두부 영상과 같은 요리를 말 없이)
+youtube_id	key	title	domain	duration_sec	speech	subtitle	feature	mp4	split	note
+36h_8hJiO50	airpods_review	지금 에어팟 사지마세요! 노이즈 캔슬링이 추가된 애플 에어팟 프로 숨겨진 기능 총정리!	리뷰	366	많음	ko 133문장	N	N	test	말 많음 · 제품 리뷰
+HsV9CMmEvFo	battery_lecture	스마트폰 ‘이 기능’ 때문에 배터리 수명이 줄어듭니다!! 95%가 모르는 스마트폰 배터리 수명 2배 늘리는 법!	강의	901	많음	ko 253문장	N	N	test	말 많음 · 설명 위주 강의형, 약 15분
+T7YJviWhquo	eggroll_paik	[Sub] 정말 쉬운 달걀말이!	요리	472	많음	ko 217문장	N	N	dev	말 많음 · 요리 과정을 말로 설명 (S 질의 기준선)
+VIPlJ-u0nOw	room_vlog	자취 시작, 실제 방 꾸미기 보여드립니다	브이로그	525	많음	ko 172문장	N	N	dev	말 많음 · 실내 브이로그
+x54thOO7NHU	tofu_braise	두부조림. 두부만 굽지마세요. 감칠맛나게 ㅇㅍ 왕창 넣으세용~~ Braised Tofu. 양념장 만드는 법. 두부조림 맛있게 만드는법	요리	207	중간	ko 52문장	N	N	test	말 중간 · 3분대 요리
+OSEFivkqPtc	wc_goals	64경기 172골 다 돌려봤습니다...2022 카타르 월드컵 베스트 골 TOP 10 / 스포츠머그	스포츠	434	중간	ko 74문장	N	N	test	말 중간 · 골 장면 모음과 해설. 30초 넘는 자막 구간 1개
+iSHVe7ozhEk	ag_final	[주요장면_2026 아시안게임] 남자 축구결승 대한민국 vs 일본	스포츠	181	중간	ko 40문장	N	N	dev	말 중간 · 경기 하이라이트
+05f8sG4OhZs	steak_camp	Garlic Butter Steaks and Campfire Potatoes Outdoors	요리	882	거의 없음	en 0문장	Y	N	dev	말 없음 · 야외 요리, 약 15분. 한국어 자막이 없어 서비스에서는 영상 검색 경로
+ynXCtZHoGXk	airpods_fake	Airpods pro real vs fake. How to spot counterfeit / clone Apple air pods	리뷰	584	거의 없음	en 0문장	Y	N	dev	말 없음 · 정품/가품 비교 리뷰
+dvlV6iA3UaA	mukbang_chicken	SUB)단짠바삭 bhc 뿌링클 치킨 먹방🍗신메뉴 카이막 치즈볼 새우튀김까지 야식 꿀조합 Chicken & Cheese Balls Mukbang Asmr	먹방	474	거의 없음	ko 3문장	N	N	dev	말 거의 없음 · 처음 20초만 말함. Whisper가 24–473초를 한 문장으로 만든 영상이라 자막 검색 오탐 확인용
+2qtKMC5wzkU	piano_canon	피아노 연주곡의 끝판왕! 조지 윈스턴 - 캐논변주곡	음악	331	거의 없음	en 0문장	Y	N	test	말 없음 · 피아노 연주
+9fmd1LOTa-E	tofu_silent	두부조림 이렇게 하는게 가장 맛있습니다. 안보면 후회하는 뒤집어지게 맛있는 방법! 들기름으로 먼저 구우면 맛이 20배	요리	160	거의 없음	en 0문장	Y	N	test	말 없음 · 두부조림 (기존 두부 영상과 같은 요리를 말 없이)

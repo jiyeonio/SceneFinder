@@ -1,6 +1,7 @@
 """run.py·fusion.py 결과를 질의 묶음별로 집계합니다.
 
 묶음: 전체 / S / V / V·화면 글자 있음 / V·화면 글자 없음 / V·화면 글자 미표시 / source별(ai_draft·human_reviewed·human)
+      / split별(dev·test, eval_youtube_videos.tsv에 있는 영상만)
 지표: 평균 IoU, IoU ≥ 0.3 비율, IoU ≥ 0.5 비율. 결과가 없는 방식(예: 자막 없는 영상의 (d))은 IoU 0으로 셉니다.
 """
 import query_set
@@ -24,6 +25,7 @@ def groups(rows):
         ("V·화면 글자 미표시", [r for r in V if r.get("overlay_text") is None]),
     ]
     out += [(f"source={s}", [r for r in rows if r.get("source", "human") == s]) for s in query_set.SOURCES]
+    out += [(f"split={s}", [r for r in rows if r.get("split") == s]) for s in query_set.SUBSETS]
     return [(name, rs) for name, rs in out if rs]
 
 

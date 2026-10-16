@@ -103,10 +103,12 @@ def main():
     parser.add_argument("--variants", default=",".join(VARIANTS))
     parser.add_argument("--skip-batch-timing", action="store_true", help="묶음 처리 시간 측정 생략")
     parser.add_argument("--queries", default=None, help="라벨링 도구가 저장한 질의 JSON (없으면 queries.py)")
+    parser.add_argument("--subset", choices=query_set.SUBSETS, default=None,
+                        help="dev/test 영상의 질의만 (설정은 dev에서만 정하고 test는 최종 보고에만)")
     args = parser.parse_args()
     out = Path(args.out).resolve(); out.mkdir(parents=True, exist_ok=True)
 
-    qs = query_set.load(args.queries)
+    qs = query_set.load(args.queries, args.subset)
     videos = {k: qs.video_path(k) for k in qs.video_keys}
     t0 = time.perf_counter()
     frames = {k: extract_frames(p, duration(p)) for k, p in videos.items()}

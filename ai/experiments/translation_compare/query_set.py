@@ -16,7 +16,11 @@ JSON 형식 (tools/labeler/README.md 참고)
   없으면 human으로 봄
 - overlay_text(선택): true면 화면에 덧씌운 글자만으로도 찾을 수 있는 장면. 없으면 미표시(None)
 - negative_queries(선택): 영상에 없는 장면(정답 없음) 질의. 지금 실험 스크립트는 평가하지 않음
+
+dev/test 나누기: docs/experiments/eval_youtube_videos.tsv의 split 열(YouTube ID 기준). load(..., subset="dev")면
+dev 영상의 질의만 씁니다. 설정(규칙·임계값 등)은 dev에서만 정하고 test는 최종 보고에만 씁니다.
 """
+import csv
 import json
 import os
 import unicodedata
@@ -27,6 +31,16 @@ LOCAL_VIDEO_DIR = ROOT / "data/raw/korean_test"
 HANDOFF_VIDEO_DIR = ROOT / "ai/experiments/korean_ai_handoff/remaining_176_files/02_Korean_Video_Test"
 FORMAT = "scenefinder-labels/1"
 SOURCES = ("ai_draft", "human_reviewed", "human")
+SPLIT_FILE = ROOT / "docs/experiments/eval_youtube_videos.tsv"
+SUBSETS = ("dev", "test")
+
+
+def video_splits(path=SPLIT_FILE):
+    """YouTube ID → dev/test."""
+    if not Path(path).exists():
+        return {}
+    with open(path, encoding="utf-8") as f:
+        return {r["youtube_id"]: r["split"] for r in csv.DictReader(f, delimiter="\t") if r.get("split")}
 VIDEO_EXTS = (".mp4", ".webm", ".mkv", ".mov", ".m4v")
 
 
@@ -42,6 +56,7 @@ class QuerySet:
         self.source = source      # 읽은 파일 (결과 meta에 기록)
         # 번호 → {"source": 작성 출처, "overlay_text": True/False/None}
         self.info = info or {q[0]: {"source": "human", "overlay_text": None} for q in queries}
+        self.subset = None        # dev/test로 거른 경우
         self.videos = videos      # 키 → {"file": 경로 또는 None, "youtube_id": ID 또는 None, "name": 표시 이름,
                                   #        "handoff": 인수인계 파일명 또는 None}
         self.queries = queries    # [(번호, 영상 키, 유형, 질의, [(시작, 끝), ...])]
@@ -134,6 +149,17 @@ def _from_json(path: Path):
     return QuerySet(_source(path), videos, sorted(queries), info)
 
 
-def load(path=None) -> QuerySet:
-    """path가 없으면 queries.py, 있으면 라벨링 JSON."""
-    return _from_module() if path is None else _from_json(Path(path))
+def load(path=None, subset=None) -> QuerySet:
+    """path가 없으면 queries.py, 있으면 라벨링 JSON. subset(dev/test)을 주면 그 영상의 질의만."""
+    qs = _from_module() if path is None else _from_json(Path(path))
+    splits = video_splits()
+    for num, key, *_ in qs.queries:
+        qs.info[num]["split"] = splits.get(qs.videos[key].get("youtube_id"))
+    if subset:
+        if subset not in SUBSETS:
+            raise ValueError(f"subset은 {'/'.join(SUBSETS)} 중 하나 ({subset!r})")
+        qs.queries = [q for q in qs.queries if qs.info[q[0]]["split"] == subset]
+        if not qs.queries:
+            raise ValueError(f"{subset}에 해당하는 질의가 없습니다 ({SPLIT_FILE.name}의 split 열 확인)")
+        qs.subset = subset
+    return qs

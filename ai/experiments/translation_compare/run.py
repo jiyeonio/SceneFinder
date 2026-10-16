@@ -84,8 +84,10 @@ def main():
     parser.add_argument("--out", default=os.path.join(tempfile.gettempdir(), "translation_compare"),
                         help="feature·자막·결과 JSON을 저장할 폴더 (저장소 밖 권장)")
     parser.add_argument("--queries", default=None, help="라벨링 도구가 저장한 질의 JSON (없으면 queries.py)")
+    parser.add_argument("--subset", choices=query_set.SUBSETS, default=None,
+                        help="dev/test 영상의 질의만 (설정은 dev에서만 정하고 test는 최종 보고에만)")
     args = parser.parse_args()
-    qs = query_set.load(args.queries)
+    qs = query_set.load(args.queries, args.subset)
     QUERIES = qs.queries
     out = Path(args.out).resolve()
     out.mkdir(parents=True, exist_ok=True)
@@ -233,7 +235,7 @@ def main():
               f"d={row.get('d', {}).get('iou', float('nan')):.2f}", flush=True)
 
     meta = {
-        "queries_source": qs.source, "video_names": {k: qs.name(k) for k in videos},
+        "queries_source": qs.source, "subset": qs.subset, "video_names": {k: qs.name(k) for k in videos},
         "nllb": NLLB_NAME, "opus": OPUS, "mclip": "sentence-transformers/clip-ViT-B-32-multilingual-v1",
         "whisper": st.WHISPER_MODEL_SIZE, "minilm": "fine-tuned MiniLM (SCENEFINDER_MINILM_MODEL_PATH)",
         "subtitle_pad_before": SUBTITLE_PAD_BEFORE, "subtitle_min_len": SUBTITLE_MIN_LEN,

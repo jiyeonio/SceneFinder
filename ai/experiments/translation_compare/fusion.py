@@ -107,6 +107,8 @@ def main():
     parser.add_argument("--out", default=os.path.join(tempfile.gettempdir(), "translation_compare"))
     parser.add_argument("--queries", default=None,
                         help="라벨링 도구가 저장한 질의 JSON (생략하면 run.py가 쓴 질의 세트)")
+    parser.add_argument("--subset", choices=query_set.SUBSETS, default=None,
+                        help="dev/test 영상의 질의만 (생략하면 run.py와 같게)")
     args = parser.parse_args()
     out = Path(args.out).resolve()
     os.chdir(ROOT)
@@ -119,7 +121,8 @@ def main():
     queries_path = args.queries or (source if source and source.endswith(".json") else None)
     if queries_path and not Path(queries_path).is_absolute() and not Path(queries_path).exists():
         queries_path = ROOT / queries_path   # results.json에는 저장소 루트 기준 경로로 기록됨
-    qs = query_set.load(queries_path)
+    subset = args.subset or res["meta"].get("subset")   # 생략하면 run.py와 같은 subset
+    qs = query_set.load(queries_path, subset)
     print("질의:", qs.source, f"({len(qs.queries)}개)")
 
     durs = res["meta"]["durations"]
@@ -215,7 +218,7 @@ def main():
     result_summary = summary.summarize(rows, {k: summary.by_iou(lambda r, k=k: r[k]["iou"]) for k in keys})
     print(summary.format_table(result_summary, SUMMARY_LABELS))
 
-    meta = {"queries_source": qs.source, "caption_variant": CAPTION_VARIANT, "merge_delta": MERGE_DELTA,
+    meta = {"queries_source": qs.source, "subset": qs.subset, "caption_variant": CAPTION_VARIANT, "merge_delta": MERGE_DELTA,
             "merge_max_bins": MERGE_MAX_BINS, "d_reproduction_checked": checked, "d_reproduction_mismatches": mismatch}
     (out / "fusion_results.json").write_text(
         json.dumps({"meta": meta, "summary": result_summary, "rows": rows}, ensure_ascii=False, indent=1), encoding="utf-8")
