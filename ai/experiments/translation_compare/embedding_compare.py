@@ -116,12 +116,10 @@ def worker(model_key, args):
 NOISE = 3   # 설명문을 다시 만드는 것만으로 dev 47개 중 이 정도 움직임 (caption_batch_compare.md)
 
 
-def report(path, output):
+def annotate_kinds(models, queries_path):
+    """S 질의 종류(말 내용/화면 묘사): 라벨의 s_kind, 없으면 eval_v2_s_query_kinds.tsv (질의 문장만 보고 정한 분류)."""
     import csv
-    data = json.loads(Path(path).read_text(encoding="utf-8"))
-    models = data["models"]
-    # S 질의 종류: 라벨의 s_kind, 없으면 eval_v2_s_query_kinds.tsv (질의 문장만 보고 정한 분류)
-    labels = json.loads(Path(data["queries"]).expanduser().read_text(encoding="utf-8"))
+    labels = json.loads(Path(queries_path).expanduser().read_text(encoding="utf-8"))
     tsv = ROOT / "docs/experiments/eval_v2_s_query_kinds.tsv"
     kinds = {}
     if tsv.exists():
@@ -133,6 +131,12 @@ def report(path, output):
     for m in models:
         for r in m["rows"]:
             r["s_kind"] = kinds.get(r["num"]) if r["type"] == "S" else None
+
+
+def report(path, output, test_path=None):
+    data = json.loads(Path(path).read_text(encoding="utf-8"))
+    models = data["models"]
+    annotate_kinds(models, data["queries"])
     res_meta = json.loads((Path(data["results"]).expanduser() / "results.json").read_text(encoding="utf-8"))["meta"]
     cap_meta = json.loads((Path(data["results"]).expanduser() / "captions_qwen_incl.json").read_text(encoding="utf-8"))["meta"]
     bs = cap_meta.get("result_batch_size", 1)
@@ -161,10 +165,10 @@ def report(path, output):
          f"**잡음 수준:** 같은 조건에서 설명문을 다시 만드는 것만으로 dev 47개 중 IoU ≥ 0.3·R@3이 최대 {NOISE}개 움직였습니다"
          "([caption_batch_compare.md](caption_batch_compare.md)). 이 비교는 같은 설명문 파일을 쓰므로 그 잡음은 없지만, 질의 수가 적어 "
          f"**MiniLM 대비 ±{NOISE}개 이내의 차이는 의미 있게 보지 않습니다.** 표에서 {NOISE}개를 넘게 차이 나는 칸만 ▲(많음)/▼(적음)으로 표시했습니다.", ""]
-    for kind, title in (("d", f"자막 검색 (d), Whisper {res_meta['whisper']}"), ("e", f"설명문 검색 (e), {'1장씩' if bs == 1 else f'{bs}장 묶음'} 설명문")):
-        L += [f"## {title}", "", "각 칸: IoU ≥ 0.3 / IoU ≥ 0.5 / R@3 (개수, 괄호는 평균 IoU)", "",
-              "| 모델 | " + " | ".join(f"{label} (n={len(pick(models[0]['rows'], g))})" for g, label in groups) + " |",
-              "|---|" + "---|" * len(groups)]
+    def table(models, kind, title, level):
+        out = [f"{level} {title}", "", "각 칸: IoU ≥ 0.3 / IoU ≥ 0.5 / R@3 (개수, 괄호는 평균 IoU)", "",
+               "| 모델 | " + " | ".join(f"{label} (n={len(pick(models[0]['rows'], g))})" for g, label in groups) + " |",
+               "|---|" + "---|" * len(groups)]
         base = {g: counts(pick(models[0]["rows"], g), kind)[0] for g, _ in groups}
         for m in models:
             cells = []
@@ -176,10 +180,28 @@ def report(path, output):
                 c, miou = counts(rs, kind)
                 marks = [("▲" if x - y > NOISE else "▼" if y - x > NOISE else "") for x, y in zip(c, base[g])]
                 cells.append(" / ".join(f"{x:.0f}{mk}" for x, mk in zip(c, marks)) + f" ({miou:.2f})")
-            L.append(f"| {m['label']} | " + " | ".join(cells) + " |")
-        L.append("")
+            out.append(f"| {m['label']} | " + " | ".join(cells) + " |")
+        return out + [""]
+
+    def tables(models, level):
+        out = []
+        for kind, title in (("d", f"자막 검색 (d), Whisper {res_meta['whisper']}"),
+                            ("e", f"설명문 검색 (e), {'1장씩' if bs == 1 else f'{bs}장 묶음'} 설명문")):
+            out += table(models, kind, title, level)
+        return out
+
+    def per_video_sub_encode(models):
+        """서비스와 같은 일(영상 하나의 자막 창 전체 임베딩)의 영상별 시간."""
+        out = ["| 모델 | " + " | ".join(k.split("/")[0] for k in models[0]["index_sec"] if k.endswith("/d")) + " |",
+               "|---|" + "---|" * sum(1 for k in models[0]["index_sec"] if k.endswith("/d"))]
+        for m in models:
+            out.append(f"| {m['label']} | " + " | ".join(
+                f"{v['sec']:.2f}초 (창 {v['windows']})" for k, v in m["index_sec"].items() if k.endswith("/d")) + " |")
+        return out
+
+    L += tables(models, "##")
     L += ["## 검색 시간과 GPU 메모리", "",
-          "| 모델 | 모델 로딩 | 색인 (dev 영상 전체, 자막+설명문) | 질의 1개 검색 (평균 / 95%) | GPU 메모리 (로딩 후 / 최대) |",
+          "| 모델 | 모델 로딩 | 색인 (**dev 영상 6개 전체**, 자막+설명문) | 질의 1개 검색 (평균 / 95%) | GPU 메모리 (로딩 후 / 최대) |",
           "|---|---|---|---|---|"]
     for m in models:
         idx = sum(v["sec"] for v in m["index_sec"].values())
@@ -192,12 +214,33 @@ def report(path, output):
     L += ["", "- GPU 메모리는 torch가 할당한 최댓값(`torch.cuda.max_memory_allocated`)이고, 모델마다 새 프로세스에서 쟀습니다. 색인할 때 64개씩 묶어 임베딩합니다.",
           "- 검색 시간은 질의 임베딩 + 영상 하나의 창 전체와 유사도 계산 + 정렬입니다(색인은 미리 만들어 둔 상태).",
           f"- fine-tuned MiniLM 결과가 run.py 결과와 같은지 확인: {'같음' if data.get('minilm_matches_run') else '다름 ' + str(data.get('minilm_mismatches'))}",
-          f"- 환경: {data.get('gpu', '')}", ""]
-    L += ["## 해석", "", data.get("interpretation", "(결과를 보고 작성)"), ""]
+          f"- 환경: {data.get('gpu', '')}", "",
+          "### 서비스에서 더해지는 시간", "",
+          "위 색인 시간은 dev 영상 6개의 자막 창과 설명문 창을 모두 합친 값입니다. 서비스는 설명문 검색을 쓰지 않고, "
+          "**자막 창 임베딩을 분석 때 저장하지 않고 검색할 때마다 영상별로 다시 계산합니다** "
+          "(`ai/features/fusion_search.py`의 `get_semantic_subtitle_candidates`). 그래서 모델을 바꾸면 분석 시간이 아니라 "
+          "**검색 1번마다, 영상 1개마다** 아래 시간이 더해집니다(질의 임베딩 수 ms 포함 안 함).", ""]
+    L += per_video_sub_encode(models)
+    L += ["", data.get("service_note", ""), ""]
+    L += ["## 해석 (dev)", "", data.get("interpretation", "(결과를 보고 작성)"), ""]
+    if test_path:
+        tdata = json.loads(Path(test_path).read_text(encoding="utf-8"))
+        tmodels = tdata["models"]
+        annotate_kinds(tmodels, tdata["queries"])
+        L += ["## test 확인 (1회)", "",
+              f"dev에서 정한 후보(multilingual-e5-large)를 test 영상 {len({r['video'] for r in tmodels[0]['rows']})}개, "
+              f"질의 {len(tmodels[0]['rows'])}개에서 **한 번만** 확인했습니다. 자막·설명문·검색 방식은 dev와 같습니다. "
+              f"▲/▼는 dev와 같이 MiniLM 대비 ±{NOISE}개를 넘는 차이입니다.", ""]
+        L += tables(tmodels, "###")
+        L += ["서비스와 같은 일(영상 하나의 자막 창 임베딩)의 영상별 시간 (test):", ""] + per_video_sub_encode(tmodels) + [""]
+        L += [f"- fine-tuned MiniLM 결과가 run.py 결과와 같은지 확인: {'같음' if tdata.get('minilm_matches_run') else '다름'}", ""]
+        L += ["### 해석 (test)", "", tdata.get("interpretation", "(결과를 보고 작성)"), ""]
     results_dir = str(data["results"]).replace(str(Path.home()), "~")
     L += ["## 재현 방법", "", f"    python ai/experiments/translation_compare/embedding_compare.py --results {results_dir} \\",
-          f"        --queries <라벨 JSON> --subset dev --out <결과 JSON>",
-          "    python ai/experiments/translation_compare/embedding_compare.py --report <결과 JSON>", "",
+          f"        --queries <라벨 JSON> --subset dev --out <dev 결과 JSON>",
+          f"    python ai/experiments/translation_compare/embedding_compare.py --results {results_dir} \\",
+          f"        --queries <라벨 JSON> --subset test --models minilm,e5-large --out <test 결과 JSON>   # 최종 확인 1회",
+          "    python ai/experiments/translation_compare/embedding_compare.py --report <dev 결과 JSON> --test-report <test 결과 JSON>", "",
           "- bge-m3·multilingual-e5-large는 처음 실행할 때 Hugging Face에서 내려받습니다(각각 약 2GB).", ""]
     Path(output).write_text("\n".join(L), encoding="utf-8")
     print("작성:", output)
@@ -210,13 +253,14 @@ def main():
     parser.add_argument("--subset", default="dev", choices=query_set.SUBSETS)
     parser.add_argument("--models", default=",".join(MODELS))
     parser.add_argument("--out")
-    parser.add_argument("--report", help="결과 JSON으로 문서 생성")
+    parser.add_argument("--report", help="(dev) 결과 JSON으로 문서 생성")
+    parser.add_argument("--test-report", help="test 확인 결과 JSON (주면 문서에 test 절 추가)")
     parser.add_argument("--output", default=str(ROOT / "docs/experiments/embedding_compare.md"))
     parser.add_argument("--worker", help=argparse.SUPPRESS)
     parser.add_argument("--worker-out", help=argparse.SUPPRESS)
     args = parser.parse_args()
     if args.report:
-        report(args.report, args.output)
+        report(args.report, args.output, args.test_report)
         return
     if args.worker:
         Path(args.worker_out).write_text(json.dumps(worker(args.worker, args), ensure_ascii=False))
