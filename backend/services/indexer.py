@@ -264,10 +264,10 @@ def check_status(youtube_video_id: str) -> dict | None:
     }
 
 
-def prepare(youtube_video_id: str, title: str, **meta) -> dict:
+def prepare(youtube_video_id: str, title: str, force: bool = False, **meta) -> dict:
     """
     READY: 한국어 자막 또는 visual feature 중 하나가 검색 가능한 상태
-    STARTED: 새 분석 시작
+    STARTED: 새 분석 시작 (force=True면 이미 분석된 영상도 다시 분석)
     PROCESSING: 이미 분석 중
     """
     row = register_video(youtube_video_id, title, **meta)
@@ -277,7 +277,7 @@ def prepare(youtube_video_id: str, title: str, **meta) -> dict:
     subtitle_ready = _subtitle_ready(youtube_video_id)
     feature_ready = _feature_ready(feat)
 
-    if row["status"] == "INDEXED" and (subtitle_ready or feature_ready):
+    if row["status"] == "INDEXED" and (subtitle_ready or feature_ready) and not force:
         supabase.table("videos").update({
             "last_used_at": _now()
         }).eq("video_id", vid).execute()
@@ -310,25 +310,31 @@ def prepare(youtube_video_id: str, title: str, **meta) -> dict:
     }
 
 
-def run_indexing(video_id: str, youtube_video_id: str) -> None:
+def run_indexing(video_id: str, youtube_video_id: str, local_path: str | None = None) -> None:
     """
     다운로드 → Whisper 자막 생성 → 자막이 없을 때만 visual feature 생성 → 저장.
     Subtitle-first 구조에 맞춘 분석 파이프라인.
+
+    local_path를 주면 YouTube에서 받지 않고 그 파일을 분석하며, 분석이 끝나도 파일을 지우지 않습니다.
     """
     video_path = None
 
     try:
         total_start = time.perf_counter()
 
-        t = time.perf_counter()
-        video_path = download_video(
-            youtube_video_id,
-            out_dir=str(RAW_DIR)
-        )
-        print(
-            f"[timing] download {youtube_video_id}: "
-            f"{time.perf_counter() - t:.2f}s"
-        )
+        if local_path:
+            video_path = local_path
+            print(f"[analysis] 로컬 파일 분석 {youtube_video_id}: {local_path}")
+        else:
+            t = time.perf_counter()
+            video_path = download_video(
+                youtube_video_id,
+                out_dir=str(RAW_DIR)
+            )
+            print(
+                f"[timing] download {youtube_video_id}: "
+                f"{time.perf_counter() - t:.2f}s"
+            )
 
         feature_path = None
         subtitles_available = False
@@ -415,7 +421,8 @@ def run_indexing(video_id: str, youtube_video_id: str) -> None:
         )
 
     finally:
-        if video_path and Path(video_path).exists():
+        # 내려받은 파일만 지움 (로컬 파일 분석이면 원본을 남김)
+        if not local_path and video_path and Path(video_path).exists():
             Path(video_path).unlink()
 
 def backfill_subtitles(youtube_video_id: str) -> str:
