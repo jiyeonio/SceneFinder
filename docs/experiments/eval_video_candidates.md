@@ -3,6 +3,7 @@
 번역·융합 비교 실험([translation_compare.md](translation_compare.md))은 질의 20개, 영상 4개 규모라 방식 간 차이가 1~2건이었습니다.
 평가셋을 키우기 위해 로컬에 있는 영상을 정리하고, 저작권 문제가 적은 공공·교육 영상 출처를 제안합니다.
 질의 라벨링은 [tools/labeler](../../tools/labeler/README.md)를 씁니다.
+서비스에서 이미 분석한 YouTube 영상으로 만드는 평가셋은 [eval_youtube_candidates.md](eval_youtube_candidates.md)에 따로 정리했습니다.
 
 ## 로컬에 있는 영상 (2026-10-16 기준)
 
