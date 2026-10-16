@@ -10,31 +10,47 @@ import os
 import tempfile
 from pathlib import Path
 
-from queries import TRANSLATION_QUALITY, VIDEO_NAMES
+from queries import QUERIES, TRANSLATION_QUALITY, VIDEO_NAMES
+
+try:  # V 질의별 (e) 결과 판단 (작성자). 없으면 표에서 판단 열을 비움
+    from queries import VLM_V_ANALYSIS
+except ImportError:
+    VLM_V_ANALYSIS = {}
 
 ROOT = Path(__file__).resolve().parents[3]
 MARK = {"ok": "✅", "part": "⚠️", "bad": "❌"}
+E_KEYS = []  # 결과에 있는 (e) 변형 (main에서 채움)
+E_HEAD = {"e_qwen_excl": "(e) Qwen·글자 제외 1위", "e_varco_excl": "(e) VARCO·글자 제외 1위", "e_qwen_incl": "(e) Qwen·글자 포함 1위"}
 METHODS = {
     "a": "(a) NLLB 번역 + Moment-DETR",
     "b": "(b) opus-mt 번역 + Moment-DETR",
     "c": "(c) 다국어 CLIP (번역 없음)",
     "d": "(d) 자막 검색 (MiniLM, 서비스 구간 보정)",
     "d_raw": "(d) 자막 검색 (보정 전 자막 구간)",
+    "e_qwen_excl": "(e) VLM 설명문 검색 — Qwen3-VL-4B, 화면 글자 제외",
+    "e_varco_excl": "(e) VLM 설명문 검색 — VARCO-1.7B, 화면 글자 제외",
+    "e_qwen_incl": "(e) VLM 설명문 검색 — Qwen3-VL-4B, 화면 글자 포함",
+    "best_de": "상한: (d)와 (e) Qwen·글자 제외 중 나은 쪽",
+    "best_de_incl": "상한: (d)와 (e) Qwen·글자 포함 중 나은 쪽",
     "best_dc": "상한: (d)와 (c) 중 나은 쪽",
     "best_da": "상한: (d)와 (a) 중 나은 쪽",
     "random": "무작위 기준선 (기댓값)",
 }
 
 INTERPRETATION = """\
-1. **말로 설명되는 장면(S)은 자막 검색이 압도적입니다.** IoU ≥ 0.3 기준 10/10, IoU ≥ 0.5 기준 5/10으로, 영상 검색 세 방식(3/10, 1/10)과 무작위 기준선보다 훨씬 높습니다. S에서는 서비스의 구간 보정(시작 2초 앞당김, 최소 6초)이 보정 전 자막 구간보다 정답과 더 잘 맞습니다(IoU ≥ 0.3: 7/10 → 10/10). V에서는 반대로 보정 전이 조금 낫습니다.
-2. **화면에만 보이는 장면(V)은 어느 방식도 잘 찾지 못합니다.** 자막 검색은 IoU ≥ 0.3 기준 2/10이고, 그것도 화면 내용이 말과 일부 겹친 질의(#10, #15)입니다. 영상 검색도 1~3/10이며 IoU ≥ 0.5는 1개 이하입니다.
-3. **번역 품질은 opus-mt가 확실히 낫지만(의미가 틀린 번역 10개 → 3개), Moment-DETR 검색 정확도는 좋아지지 않았습니다.** 병목은 번역보다 Moment-DETR(영어 QVHighlights 데이터 학습, 1위 구간이 평균 13~20초로 김)입니다. 다국어 CLIP(c)은 V에서 대략 맞는 구간(IoU ≥ 0.3)을 가장 많이 찾았지만 정확한 구간은 0개입니다.
-4. **융합으로 얻을 수 있는 최대치가 작습니다.** 질의마다 자막과 영상 중 나은 쪽을 고르는 상한조차 S에서는 적중 수가 자막만 쓸 때와 같습니다. V에서만 늘어나는데, (d)+(c) 상한은 IoU ≥ 0.3 기준 2/10 → 4/10(IoU ≥ 0.5는 0개 그대로), (d)+(a) 상한은 3/10, IoU ≥ 0.5 1/10입니다. 반면 점수 융합이 S 질의의 자막 1위를 영상 결과로 바꾸면 정확도가 떨어질 수 있습니다.
+1. **말로 설명되는 장면(S)은 자막 검색(d)이 압도적입니다.** IoU ≥ 0.3 기준 10/10, IoU ≥ 0.5 기준 5/10입니다. 영상 검색(a)(b)(c)와 VLM 설명문 검색(e)은 모두 2~3/10에 그칩니다. S에서는 서비스의 구간 보정(시작 2초 앞당김, 최소 6초)이 보정 전보다 정답과 더 잘 맞습니다(IoU ≥ 0.3: 7/10 → 10/10).
+2. **화면에만 보이는 장면(V)은 (e) Qwen3-VL-4B·화면 글자 포함이 가장 좋습니다.** IoU ≥ 0.3 기준 4/10, IoU ≥ 0.5 기준 3/10으로, 정확한 구간(IoU ≥ 0.5)을 2개 이상 찾은 유일한 방식입니다. 화면 글자를 제외하면 Qwen은 1/10로 다국어 CLIP(c, 3/10)보다도 낮습니다. VARCO(글자 제외)는 3/10이지만, 지시와 달리 화면 자막을 읽어 설명문에 넣은 경우가 있어 순수한 '화면만' 결과로 보기 어렵습니다.
+3. **(e) 글자 제외 Qwen의 V 오답 원인:** 정답 장면 설명문에 내용이 있는데 1위로 못 찾은 경우(검색 실패) 3개, 설명문이 틀리거나 빠진 경우(두부를 '채소·냉동 블록', 떡볶이를 '떡국'으로 설명 등) 4개, 정답 구간이 설명문 검색 최대 길이(6초)보다 훨씬 길어 IoU 0.3에 도달할 수 없는 경우 2개입니다(일부 중복). 오답 5개는 정답 바로 옆 2초 구간이 1위였습니다(정답 후보 2위). 정답 구간이 2~3초로 짧아 한 칸만 어긋나도 IoU 0이 됩니다.
+4. **번역 품질은 opus-mt가 확실히 낫지만(의미가 틀린 번역 10개 → 3개), Moment-DETR 검색 정확도는 좋아지지 않았습니다.** 병목은 번역보다 Moment-DETR(영어 QVHighlights 데이터 학습, 1위 구간이 평균 13~20초로 김)입니다.
+5. **융합 상한은 (d)+(e) 글자 포함이 가장 높습니다.** 질의마다 나은 쪽을 고르는 상한이 전체 IoU ≥ 0.3 기준 15/20, IoU ≥ 0.5 기준 8/20으로, 자막만(12/20, 5/20)이나 (d)+(c)(14/20, 5/20)보다 큽니다. 자막 검색과 설명문 검색은 **둘 다 같은 MiniLM 코사인 유사도**라 점수 척도가 같아, Moment-DETR와 섞을 때의 점수 정규화 문제가 없습니다.
 
-**결론:** 지금 영상 검색 품질로는 점수 융합(α·자막 + (1−α)·영상)의 이득보다 위험이 큽니다. 융합보다 (1) 영상 검색 자체 개선(다국어 CLIP 구간 정교화 또는 한국어 질의에 맞는 모델), (2) 질의 수를 늘린 평가셋 구축이 먼저입니다. 융합을 시험한다면 기본값 off를 유지하고 α를 높게(자막 위주) 두는 것이 안전합니다."""
+**결론:** 점수 융합을 한다면 영상 쪽은 Moment-DETR 대신 **VLM 설명문(화면 글자 포함) 검색**이 더 유망합니다. 다만 (1) 질의 20개 규모라 평가셋 확대가 먼저이고, (2) 장면당 처리 시간이 크므로(아래 처리 시간 표) 묶음 처리를 전제로 비용을 따져야 합니다. 한국 유튜브 영상처럼 화면 자막이 많은 경우에 특히 유리하며, 화면 글자가 없는 영상에서는 화면 설명 품질(사물 오인식)에 좌우됩니다."""
 
 
 def seg(s):
+    # 아주 짧은 마지막 구간(예: 32.0–32.1초)이 '32–32초'로 보이지 않게 소수 1자리로 표시
+    if round(s[0]) == round(s[1]):
+        return f"{s[0]:.1f}–{s[1]:.1f}초"
     return f"{s[0]:.0f}–{s[1]:.0f}초"
 
 
@@ -53,6 +69,10 @@ def ious_of(rows, m):
         return [max(r.get("d", {}).get("iou", 0.0), r["c"]["iou"]) for r in rows]
     if m == "best_da":
         return [max(r.get("d", {}).get("iou", 0.0), r["a"]["iou"]) for r in rows]
+    if m == "best_de":
+        return [max(r.get("d", {}).get("iou", 0.0), r.get("e_qwen_excl", {}).get("iou", 0.0)) for r in rows]
+    if m == "best_de_incl":
+        return [max(r.get("d", {}).get("iou", 0.0), r.get("e_qwen_incl", {}).get("iou", 0.0)) for r in rows]
     return [r[m]["iou"] if m in r else 0.0 for r in rows]
 
 
@@ -68,13 +88,113 @@ def summary_line(label, rows, m):
     return f"| {label} | {METHODS[m]} | {sum(ious) / n:.3f} | {c3 / n:.0%} ({c3}/{n}) | {c5 / n:.0%} ({c5}/{n}) |"
 
 
+def vlm_section(rows, meta):
+    """(e) VLM 설명문 방식의 처리 시간·메모리, 설명문 예시, V 질의 분석."""
+    caps = meta["captions"]
+    label = {"qwen_excl": "Qwen3-VL-4B · 글자 제외", "varco_excl": "VARCO-1.7B · 글자 제외", "qwen_incl": "Qwen3-VL-4B · 글자 포함"}
+    variants = [k[2:] for k in E_KEYS]
+    L = ["", "## (e) VLM 장면 설명문 검색 상세", "",
+         "2초마다 가운데 프레임 1장을 VLM에 넣어 한국어 한 문장 설명을 만들고, 그 설명문을 자막처럼 같은 MiniLM으로 검색했습니다(자막용 구간 보정은 적용하지 않음).", ""]
+    L += ["### 모델과 라이선스", ""]
+    for v in variants:
+        m = caps[v]
+        L.append(f"- {label[v]}: `{m['model']}` ({m['dtype']}), 라이선스 **{m['license']}**")
+    L += ["", "> VARCO-VISION-2.0은 **CC-BY-NC-4.0(비상업적 이용만 허용)** 라이선스입니다. 연구·공모전 실험에는 쓸 수 있지만 상업 서비스에 넣을 수 없습니다.", "",
+          f"- 프롬프트(글자 제외): {caps[variants[0]]['prompt']}"]
+    if "qwen_incl" in caps:
+        L.append(f"- 프롬프트(글자 포함): {caps['qwen_incl']['prompt']}")
+    m0 = caps[variants[0]]
+    L += [f"- 프레임: {m0['frame_interval_sec']:.0f}초 간격(구간 가운데 시점), 긴 변 {m0['max_side_px']}px, greedy 생성 최대 {m0['max_new_tokens']}토큰", ""]
+
+    L += ["### 처리 시간과 GPU 메모리", "",
+          "| 변형 | 장당 시간 (1장씩) | 장당 시간 (묶음 " + str(m0["batch_size"]) + "장) | 두부 165초 영상 (1장씩 / 묶음) | 짧은 영상 평균 (1장씩) | GPU 최대 메모리 (1장씩 / 묶음) |",
+          "|---|---|---|---|---|---|"]
+    for v in variants:
+        m = caps[v]; sg, bt = m["single"], m.get("batch")
+        frames = sum(x["frames"] for x in sg.values()); tot = sum(x["total_sec"] for x in sg.values())
+        short = [x["total_sec"] for k, x in sg.items() if k != "tofu"]
+        if bt:
+            bframes = sum(x["frames"] for k, x in bt.items() if k != "peak_gpu_gib")
+            btot = sum(x["total_sec"] for k, x in bt.items() if k != "peak_gpu_gib")
+            bcell, tofu_b, mem_b = f"{btot / bframes:.2f}초 (×{tot / btot:.1f} 빠름)", f"{bt['tofu']['total_sec']:.0f}초", f"{bt['peak_gpu_gib']:.1f} GiB"
+        else:
+            bcell, tofu_b, mem_b = "측정 안 함", "-", "-"
+        L.append(f"| {label[v]} | {tot / frames:.2f}초 | {bcell} | {sg['tofu']['total_sec']:.0f}초 / {tofu_b} | "
+                 f"{sum(short) / len(short):.0f}초 | {m['peak_gpu_gib_single']:.1f} GiB / {mem_b} |")
+    L += ["", f"- 측정 환경: {m0['gpu']}, transformers(sdpa), 프레임 추출 시간 제외(전체 {m0['frame_extract_sec']:.0f}초). 설명문은 1장씩 처리한 결과를 사용했습니다.", ""]
+
+    # 설명문 예시: 영상마다 5개 (V 질의 정답 구간 포함)
+    L += ["### 설명문 예시 (영상별 5개)", "", "★ = V 질의의 정답 구간에 해당하는 장면", ""]
+    v_spans = {}
+    for num, key, typ, ko, gts in QUERIES:
+        if typ == "V":
+            for a, b in gts:
+                v_spans.setdefault(key, []).append((num, (a + b) / 2))
+    main_v = variants[0]
+    for key in VIDEO_NAMES:
+        segs = meta["captions"] and None
+        caption_rows = json.loads(Path(CAPTION_FILES[main_v]).read_text(encoding="utf-8"))["videos"][key]
+        picks = []
+        for num, t in v_spans.get(key, []):
+            idx = min(range(len(caption_rows)), key=lambda i: abs((caption_rows[i]["start_time"] + caption_rows[i]["end_time"]) / 2 - t))
+            if idx not in [p for p, _ in picks]:
+                picks.append((idx, f"★#{num}"))
+        n = len(caption_rows); i = 0
+        while len(picks) < 5 and i < 5:
+            idx = round((i + 0.5) * n / 5) % n
+            if idx not in [p for p, _ in picks]:
+                picks.append((idx, ""))
+            i += 1
+        k2 = 0
+        while len(picks) < 5 and k2 < n:
+            if k2 not in [p for p, _ in picks]:
+                picks.append((k2, ""))
+            k2 += 1
+        picks.sort()
+        L += [f"**{VIDEO_NAMES[key]}**", "", "| 구간 | " + " | ".join(label[v] for v in variants) + " |", "|---|" + "---|" * len(variants)]
+        all_caps = {v: json.loads(Path(CAPTION_FILES[v]).read_text(encoding="utf-8"))["videos"][key] for v in variants}
+        for idx, tag in picks:
+            c = all_caps[main_v][idx]
+            L.append(f"| {c['start_time']:.0f}–{c['end_time']:.0f}초 {tag} | " + " | ".join(all_caps[v][idx]["text"].replace("|", "/") for v in variants) + " |")
+        L.append("")
+
+    # V 질의 분석
+    L += ["### V 질의별 결과와 틀린 이유", "",
+          "적중 기준은 IoU ≥ 0.3입니다. '정답 후보 순위'는 정답과 IoU ≥ 0.3으로 겹치는 검색 후보 중 가장 높은 것이 전체 후보 중 몇 위였는지입니다. "
+          "판단은 정답 구간의 설명문을 읽고 작성자가 분류했습니다: **적중** / **검색 실패**(설명문에 해당 내용이 있었는데 1위로 못 찾음) / **설명 없음**(설명문에 해당 내용이 없음).", "",
+          "| # | 질의 | " + " | ".join(f"{label[v]} 1위 (IoU) / 정답 후보 순위" for v in variants) + " | 정답 구간 설명문 (" + label[main_v] + ") | "
+          + " | ".join(f"판단 ({label[v]})" for v in JUDGED) + " |",
+          "|---|---|" + "---|" * (len(variants) + 1 + len(JUDGED))]
+    for r in rows:
+        if r["type"] != "V":
+            continue
+        cells = []
+        for v in variants:
+            e = r[f"e_{v}"]
+            rank = f"{e['gt_rank']}/{e['gt_rank_of']}" if e["gt_rank"] else "없음"
+            cells.append(f"{seg(e['seg'])} ({e['iou']:.2f}){mark_iou(e['iou'])} / {rank}")
+        gt_caps = " / ".join(dict.fromkeys(r[f"e_{main_v}"]["gt_captions"]))[:160].replace("|", "/")
+        judged = [VLM_V_ANALYSIS.get(r["num"], {}).get(v, "") for v in JUDGED]
+        L.append(f"| {r['num']} | {r['query']} | " + " | ".join(cells) + f" | {gt_caps} | " + " | ".join(judged) + " |")
+    L.append("")
+    return L
+
+
+CAPTION_FILES = {}
+JUDGED = ["qwen_excl", "qwen_incl"]  # 판단을 적은 변형
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--results", default=os.path.join(tempfile.gettempdir(), "translation_compare", "results.json"))
     parser.add_argument("--output", default=str(ROOT / "docs/experiments/translation_compare.md"))
     args = parser.parse_args()
     data = json.loads(Path(args.results).read_text(encoding="utf-8"))
+    for f in Path(args.results).parent.glob("captions_*.json"):
+        CAPTION_FILES[f.stem.replace("captions_", "")] = f
     rows, meta = data["rows"], data["meta"]
+    global E_KEYS
+    E_KEYS = [k for k in ["e_qwen_excl", "e_varco_excl", "e_qwen_incl"] if k in rows[0]]
 
     qa, qb = TRANSLATION_QUALITY["nllb"], TRANSLATION_QUALITY["opus"]
     count = lambda q, k: sum(v == k for v in q.values())  # noqa: E731
@@ -87,7 +207,9 @@ def main():
          "| 유형 | 방식 | 평균 IoU | IoU ≥ 0.3 | IoU ≥ 0.5 |", "|---|---|---|---|---|"]
     for t, label in [("S", "S (말로 설명)"), ("V", "V (화면에만 보임)"), (None, "전체")]:
         sub = [r for r in rows if t is None or r["type"] == t]
-        for m in ["d", "d_raw", "a", "b", "c", "best_dc", "best_da", "random"]:
+        for m in ["d", "d_raw"] + E_KEYS + ["a", "b", "c"] + (["best_de", "best_de_incl"] if E_KEYS else []) + ["best_dc", "best_da", "random"]:
+            if m.startswith("best_de") and (("e_qwen_excl" if m == "best_de" else "e_qwen_incl") not in E_KEYS):
+                continue
             L.append(summary_line(label, sub, m))
     L += ["",
           "- 상한 행은 질의마다 정답을 보고 두 방식 중 나은 쪽을 고른 값으로, 실제로 만들 수 있는 방식이 아니라 융합으로 얻을 수 있는 최대치입니다.",
@@ -116,29 +238,40 @@ def main():
           "## 질의별 결과", "",
           "구간 옆 괄호는 IoU입니다. **✓.5** = IoU ≥ 0.5, ✓.3 = IoU ≥ 0.3. "
           "번역 품질 표시(✅ 의미 보존 · ⚠️ 일부 누락/부정확 · ❌ 의미가 틀림)는 작성자 판단입니다.", "",
-          "| # | 영상 | 유형 | 질의 | 정답 | (a) NLLB 번역 | (b) opus-mt 번역 | (a) 1위 | (b) 1위 | (c) 1위 | (d) 자막 1위 [보정 전 IoU] | 무작위 평균 IoU |",
-          "|---|---|---|---|---|---|---|---|---|---|---|---|"]
+          "| # | 영상 | 유형 | 질의 | 정답 | (a) NLLB 번역 | (b) opus-mt 번역 | (a) 1위 | (b) 1위 | (c) 1위 | (d) 자막 1위 [보정 전 IoU] | "
+          + "".join(f"{E_HEAD[k]} | " for k in E_KEYS) + "무작위 평균 IoU |",
+          "|" + "---|" * (12 + len(E_KEYS))]
     for r in rows:
         gt = ", ".join(f"{a}–{b}초" for a, b in r["gt"])
         d = r.get("d")
         d_cell = f"{cell(d)} [{d['raw_iou']:.2f}]<br>“{d['text'][:28]}”" if d else "자막 없음"
         L.append(f"| {r['num']} | {VIDEO_NAMES[r['video']]} | {r['type']} | {r['query']} | {gt} | "
                  f"{MARK[qa[r['num']]]} {r['en_a']} | {MARK[qb[r['num']]]} {r['en_b']} | "
-                 f"{cell(r['a'])} | {cell(r['b'])} | {cell(r['c'])} | {d_cell} | {r['random']['mean_iou']:.2f} |")
+                 f"{cell(r['a'])} | {cell(r['b'])} | {cell(r['c'])} | {d_cell} | "
+                 + "".join(f"{cell(r[k])} | " for k in E_KEYS) + f"{r['random']['mean_iou']:.2f} |")
+    if E_KEYS:
+        L += vlm_section(rows, meta)
     L += ["", "## 재현 방법", "",
           "프로젝트 루트에서, 백엔드 가상환경과 `backend/.env`(`SCENEFINDER_MINILM_MODEL_PATH` 포함)를 준비한 상태로 실행합니다.", "",
+          "    python ai/experiments/translation_compare/captions.py --out /tmp/translation_compare   # (e)용 설명문, 선택",
           "    python ai/experiments/translation_compare/run.py --out /tmp/translation_compare",
           "    python ai/experiments/translation_compare/make_report.py --results /tmp/translation_compare/results.json", "",
           "- 질의·정답 구간·번역 품질 판단은 `ai/experiments/translation_compare/queries.py`에 있습니다.",
           "- `run.py`는 영상 feature(`.pt`), Whisper 자막, `results.json`을 `--out` 폴더(기본: 시스템 임시 폴더)에 저장합니다. **저장소 안 폴더를 `--out`으로 지정하지 마세요.** feature 파일은 저장소에 넣지 않습니다.",
           "- 테스트 영상은 `data/raw/korean_test/`에 있으면 그것을, 없으면 `ai/experiments/korean_ai_handoff/remaining_176_files/02_Korean_Video_Test/`(Git LFS)의 영상을 사용합니다.",
           f"- `{meta['opus']}` 모델은 처음 실행할 때 HuggingFace에서 내려받습니다(약 300MB). 다국어 CLIP은 `ai/experiments/korean_ai_handoff/model_assets/multilingual_clip/`의 로컬 모델을 씁니다.",
-          "- GPU 기준 전체 실행에 수 분 걸립니다. 같은 입력이면 같은 결과가 나옵니다(무작위 기준선 seed 고정).", "",
+          "- (e)용 `captions.py`는 처음 실행할 때 `Qwen/Qwen3-VL-4B-Instruct`(약 8.9GB)와 `NCSOFT/VARCO-VISION-2.0-1.7B`(약 4.2GB)를 내려받고, 설명문을 `--out`의 `captions_<변형>.json`으로 저장합니다. `run.py`는 이 파일이 있으면 (e)를 함께 평가합니다. GPU 메모리는 최대 약 9GiB 사용합니다.",
+          "- 모델 다운로드가 멈추면(Hugging Face Xet 전송 문제) `HF_HUB_DISABLE_XET=1`을 붙여 다시 실행하세요.",
+          "- GPU 기준 (a)~(d) 실행은 수 분, (e) 설명문 생성은 변형 3개에 약 20분 걸립니다. 같은 입력이면 같은 결과가 나옵니다(무작위 기준선 seed 고정, greedy 생성).", "",
           "## 한계", "",
           "- 질의 20개, 영상 4개로 규모가 작습니다. 영상 검색 방식 간 차이는 1~2건이라 통계적으로 의미 있는 차이로 보기 어렵습니다.",
           "- 정답 구간은 프레임을 2~8초 간격으로 보고 한 사람이 정한 대략값입니다.",
           "- (c)의 구간 선택 규칙은 기존 보정 로직을 그대로 쓴 것으로, 이 실험을 위해 조정하지 않았습니다. 상위 8개 구간 기준이라 1위 구간이 최대 16초입니다.",
-          "- 상한 행은 정답을 보고 고른 값이라 실제 융합 성능은 이보다 낮습니다.", ""]
+          "- 상한 행은 정답을 보고 고른 값이라 실제 융합 성능은 이보다 낮습니다.",
+          "- (e) 설명문 검색은 2초 단위 설명문을 최대 3개까지 묶어 검색하므로 1위 구간이 최대 6초입니다. 정답이 20초 이상인 질의(#6 29초, #7 21초)는 IoU 0.3에 도달할 수 없습니다.",
+          "- 정답 구간이 2~3초로 짧은 질의는 2초 구간 하나만 어긋나도 IoU가 0이 됩니다. (e)의 오답 중 여러 개가 정답 바로 옆 구간이었습니다.",
+          "- VARCO(글자 제외)는 지시와 달리 화면 자막을 그대로 옮겨 쓴 설명문이 있습니다(예: 다이소 4–6초). '글자 제외' 결과에 말 내용이 일부 섞여 있습니다.",
+          "- VLM 설명문은 greedy 생성이라 같은 입력이면 같은 결과지만, transformers나 모델 버전이 바뀌면 달라질 수 있습니다.", ""]
     out = Path(args.output)
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text("\n".join(L), encoding="utf-8")

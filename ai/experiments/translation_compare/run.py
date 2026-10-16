@@ -123,6 +123,30 @@ def main():
         widened = (start, max(raw[1], start + SUBTITLE_MIN_LEN))
         return raw, widened, float(top["score"]), top["text"]
 
+    # ---------- (e) VLM 장면 설명문 검색: captions.py가 만든 captions_<variant>.json이 있으면 평가 ----------
+    # 설명문을 자막처럼 MiniLM으로 검색 (말 기준인 자막 구간 보정은 적용하지 않음)
+    captions = {}
+    for path in sorted(out.glob("captions_*.json")):
+        data = json.loads(path.read_text(encoding="utf-8"))
+        captions[data["meta"]["variant"]] = data
+
+    def caption_eval(variant, key, ko, gts):
+        segments = captions[variant]["videos"][key]
+        ranked = get_semantic_subtitle_candidates(query=ko, subtitles=segments, model=minilm, top_k=10**6)
+        top = ranked[0]
+        seg = (float(top["start_time"]), float(top["end_time"]))
+        # 틀린 이유 분석용: 정답과 겹치는(IoU ≥ 0.3) 후보 중 가장 높은 순위, 정답 구간에 걸친 설명문
+        gt_rank, gt_hit = None, None
+        for rank, cand in enumerate(ranked, 1):
+            if best_iou((float(cand["start_time"]), float(cand["end_time"])), gts) >= 0.3:
+                gt_rank, gt_hit = rank, cand
+                break
+        in_gt = [s["text"] for s in segments
+                 if any(min(s["end_time"], b) - max(s["start_time"], a) > 0 for a, b in gts)]
+        return {"seg": seg, "score": float(top["score"]), "iou": best_iou(seg, gts), "text": top["text"],
+                "gt_rank": gt_rank, "gt_rank_of": len(ranked), "gt_best_score": float(gt_hit["score"]) if gt_hit else None,
+                "gt_best_text": gt_hit["text"] if gt_hit else None, "gt_captions": in_gt}
+
     # ---------- (a) 현재 번역기 / (b) opus-mt ----------
     from services.translate import MODEL_NAME as NLLB_NAME, to_english
     from transformers import MarianMTModel, MarianTokenizer
@@ -196,6 +220,8 @@ def main():
             raw, widened, score, text = sub
             row["d"] = {"seg": widened, "score": score, "iou": best_iou(widened, gts), "text": text,
                         "raw_seg": raw, "raw_iou": best_iou(raw, gts)}
+        for variant in captions:
+            row[f"e_{variant}"] = caption_eval(variant, key, ko, gts)
         rows.append(row)
         print(f"#{num:2d} {typ} a={row['a']['iou']:.2f} b={row['b']['iou']:.2f} c={row['c']['iou']:.2f} "
               f"d={row.get('d', {}).get('iou', float('nan')):.2f}", flush=True)
@@ -206,6 +232,7 @@ def main():
         "subtitle_pad_before": SUBTITLE_PAD_BEFORE, "subtitle_min_len": SUBTITLE_MIN_LEN,
         "subtitle_segments": {k: len(v["segments"]) for k, v in subs.items()},
         "subtitle_language": {k: v["language"] for k, v in subs.items()},
+        "captions": {v: d["meta"] for v, d in captions.items()},
         "durations": durs, "gt_mean_len": gt_len, "random_samples": RANDOM_SAMPLES, "random_seed": RANDOM_SEED,
         "gpu": torch.cuda.get_device_name(0) if torch.cuda.is_available() else "cpu",
     }
