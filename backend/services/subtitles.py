@@ -29,16 +29,27 @@ def subtitle_path(youtube_video_id: str) -> Path:
     return SUBTITLE_DIR / f"{youtube_video_id}.json"
 
 
-def _add_torch_dll_dir() -> None:
-    """Windows에서 torch가 가진 CUDA 라이브러리를 Whisper도 찾을 수 있게 합니다."""
-    if os.name != "nt":
-        return
+def _load_torch_cuda_libs() -> bool:
+    """torch가 가진 CUDA 라이브러리(cuBLAS 등)를 먼저 불러와 Whisper(ctranslate2)가 GPU를 쓸 수 있게 합니다.
+
+    Linux에서는 torch를 import해야 libcublas.so.12가 프로세스에 올라옵니다. 이것 없이 Whisper만 쓰면
+    GPU 초기화가 실패해 CPU로 넘어갑니다. Windows에서는 torch의 lib 폴더를 DLL 검색 경로에 추가합니다.
+    GPU를 쓸 수 있으면 True.
+    """
     try:
         import torch
-
-        os.add_dll_directory(str(Path(torch.__file__).resolve().parent / "lib"))
-    except Exception:
-        pass
+    except Exception as e:
+        logger.warning("torch를 불러오지 못해 Whisper가 GPU를 못 쓸 수 있습니다: %s", e)
+        return False
+    if os.name == "nt":
+        try:
+            os.add_dll_directory(str(Path(torch.__file__).resolve().parent / "lib"))
+        except Exception:
+            pass
+    if not torch.cuda.is_available():
+        logger.warning("GPU(CUDA)를 찾지 못했습니다. Whisper 자막 생성을 CPU로 실행합니다 (느림).")
+        return False
+    return True
 
 
 def _get_model(device: str):
@@ -46,13 +57,13 @@ def _get_model(device: str):
     if _model is not None and _model_device == device:
         return _model
 
-    _add_torch_dll_dir()
     from faster_whisper import WhisperModel
 
     if device == "cuda":
         model = WhisperModel(WHISPER_MODEL_SIZE, device="cuda", compute_type="float16")
     else:
         model = WhisperModel(WHISPER_MODEL_SIZE, device="cpu", compute_type="int8")
+    logger.info("Whisper %s 모델을 %s에 올렸습니다", WHISPER_MODEL_SIZE, device.upper())
     _model, _model_device = model, device
     return model
 
@@ -60,6 +71,8 @@ def _get_model(device: str):
 def _transcribe(video_path: str):
     """GPU로 먼저 시도하고, 안 되면 CPU로 넘어갑니다. (items, 언어, 확률)"""
     global _force_cpu
+    if not _force_cpu and _model is None and not _load_torch_cuda_libs():
+        _force_cpu = True
     devices = ["cpu"] if _force_cpu else ["cuda", "cpu"]
 
     for device in devices:
@@ -83,7 +96,7 @@ def _transcribe(video_path: str):
             return items, info.language, float(info.language_probability)
         except Exception as e:
             if device == "cuda":
-                logger.warning("Whisper GPU 사용 실패, CPU로 전환합니다: %s", e)
+                logger.warning("Whisper GPU 사용 실패, CPU로 전환합니다 (이후 자막 생성은 모두 CPU, 느림): %s", e)
                 _force_cpu = True
                 continue
             raise
