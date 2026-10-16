@@ -23,16 +23,38 @@ METHODS = [  # (결과 파일, 행의 키, 표시 이름)
     ("run", "c", "(c) 다국어 CLIP (번역 없음)"),
     ("run", "d", "(d) 자막 검색 (MiniLM, 서비스 구간 보정)"),
     ("run", "e_qwen_incl", "(e) Qwen3-VL-4B 설명문 검색 (화면 글자 포함)"),
+    ("fusion", "e_M1", "(e) 설명문 검색 + 앞뒤 1칸(2초) 확장"),
     ("fusion", "A", "융합 A: 자막+설명문 하나의 목록"),
     ("fusion", "B_M0", "융합 B: 각각 검색 후 점수 max"),
+    ("fusion", "B_M1", "융합 B + 설명문 앞뒤 1칸 확장"),
     ("run", "random", "무작위 기준선 (기댓값)"),
 ]
 GROUPS = ["전체", "S", "V", "V·화면 글자 있음", "V·화면 글자 없음", "source=ai_draft", "source=human_reviewed", "source=human"]
 GROUP_LABEL = {"전체": "전체", "S": "S", "V": "V", "V·화면 글자 있음": "V 글자 있음", "V·화면 글자 없음": "V 글자 없음",
                "source=ai_draft": "미검수(ai_draft)", "source=human_reviewed": "검수(human_reviewed)", "source=human": "직접 작성(human)"}
 
+REVIEW_NOTE = ("- 검수 순서: 먼저 무작위로 고른 30개를 검수(수정 0개)했고, 나머지 60개도 검수자가 확인해 고칠 것이 없어 "
+               "검수 완료로 표시했습니다.")
+
 INTERPRETATION = """\
-(결과를 보고 작성)
+1. **처음 실험보다 모든 방식이 크게 낮습니다.** IoU ≥ 0.3 기준 가장 좋은 방식도 34%입니다. 영상이 1분 안팎에서 2:40~15분으로 길어져 \
+후보 구간이 많아졌고, 무작위 기준선도 13%에서 3%로 떨어졌습니다. 처음 실험 수치는 짧은 영상 4개라 높게 나온 것으로 봐야 합니다.
+2. **설명문 검색에 구간 확장(M1)을 붙인 방식이 가장 좋습니다.** 전체 IoU ≥ 0.3 기준 34%(31/90), IoU ≥ 0.5 기준 17%(15/90)로, \
+S에서도 자막 검색(27%)보다 높습니다. 설명문 검색의 1위 구간은 2초(중앙값)인데 정답은 7초(중앙값)라, 위치가 맞아도 IoU가 낮게 나왔습니다. \
+V에서 놓친 질의 중 19개는 1위 구간 중심이 정답 중심과 10초 안이었습니다. 처음 실험에서는 정답이 2~3초로 짧아 M1이 IoU ≥ 0.5를 낮췄지만, \
+이번에는 두 기준 모두 올랐습니다. M1은 미리 정한 세 규칙(M0·M1·M2) 중 결과를 보고 고른 것이라, 다른 평가셋에서 한 번 더 확인해야 합니다.
+3. **자막 검색(d)은 S에서도 27%(8/30)로 처음 실험(100%)보다 크게 떨어졌습니다.** 틀린 경우는 같은 내용을 다른 시점에 말한 경우(조명 이야기는 \
+87초, 켜는 장면은 309초), Whisper 오인식(「고추 REALLY」, 다른 경기 해설로 인식), 말 없는 450초를 한 문장으로 합친 자막(먹방 마지막 인사)이었습니다. \
+1위 자막 하나만 쓰는 지금 방식은 문장이 100~250개인 긴 영상에서 약합니다.
+4. **융합 A·B는 설명문 검색 단독과 비슷합니다(18~20%).** 처음 실험처럼 자막 검색이 강하지 않아 합쳐도 크게 오르지 않았습니다. \
+B에 구간 확장을 붙여도 29%로 설명문 검색 + 확장(34%)보다 낮습니다. 자막 점수가 이긴 질의에서 자막 1위가 틀린 경우가 많기 때문입니다.
+5. **다국어 CLIP(c)은 IoU ≥ 0.5에서 11%로 설명문 검색(확장 전 7%)보다 높고**, 말 없는 영상 4개(27개 질의)에서 6개를 맞혀 \
+설명문 검색 확장 전(1개)보다 좋았습니다(확장 후 7개). Moment-DETR(a)(b)는 1위 구간이 32초(중앙값)로 길어 7~8%에 그쳤습니다.
+6. **화면 글자가 있는 V 질의에서 설명문 검색이 오히려 낮았습니다(확장 후 8/26, 글자 없음 13/34).** 다만 글자 있음 질의는 tofu_silent(7개)·airpods_fake(5개)처럼 \
+화면 전체에 글자가 깔린 영상에 몰려 있어, 화면 글자의 효과와 영상의 난이도를 이 결과로는 나눌 수 없습니다.
+
+**다음 단계:** 1위 하나가 아니라 상위 k개 안에 정답이 있는지(R@k)도 재고, 설명문 검색의 구간 길이 규칙을 따로 평가셋을 나눠 정하고, \
+정답 없음 질의 12개로 점수 임계값(결과 없음 판정)을 평가하는 것이 필요합니다.
 """
 
 
@@ -98,7 +120,7 @@ def main():
     rows = []
     for r in res["rows"]:
         row = summary.annotate(dict(r), qs)
-        for key in ("A", "B_M0"):
+        for key in ("e_M1", "A", "B_M0", "B_M1"):
             row[key] = fus_rows[r["num"]][key]
         rows.append(row)
     methods = {key: metric_fn(kind, key) for kind, key, _ in METHODS}
@@ -146,6 +168,7 @@ def main():
     src = stats["source"]
     L += ["## 라벨과 검수", "",
           f"- 질의 {len(rows)}개: " + ", ".join(f"{GROUP_LABEL['source=' + k]} {v}개" for k, v in sorted(src.items())),
+          REVIEW_NOTE,
           f"- 정답 없음 질의 {len(labels.get('negative_queries', []))}개 (영상 "
           f"{len({q['video'] for q in labels.get('negative_queries', [])})}개)"]
     if stats["changed"] is not None:
@@ -172,11 +195,11 @@ def main():
     L.append("")
 
     # ---------- 영상별 IoU ≥ 0.3 ----------
-    L += ["### 영상별 IoU ≥ 0.3", "", "| 영상 | 질의 | " + " | ".join(names[k] for k in ("c", "d", "e_qwen_incl", "A")) + " |",
-          "|---|---|" + "---|" * 4]
+    L += ["### 영상별 IoU ≥ 0.3", "", "| 영상 | 질의 | " + " | ".join(names[k] for k in ("c", "d", "e_qwen_incl", "e_M1", "A")) + " |",
+          "|---|---|" + "---|" * 5]
     for key in qs.video_keys:
         rs = [r for r in rows if r["video"] == key]
-        cells = [f"{sum(methods[k](r)[1] for r in rs):.0f}/{len(rs)}" for k in ("c", "d", "e_qwen_incl", "A")]
+        cells = [f"{sum(methods[k](r)[1] for r in rs):.0f}/{len(rs)}" for k in ("c", "d", "e_qwen_incl", "e_M1", "A")]
         L.append(f"| {key} | {len(rs)} | " + " | ".join(cells) + " |")
     L.append("")
 
@@ -188,7 +211,7 @@ def main():
           f"- (c) `{meta['mclip']}`: 한국어 질의와 2초 단위 프레임 feature를 직접 비교",
           f"- (d) Whisper `{meta['whisper']}` 자막 + fine-tuned MiniLM 1위 자막 구간, 서비스 구간 보정(시작 {meta['subtitle_pad_before']}초 앞당김, 최소 {meta['subtitle_min_len']}초)",
           f"- (e) `{cap.get('model', 'Qwen/Qwen3-VL-4B-Instruct')}`, 2초마다 가운데 프레임 1장을 화면 글자 포함 프롬프트로 설명 → 같은 MiniLM으로 검색",
-          f"- 융합 A·B: [translation_compare.md](translation_compare.md)의 「(d)+(e) 실제 융합」과 같은 방식 (B는 설명문 구간 그대로, M0)",
+          f"- 융합 A·B와 설명문 구간 확장(M1, 1위 설명문 창의 앞뒤 2초씩): [translation_compare.md](translation_compare.md)의 「(d)+(e) 실제 융합」과 같은 방식. M1은 처음 실험 전에 정한 규칙이고 이번 데이터에 맞춰 바꾸지 않음",
           f"- (d) 재현 확인: fusion.py에서 다시 계산한 (d) 1위 구간이 run.py와 다른 질의 {fmeta.get('d_reproduction_mismatches')}/{fmeta.get('d_reproduction_checked')}개",
           f"- 환경: {meta['gpu']}"]
     if cap.get("single"):
