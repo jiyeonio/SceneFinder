@@ -14,7 +14,7 @@ logger = logging.getLogger("uvicorn.error")
 ROOT = Path(__file__).resolve().parents[2]
 SUBTITLE_DIR = ROOT / "data" / "processed" / "subtitles"
 
-WHISPER_MODEL_SIZE = os.getenv("WHISPER_MODEL_SIZE", "small")
+WHISPER_MODEL_SIZE = os.getenv("WHISPER_MODEL_SIZE", "large-v3-turbo")
 MIN_SUBTITLE_SEGMENTS = 3   # 이보다 적으면 말이 거의 없는 영상으로 봄
 MIN_SUBTITLE_CHARS = 30
 
