@@ -32,6 +32,7 @@ from sentence_transformers import util  # noqa: E402
 CAPTION_VARIANT = "qwen_incl"
 MERGE_DELTA = 0.03       # M2: 1위 점수와 이 이내인 이웃 칸만 병합 (실험 전에 정한 값, 질의에 맞춰 조정하지 않음)
 MERGE_MAX_BINS = 5       # M2: 최대 10초
+CAND_LIMIT = 100         # R@3용 상위 후보: 순위가 높은 창 100개 안에서 중복을 빼고 3개
 CLIP_LEN = 2.0
 SUMMARY_LABELS = {"d": "(d) 자막 검색", "e_M0": "(e) 설명문·구간 그대로", "e_M1": "(e) 설명문·앞뒤 1칸",
                   "e_M2": "(e) 설명문·이웃 병합", "A": "A 하나의 목록", "B_M0": "B 점수 max·그대로",
@@ -152,7 +153,8 @@ def main():
         out_row = {"num": num, "video": key, "type": typ, "query": ko, "gt": gts}
 
         # (d) 재현: 같은 질의면 run.py의 (d) 1위 구간과 같아야 함 (정답 구간을 고쳐도 비교되도록 IoU 대신 구간 비교)
-        sub_top = (S.rank(ko, subs) or [None])[0]
+        sub_rank = S.rank(ko, subs)
+        sub_top = (sub_rank or [None])[0]
         d_seg = widen_subtitle((sub_top["start_time"], sub_top["end_time"])) if sub_top else None
         prev = prev_rows.get(num)
         if prev and prev["query"] == ko and prev["video"] == key:
@@ -160,15 +162,21 @@ def main():
             prev_seg = tuple(prev["d"]["seg"]) if "d" in prev else None
             if (d_seg is None) != (prev_seg is None) or (d_seg and any(abs(x - y) > 1e-6 for x, y in zip(d_seg, prev_seg))):
                 mismatch += 1
-        out_row["d"] = ({"seg": d_seg, "iou": best_iou(d_seg, gts), "score": sub_top["score"]} if sub_top
-                        else {"seg": None, "iou": 0.0, "score": None})   # 자막 없음
+        sub_spans = [(w["score"], widen_subtitle((w["start_time"], w["end_time"]))) for w in sub_rank[:CAND_LIMIT]]
+        out_row["d"] = ({"seg": d_seg, "iou": best_iou(d_seg, gts), "score": sub_top["score"],
+                         "top3": summary.nms_top([sp for _, sp in sub_spans])} if sub_top
+                        else {"seg": None, "iou": 0.0, "score": None, "top3": []})   # 자막 없음
 
         # (e) 단독 + 구간 규칙
-        cap_top = S.rank(ko, caps)[0]
+        cap_rank = S.rank(ko, caps)
+        cap_top = cap_rank[0]
         single = S.single_scores(ko, caps)
+        cap_spans = {}
         for rule in ("M0", "M1", "M2"):
             seg = caption_span(cap_top, caps, rule, single, durs[key])
-            out_row[f"e_{rule}"] = {"seg": seg, "iou": best_iou(seg, gts), "score": cap_top["score"]}
+            cap_spans[rule] = [(w["score"], caption_span(w, caps, rule, single, durs[key])) for w in cap_rank[:CAND_LIMIT]]
+            out_row[f"e_{rule}"] = {"seg": seg, "iou": best_iou(seg, gts), "score": cap_top["score"],
+                                    "top3": summary.nms_top([sp for _, sp in cap_spans[rule]])}
 
         # B: 각각 검색 후 점수가 높은 쪽
         for rule in ("M0", "M1", "M2"):
@@ -176,20 +184,26 @@ def main():
                 pick = {"seg": d_seg, "from": "자막"}
             else:
                 pick = {"seg": out_row[f"e_{rule}"]["seg"], "from": "설명문"}
+            # 상위 후보: 자막·설명문 후보를 점수순으로 합침 (같은 점수면 자막 먼저 = 1위 규칙과 같음)
+            both = sorted([(sc, 0, sp) for sc, sp in sub_spans] + [(sc, 1, sp) for sc, sp in cap_spans[rule]],
+                          key=lambda x: (-x[0], x[1]))
             out_row[f"B_{rule}"] = {**pick, "iou": best_iou(pick["seg"], gts),
-                                    "score": max(sub_top["score"] if sub_top else -1.0, cap_top["score"])}
+                                    "score": max(sub_top["score"] if sub_top else -1.0, cap_top["score"]),
+                                    "top3": summary.nms_top([sp for _, _, sp in both])}
 
         # A: 하나의 시간순 목록으로 합쳐 검색 (창이 자막·설명문을 섞을 수 있음)
         merged = sorted(subs + caps, key=lambda x: (x["start_time"], x["source"]))
-        top = S.rank(ko, merged)[0]
-        raw = (float(top["start_time"]), float(top["end_time"]))
-        if top["sources"] == {"sub"}:
-            seg, kind = widen_subtitle(raw), "자막만"
-        elif top["sources"] == {"cap"}:
-            seg, kind = raw, "설명문만"
-        else:
-            seg, kind = raw, "섞임"
-        out_row["A"] = {"seg": seg, "iou": best_iou(seg, gts), "score": top["score"], "from": kind, "text": top["text"]}
+        a_rank = S.rank(ko, merged)
+        top = a_rank[0]
+
+        def a_span(w):
+            raw = (float(w["start_time"]), float(w["end_time"]))
+            if w["sources"] == {"sub"}:
+                return widen_subtitle(raw), "자막만"
+            return raw, "설명문만" if w["sources"] == {"cap"} else "섞임"
+        seg, kind = a_span(top)
+        out_row["A"] = {"seg": seg, "iou": best_iou(seg, gts), "score": top["score"], "from": kind, "text": top["text"],
+                        "top3": summary.nms_top([a_span(w)[0] for w in a_rank[:CAND_LIMIT]])}
 
         # 화면 글자 분석: 따옴표 안 화면 글자를 지운 설명문으로 다시 검색 (M0)
         stripped = [dict(c, text=strip_screen_text(c["text"])) for c in caps]
@@ -215,7 +229,7 @@ def main():
 
     # S/V, V의 화면 글자 유무, source별 집계
     keys = ["d", "e_M0", "e_M1", "e_M2", "A", "B_M0", "B_M1", "B_M2"]
-    result_summary = summary.summarize(rows, {k: summary.by_iou(lambda r, k=k: r[k]["iou"]) for k in keys})
+    result_summary = summary.summarize(rows, {k: summary.by_key(k) for k in keys})
     print(summary.format_table(result_summary, SUMMARY_LABELS))
 
     meta = {"queries_source": qs.source, "subset": qs.subset, "caption_variant": CAPTION_VARIANT, "merge_delta": MERGE_DELTA,

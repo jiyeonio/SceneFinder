@@ -121,15 +121,21 @@ def main():
 
     minilm = get_semantic_model(model_type="finetuned")
 
+    def widen(raw):
+        start = max(0.0, raw[0] - SUBTITLE_PAD_BEFORE)
+        return (start, max(raw[1], start + SUBTITLE_MIN_LEN))
+
     def subtitle_top1(key, ko):
         segments = subs[key]["segments"]
         if not segments:
             return None
-        top = get_semantic_subtitle_candidates(query=ko, subtitles=segments, model=minilm, top_k=5)[0]
+        cands = get_semantic_subtitle_candidates(query=ko, subtitles=segments, model=minilm, top_k=50)
+        top = cands[0]
         raw = (float(top["start_time"]), float(top["end_time"]))
         start = max(0.0, raw[0] - SUBTITLE_PAD_BEFORE)
         widened = (start, max(raw[1], start + SUBTITLE_MIN_LEN))
-        return raw, widened, float(top["score"]), top["text"]
+        top3 = summary.nms_top([widen((float(c["start_time"]), float(c["end_time"]))) for c in cands])
+        return raw, widened, float(top["score"]), top["text"], top3
 
     # ---------- (e) VLM 장면 설명문 검색: captions.py가 만든 captions_<variant>.json이 있으면 평가 ----------
     # 설명문을 자막처럼 MiniLM으로 검색 (말 기준인 자막 구간 보정은 적용하지 않음)
@@ -151,7 +157,8 @@ def main():
                 break
         in_gt = [s["text"] for s in segments
                  if any(min(s["end_time"], b) - max(s["start_time"], a) > 0 for a, b in gts)]
-        return {"seg": seg, "score": float(top["score"]), "iou": best_iou(seg, gts), "text": top["text"],
+        top3 = summary.nms_top([(float(c["start_time"]), float(c["end_time"])) for c in ranked])
+        return {"seg": seg, "score": float(top["score"]), "iou": best_iou(seg, gts), "text": top["text"], "top3": top3,
                 "gt_rank": gt_rank, "gt_rank_of": len(ranked), "gt_best_score": float(gt_hit["score"]) if gt_hit else None,
                 "gt_best_text": gt_hit["text"] if gt_hit else None, "gt_captions": in_gt}
 
@@ -173,7 +180,8 @@ def main():
 
     def detr_top1(key, en):
         r = predict_moments_hybrid(video_id=f"bench_{key}", video_feature_path=feats[key], query=en, top_k=5)
-        return (float(r[0]["start_time"]), float(r[0]["end_time"])), float(r[0]["score"])
+        top3 = summary.nms_top([(float(x["start_time"]), float(x["end_time"])) for x in r])
+        return (float(r[0]["start_time"]), float(r[0]["end_time"])), float(r[0]["score"]), top3
 
     # ---------- (c) 다국어 CLIP ----------
     # 구간 선택은 저장소의 _refine_visual_start와 같은 규칙을 영상 전체에 적용:
@@ -190,8 +198,13 @@ def main():
         top = torch.topk(smoothed, k=min(VISUAL_TOP_K, len(smoothed))).indices.tolist()
         multi = [c for c in _make_contiguous_clusters(top) if len(c) >= 2]
         best = max(multi, key=lambda c: (len(c), float(smoothed[c].mean()))) if multi else [int(torch.argmax(smoothed))]
-        seg = (min(best) * CLIP_LEN, min((max(best) + 1) * CLIP_LEN, durs[key]))
-        return (float(seg[0]), float(seg[1])), float(smoothed[best].mean())
+        span = lambda c: (float(min(c) * CLIP_LEN), float(min((max(c) + 1) * CLIP_LEN, durs[key])))  # noqa: E731
+        seg = span(best)
+        # 상위 3개: 1위와 같은 규칙으로 정렬한 연속 구간들, 모자라면 유사도 높은 2초 칸
+        ranked = sorted(multi, key=lambda c: (len(c), float(smoothed[c].mean())), reverse=True)
+        ranked += [[i] for i in torch.argsort(smoothed, descending=True).tolist()]
+        top3 = summary.nms_top([seg] + [span(c) for c in ranked])
+        return seg, float(smoothed[best].mean()), top3
 
     # ---------- 무작위 기준선: 영상별 정답 평균 길이의 구간을 무작위 위치에 RANDOM_SAMPLES번 ----------
     rng = random.Random(RANDOM_SEED)
@@ -200,33 +213,41 @@ def main():
         spans = [g for (_, v, _, _, gts) in QUERIES if v == k for g in gts]
         gt_len[k] = sum(b - a for a, b in spans) / len(spans)
 
+    rng_extra = random.Random(RANDOM_SEED + 1)   # R@3·시작점용 (기존 지표의 난수열을 바꾸지 않도록 따로)
+
     def random_baseline(key, gts):
         length, dur = gt_len[key], durs[key]
         ious = []
         for _ in range(RANDOM_SAMPLES):
             s = rng.uniform(0, max(0.0, dur - length))
             ious.append(best_iou((s, s + length), gts))
+        r3 = start5 = 0
+        for _ in range(RANDOM_SAMPLES):
+            starts = [rng_extra.uniform(0, max(0.0, dur - length)) for _ in range(summary.TOP_K)]
+            r3 += any(best_iou((s, s + length), gts) >= 0.3 for s in starts)
+            start5 += summary.start_ok((starts[0], starts[0] + length), gts)
         return {"mean_iou": sum(ious) / len(ious),
                 "hit30": sum(i >= 0.3 for i in ious) / len(ious),
-                "hit50": sum(i >= 0.5 for i in ious) / len(ious)}
+                "hit50": sum(i >= 0.5 for i in ious) / len(ious),
+                "r3": r3 / RANDOM_SAMPLES, "start5": start5 / RANDOM_SAMPLES}
 
     rows = []
     for num, key, typ, ko, gts in QUERIES:
         en_a, en_b = to_english(ko), opus_en(ko)
-        seg_a, sc_a = detr_top1(key, en_a)
-        seg_b, sc_b = detr_top1(key, en_b)
-        seg_c, sc_c = mclip_top1(key, ko)
+        seg_a, sc_a, top_a = detr_top1(key, en_a)
+        seg_b, sc_b, top_b = detr_top1(key, en_b)
+        seg_c, sc_c, top_c = mclip_top1(key, ko)
         sub = subtitle_top1(key, ko)
         row = {
             "num": num, "video": key, "type": typ, "query": ko, "gt": gts, "en_a": en_a, "en_b": en_b,
-            "a": {"seg": seg_a, "score": sc_a, "iou": best_iou(seg_a, gts)},
-            "b": {"seg": seg_b, "score": sc_b, "iou": best_iou(seg_b, gts)},
-            "c": {"seg": seg_c, "score": sc_c, "iou": best_iou(seg_c, gts)},
+            "a": {"seg": seg_a, "score": sc_a, "iou": best_iou(seg_a, gts), "top3": top_a},
+            "b": {"seg": seg_b, "score": sc_b, "iou": best_iou(seg_b, gts), "top3": top_b},
+            "c": {"seg": seg_c, "score": sc_c, "iou": best_iou(seg_c, gts), "top3": top_c},
             "random": random_baseline(key, gts),
         }
         if sub:
-            raw, widened, score, text = sub
-            row["d"] = {"seg": widened, "score": score, "iou": best_iou(widened, gts), "text": text,
+            raw, widened, score, text, top3 = sub
+            row["d"] = {"seg": widened, "score": score, "iou": best_iou(widened, gts), "text": text, "top3": top3,
                         "raw_seg": raw, "raw_iou": best_iou(raw, gts)}
         for variant in captions:
             row[f"e_{variant}"] = caption_eval(variant, key, ko, gts)
@@ -246,12 +267,11 @@ def main():
         "gpu": torch.cuda.get_device_name(0) if torch.cuda.is_available() else "cpu",
     }
     # S/V, V의 화면 글자 유무, source별 집계 (자막이 없어 (d) 결과가 없는 질의는 IoU 0)
-    methods = {m: summary.by_iou(lambda r, m=m: r[m]["iou"]) for m in ("a", "b", "c")}
-    methods["d"] = summary.by_iou(lambda r: r.get("d", {}).get("iou"))
-    methods["d_raw"] = summary.by_iou(lambda r: r.get("d", {}).get("raw_iou"))
+    methods = {m: summary.by_key(m) for m in ("a", "b", "c", "d")}
+    methods["d_raw"] = summary.by_key("d", seg_field="raw_seg", iou_field="raw_iou", top_field=None)
     for v in captions:
-        methods[f"e_{v}"] = summary.by_iou(lambda r, v=v: r.get(f"e_{v}", {}).get("iou"))
-    methods["random"] = lambda r: (r["random"]["mean_iou"], r["random"]["hit30"], r["random"]["hit50"])
+        methods[f"e_{v}"] = summary.by_key(f"e_{v}")
+    methods["random"] = summary.random_metrics
     result_summary = summary.summarize(rows, methods)
     print(summary.format_table(result_summary, SUMMARY_LABELS))
 
