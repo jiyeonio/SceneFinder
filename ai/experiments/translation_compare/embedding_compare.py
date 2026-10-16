@@ -113,36 +113,59 @@ def worker(model_key, args):
             "rows": rows}
 
 
+NOISE = 3   # 설명문을 다시 만드는 것만으로 dev 47개 중 이 정도 움직임 (caption_batch_compare.md)
+
+
 def report(path, output):
+    import csv
     data = json.loads(Path(path).read_text(encoding="utf-8"))
     models = data["models"]
-    # s_kind(말 내용 등)는 결과 행에 없으므로 실험에 쓴 라벨 파일에서 붙임
+    # S 질의 종류: 라벨의 s_kind, 없으면 eval_v2_s_query_kinds.tsv (질의 문장만 보고 정한 분류)
     labels = json.loads(Path(data["queries"]).expanduser().read_text(encoding="utf-8"))
-    kinds = {q["num"]: q.get("s_kind") for q in labels["queries"]}
+    tsv = ROOT / "docs/experiments/eval_v2_s_query_kinds.tsv"
+    kinds = {}
+    if tsv.exists():
+        with open(tsv, encoding="utf-8") as f:
+            kinds = {int(r["num"]): r["kind"] for r in csv.DictReader(f, delimiter="\t")}
+    for q in labels["queries"]:
+        if q.get("s_kind"):
+            kinds[q["num"]] = q["s_kind"]
     for m in models:
         for r in m["rows"]:
-            r["s_kind"] = kinds.get(r["num"])
-    L = ["# 임베딩 모델 비교: 자막 검색(d)·설명문 검색(e) (dev)", "",
-         f"평가셋 v2의 **dev 영상 {len({r['video'] for r in models[0]['rows']})}개**에서 자막 검색(d)과 설명문 검색(e)의 임베딩 모델만 바꿔 비교했습니다. "
-         "자막(Whisper small)·설명문(Qwen3-VL-4B, 1장씩 처리)·검색 방식(연속 1~3문장 창, 코사인 유사도, 서비스 구간 보정)은 "
-         "[eval_v2.md](eval_v2.md)와 같고 임베딩 모델만 다릅니다. test 영상은 쓰지 않았습니다.", ""]
-    groups = [("S", "검수된 S"), ("V", "검수된 V"), ("speech", "말 내용 S (AI 초안, 미검수)")]
+            r["s_kind"] = kinds.get(r["num"]) if r["type"] == "S" else None
+    res_meta = json.loads((Path(data["results"]).expanduser() / "results.json").read_text(encoding="utf-8"))["meta"]
+    cap_meta = json.loads((Path(data["results"]).expanduser() / "captions_qwen_incl.json").read_text(encoding="utf-8"))["meta"]
+    bs = cap_meta.get("result_batch_size", 1)
+    groups = [("speech", "S 말 내용"), ("visual", "S 화면 묘사"), ("V", "V")]
 
     def pick(rows, g):
         if g == "speech":
-            return [r for r in rows if r.get("s_kind") == "말 내용"]
-        return [r for r in rows if r["type"] == g and r.get("source") != "ai_draft"]
+            return [r for r in rows if r["type"] == "S" and r.get("s_kind") == "말 내용"]
+        if g == "visual":
+            return [r for r in rows if r["type"] == "S" and r.get("s_kind") != "말 내용"]
+        return [r for r in rows if r["type"] == "V"]
 
-    def agg(rows, kind):
+    def counts(rows, kind):
         fn = summary.by_key(kind)
-        vals = [fn(r) for r in rows]
-        n = len(vals)
-        return n, sum(v[1] for v in vals), sum(v[2] for v in vals), sum(v[3] for v in vals), sum(v[0] for v in vals) / n
+        v = [fn(r) for r in rows]
+        return [sum(x[1] for x in v), sum(x[2] for x in v), sum(x[3] for x in v)], sum(x[0] for x in v) / max(len(v), 1)
 
-    for kind, title in (("d", "자막 검색 (d)"), ("e", "설명문 검색 (e)")):
-        L += [f"## {title}", "", "각 칸: IoU ≥ 0.3 / IoU ≥ 0.5 / R@3 (개수, 평균 IoU)", "",
+    n_videos = len({r["video"] for r in models[0]["rows"]})
+    L = ["# 임베딩 모델 비교: 자막 검색(d)·설명문 검색(e) (dev)", "",
+         f"평가셋 v2의 **dev 영상 {n_videos}개, 질의 {len(models[0]['rows'])}개**에서 자막 검색(d)과 설명문 검색(e)의 임베딩 모델만 바꿔 비교했습니다. "
+         f"자막은 Whisper `{res_meta['whisper']}`, 설명문은 Qwen3-VL-4B "
+         f"{'1장씩' if bs == 1 else f'{bs}장 묶음'} 처리 결과를 그대로 쓰고, 검색 방식(연속 1~3문장 창, 코사인 유사도, 자막은 서비스 구간 보정)도 "
+         "[eval_v2.md](eval_v2.md)와 같습니다. test 영상은 쓰지 않았습니다.", "",
+         "질의는 모두 사람이 검수한 것(human_reviewed)입니다. S는 말 내용을 찾는 질의(소리만 들어도 찾을 수 있음)와 화면을 묘사하는 질의로 나눴습니다"
+         "([분류 기준](eval_v2.md#s-질의-편향-점검-말-내용-vs-화면-묘사)).", "",
+         f"**잡음 수준:** 같은 조건에서 설명문을 다시 만드는 것만으로 dev 47개 중 IoU ≥ 0.3·R@3이 최대 {NOISE}개 움직였습니다"
+         "([caption_batch_compare.md](caption_batch_compare.md)). 이 비교는 같은 설명문 파일을 쓰므로 그 잡음은 없지만, 질의 수가 적어 "
+         f"**MiniLM 대비 ±{NOISE}개 이내의 차이는 의미 있게 보지 않습니다.** 표에서 {NOISE}개를 넘게 차이 나는 칸만 ▲(많음)/▼(적음)으로 표시했습니다.", ""]
+    for kind, title in (("d", f"자막 검색 (d), Whisper {res_meta['whisper']}"), ("e", f"설명문 검색 (e), {'1장씩' if bs == 1 else f'{bs}장 묶음'} 설명문")):
+        L += [f"## {title}", "", "각 칸: IoU ≥ 0.3 / IoU ≥ 0.5 / R@3 (개수, 괄호는 평균 IoU)", "",
               "| 모델 | " + " | ".join(f"{label} (n={len(pick(models[0]['rows'], g))})" for g, label in groups) + " |",
               "|---|" + "---|" * len(groups)]
+        base = {g: counts(pick(models[0]["rows"], g), kind)[0] for g, _ in groups}
         for m in models:
             cells = []
             for g, _ in groups:
@@ -150,8 +173,9 @@ def report(path, output):
                 if not rs:
                     cells.append("–")
                     continue
-                n, h3, h5, r3, miou = agg(rs, kind)
-                cells.append(f"{h3:.0f} / {h5:.0f} / {r3:.0f} ({miou:.2f})")
+                c, miou = counts(rs, kind)
+                marks = [("▲" if x - y > NOISE else "▼" if y - x > NOISE else "") for x, y in zip(c, base[g])]
+                cells.append(" / ".join(f"{x:.0f}{mk}" for x, mk in zip(c, marks)) + f" ({miou:.2f})")
             L.append(f"| {m['label']} | " + " | ".join(cells) + " |")
         L.append("")
     L += ["## 검색 시간과 GPU 메모리", "",
@@ -165,15 +189,16 @@ def report(path, output):
         L.append(f"| {m['label']} | {load} | {idx:.1f}초 (창 {nwin:,}개) | "
                  f"{m['query_sec_mean'] * 1000:.0f} / {m['query_sec_p95'] * 1000:.0f} ms | "
                  f"{m['gpu_mib_after_load']:,.0f} / {m['gpu_mib_peak']:,.0f} MiB |")
-    L += ["", "- GPU 메모리는 torch가 할당한 최댓값(`torch.cuda.max_memory_allocated`)입니다. 색인할 때 64개씩 묶어 임베딩합니다.",
+    L += ["", "- GPU 메모리는 torch가 할당한 최댓값(`torch.cuda.max_memory_allocated`)이고, 모델마다 새 프로세스에서 쟀습니다. 색인할 때 64개씩 묶어 임베딩합니다.",
           "- 검색 시간은 질의 임베딩 + 영상 하나의 창 전체와 유사도 계산 + 정렬입니다(색인은 미리 만들어 둔 상태).",
+          f"- fine-tuned MiniLM 결과가 run.py 결과와 같은지 확인: {'같음' if data.get('minilm_matches_run') else '다름 ' + str(data.get('minilm_mismatches'))}",
           f"- 환경: {data.get('gpu', '')}", ""]
     L += ["## 해석", "", data.get("interpretation", "(결과를 보고 작성)"), ""]
-    L += ["## 재현 방법", "", "    python ai/experiments/translation_compare/embedding_compare.py --results ~/scenefinder_eval/results_v2 \\",
-          "        --queries ~/scenefinder_eval/labels_draft.json --subset dev --out ~/scenefinder_eval/embedding_compare/results.json",
-          "    python ai/experiments/translation_compare/embedding_compare.py --report ~/scenefinder_eval/embedding_compare/results.json", "",
-          "- bge-m3·multilingual-e5-large는 처음 실행할 때 Hugging Face에서 내려받습니다(각각 약 2GB).",
-          "- fine-tuned MiniLM 결과는 run.py의 (d)·(e) 결과와 같은지 실행할 때 확인합니다(`minilm_matches_run`).", ""]
+    results_dir = str(data["results"]).replace(str(Path.home()), "~")
+    L += ["## 재현 방법", "", f"    python ai/experiments/translation_compare/embedding_compare.py --results {results_dir} \\",
+          f"        --queries <라벨 JSON> --subset dev --out <결과 JSON>",
+          "    python ai/experiments/translation_compare/embedding_compare.py --report <결과 JSON>", "",
+          "- bge-m3·multilingual-e5-large는 처음 실행할 때 Hugging Face에서 내려받습니다(각각 약 2GB).", ""]
     Path(output).write_text("\n".join(L), encoding="utf-8")
     print("작성:", output)
 
