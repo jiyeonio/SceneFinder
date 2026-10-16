@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Play, Search, Mic, X, User } from 'lucide-react';
 
 interface HeaderProps {
@@ -29,6 +29,25 @@ export const Header: React.FC<HeaderProps> = ({
   onLogout,
   user,
 }) => {
+  // 실제 헤더 높이를 CSS 변수(--header-h)로 알려서, 헤더 아래 고정 영역이 정확히 맞도록 함
+  const headerRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const header = headerRef.current;
+    if (!header) return;
+
+    const update = () =>
+      document.documentElement.style.setProperty(
+        '--header-h',
+        `${header.getBoundingClientRect().height}px`
+      );
+
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(header);
+    return () => observer.disconnect();
+  }, []);
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && onSearchSubmit) {
       e.preventDefault();
@@ -37,7 +56,7 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <header className="sticky top-0 z-30 bg-white border-b border-slate-200/80 px-4 sm:px-8 py-3 transition-colors">
+    <header ref={headerRef} className="sticky top-0 z-30 bg-white border-b border-slate-200/80 px-4 sm:px-8 py-3 transition-colors">
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
 
         {/* Logo and primary nav */}
