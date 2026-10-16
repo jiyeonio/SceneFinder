@@ -4,7 +4,9 @@
 
 - 프레임: 각 2초 구간의 가운데 시점 1장 (CLIP feature와 같은 간격). 긴 변 640px로 축소
 - 생성: greedy(무작위 없음), 최대 80토큰
-- 시간: 1장씩 처리(batch 1)한 설명문을 결과로 쓰고, 같은 프레임을 묶음 처리(batch 8)한 시간도 따로 측정
+- 처리: 기본은 8장 묶음 처리(--batch-size 8, 왼쪽 패딩) 결과를 씀. 1장씩 처리한 결과와 글자 단위로 조금 다를 수 있음
+  (translation_compare.md·eval_v2.md는 1장씩 처리한 결과라 재현하려면 --batch-size 1).
+  --batch-size 1이면 예전처럼 1장씩 처리한 설명문을 쓰고, 묶음 처리 시간도 따로 측정(--skip-batch-timing으로 생략)
 - 결과: --out/captions_<variant>.json (저장소에는 쓰지 않음). 실행한 질의 세트의 영상만 들어가고 기존 파일은 덮어씀
 - 영상: --queries를 주면 그 JSON에서 질의가 있는 영상, 없으면 queries.py의 영상
 """
@@ -101,7 +103,8 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--out", default=os.path.join(tempfile.gettempdir(), "translation_compare"))
     parser.add_argument("--variants", default=",".join(VARIANTS))
-    parser.add_argument("--skip-batch-timing", action="store_true", help="묶음 처리 시간 측정 생략")
+    parser.add_argument("--batch-size", type=int, default=BATCH_SIZE, help="설명문 생성 묶음 크기 (기본 8, 1이면 1장씩)")
+    parser.add_argument("--skip-batch-timing", action="store_true", help="--batch-size 1일 때 묶음 처리 시간 측정 생략")
     parser.add_argument("--queries", default=None, help="라벨링 도구가 저장한 질의 JSON (없으면 queries.py)")
     parser.add_argument("--subset", choices=query_set.SUBSETS, default=None,
                         help="dev/test 영상의 질의만 (설정은 dev에서만 정하고 test는 최종 보고에만)")
@@ -125,38 +128,55 @@ def main():
         model, processor, dtype = loaded[name]
         caption_batch(model, processor, dtype, [next(iter(frames.values()))[0][2]], prompt)   # 워밍업
 
-        # 1장씩 처리 (결과로 사용)
-        torch.cuda.reset_peak_memory_stats()
-        result, single, tokens = {}, {}, 0
-        for k, fr in frames.items():
-            texts, secs = [], []
-            for start, end, img in fr:
-                (txt, n), sec = timed(caption_batch, model, processor, dtype, [img], prompt)
-                texts.append({"start_time": start, "end_time": end, "text": txt[0]}); secs.append(sec); tokens += n
-            result[k] = texts
-            single[k] = {"frames": len(fr), "total_sec": sum(secs), "per_frame_sec": sum(secs) / len(secs)}
-            print(f"  {variant} {k}: {len(fr)}장 {sum(secs):.1f}초 (장당 {sum(secs)/len(secs):.2f}초)", flush=True)
-        peak_single = torch.cuda.max_memory_allocated() / 2**30
-
-        # 묶음 처리 (시간만 측정)
-        batch = None
-        if not args.skip_batch_timing:
+        result, tokens, single, batch, peak_single = {}, 0, None, None, None
+        if args.batch_size > 1:
+            # 묶음 처리 (결과로 사용)
             torch.cuda.reset_peak_memory_stats()
             batch = {}
             for k, fr in frames.items():
-                imgs = [img for _, _, img in fr]
-                total = 0.0
-                for i in range(0, len(imgs), BATCH_SIZE):
-                    _, sec = timed(caption_batch, model, processor, dtype, imgs[i:i + BATCH_SIZE], prompt)
-                    total += sec
+                texts, total = [], 0.0
+                for i in range(0, len(fr), args.batch_size):
+                    chunk = fr[i:i + args.batch_size]
+                    (txts, n), sec = timed(caption_batch, model, processor, dtype, [img for _, _, img in chunk], prompt)
+                    texts += [{"start_time": a, "end_time": b, "text": t} for (a, b, _), t in zip(chunk, txts)]
+                    total += sec; tokens += n
+                result[k] = texts
                 batch[k] = {"frames": len(fr), "total_sec": total, "per_frame_sec": total / len(fr)}
+                print(f"  {variant} {k}: {len(fr)}장 {total:.1f}초 (장당 {total/len(fr):.2f}초, {args.batch_size}장 묶음)", flush=True)
             batch["peak_gpu_gib"] = torch.cuda.max_memory_allocated() / 2**30
-            print(f"  {variant} 묶음(batch {BATCH_SIZE}) 합계 {sum(v['total_sec'] for k, v in batch.items() if k != 'peak_gpu_gib'):.1f}초", flush=True)
+        else:
+            # 1장씩 처리 (결과로 사용)
+            torch.cuda.reset_peak_memory_stats()
+            single = {}
+            for k, fr in frames.items():
+                texts, secs = [], []
+                for start, end, img in fr:
+                    (txt, n), sec = timed(caption_batch, model, processor, dtype, [img], prompt)
+                    texts.append({"start_time": start, "end_time": end, "text": txt[0]}); secs.append(sec); tokens += n
+                result[k] = texts
+                single[k] = {"frames": len(fr), "total_sec": sum(secs), "per_frame_sec": sum(secs) / len(secs)}
+                print(f"  {variant} {k}: {len(fr)}장 {sum(secs):.1f}초 (장당 {sum(secs)/len(secs):.2f}초)", flush=True)
+            peak_single = torch.cuda.max_memory_allocated() / 2**30
+
+            # 묶음 처리 (시간만 측정)
+            if not args.skip_batch_timing:
+                torch.cuda.reset_peak_memory_stats()
+                batch = {}
+                for k, fr in frames.items():
+                    imgs = [img for _, _, img in fr]
+                    total = 0.0
+                    for i in range(0, len(imgs), BATCH_SIZE):
+                        _, sec = timed(caption_batch, model, processor, dtype, imgs[i:i + BATCH_SIZE], prompt)
+                        total += sec
+                    batch[k] = {"frames": len(fr), "total_sec": total, "per_frame_sec": total / len(fr)}
+                batch["peak_gpu_gib"] = torch.cuda.max_memory_allocated() / 2**30
+                print(f"  {variant} 묶음(batch {BATCH_SIZE}) 합계 {sum(v['total_sec'] for k, v in batch.items() if k != 'peak_gpu_gib'):.1f}초", flush=True)
 
         meta = {"variant": variant, "model": name, "license": MODEL_INFO[name]["license"],
                 "dtype": str(MODEL_INFO[name]["dtype"]).replace("torch.", ""), "prompt": prompt,
                 "frame_interval_sec": CLIP_LEN, "max_side_px": MAX_SIDE, "max_new_tokens": MAX_NEW_TOKENS,
-                "batch_size": BATCH_SIZE, "frame_extract_sec": extract_sec, "generated_tokens": tokens,
+                "result_batch_size": args.batch_size, "batch_size": args.batch_size if args.batch_size > 1 else BATCH_SIZE,
+                "frame_extract_sec": extract_sec, "generated_tokens": tokens,
                 "single": single, "peak_gpu_gib_single": peak_single, "batch": batch,
                 "gpu": torch.cuda.get_device_name(0), "queries_source": qs.source}
         path = out / f"captions_{variant}.json"
