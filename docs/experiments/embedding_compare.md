@@ -28,7 +28,7 @@
 
 ## 검색 시간과 GPU 메모리
 
-| 모델 | 모델 로딩 | 색인 (dev 영상 전체, 자막+설명문) | 질의 1개 검색 (평균 / 95%) | GPU 메모리 (로딩 후 / 최대) |
+| 모델 | 모델 로딩 | 색인 (**dev 영상 6개 전체**, 자막+설명문) | 질의 1개 검색 (평균 / 95%) | GPU 메모리 (로딩 후 / 최대) |
 |---|---|---|---|---|
 | fine-tuned MiniLM (서비스 현재) | 4.8초 | 2.7초 (창 5,778개) | 7 / 7 ms | 449 / 614 MiB |
 | BAAI/bge-m3 | 10.0초 | 32.9초 (창 5,778개) | 13 / 12 ms | 2,166 / 2,827 MiB |
@@ -39,21 +39,75 @@
 - fine-tuned MiniLM 결과가 run.py 결과와 같은지 확인: 같음
 - 환경: NVIDIA RTX A5000
 
-## 해석
+### 서비스에서 더해지는 시간
+
+위 색인 시간은 dev 영상 6개의 자막 창과 설명문 창을 모두 합친 값입니다. 서비스는 설명문 검색을 쓰지 않고, **자막 창 임베딩을 분석 때 저장하지 않고 검색할 때마다 영상별로 다시 계산합니다** (`ai/features/fusion_search.py`의 `get_semantic_subtitle_candidates`). 그래서 모델을 바꾸면 분석 시간이 아니라 **검색 1번마다, 영상 1개마다** 아래 시간이 더해집니다(질의 임베딩 수 ms 포함 안 함).
+
+| 모델 | eggroll_paik | room_vlog | ag_final | steak_camp | airpods_fake | mukbang_chicken |
+|---|---|---|---|---|---|---|
+| fine-tuned MiniLM (서비스 현재) | 0.13초 (창 441) | 0.10초 (창 522) | 0.04초 (창 144) | 0.00초 (창 0) | 0.00초 (창 0) | 0.01초 (창 9) |
+| BAAI/bge-m3 | 0.84초 (창 441) | 0.87초 (창 522) | 0.26초 (창 144) | 0.00초 (창 0) | 0.00초 (창 0) | 0.03초 (창 9) |
+| intfloat/multilingual-e5-large | 0.91초 (창 441) | 0.95초 (창 522) | 0.29초 (창 144) | 0.00초 (창 0) | 0.00초 (창 0) | 0.03초 (창 9) |
+
+- MiniLM은 영상 하나에 0.01~0.15초, e5-large는 0.03~1.43초(자막 창 684개인 15분 강의 영상 1.43초)입니다. 검색 1번에 영상 1개면 최대 약 1.3초, `/api/search/multi`로 영상 10개를 한 번에 검색하면 영상 길이에 따라 약 3~14초가 더해집니다.
+- 서버 시작 때 모델 로딩도 약 5초 → 11초로 늘어납니다(한 번).
+- 자막 창 임베딩을 분석 때 한 번 계산해 저장하면 검색할 때마다 드는 이 시간은 없어지고, 분석 시간에 영상당 1초 안팎이 더해지는 것으로 바뀝니다(코드 수정 필요, 이번에는 하지 않음).
+
+## 해석 (dev)
 
 1. **말 내용을 찾는 S 질의에서 자막 검색이 크게 오릅니다.** 검수된 말 내용 S 15개에서 IoU ≥ 0.3이 MiniLM 7개 → e5-large 11개, IoU ≥ 0.5가 4 → 8개, R@3이 9 → 13개로 세 지표 모두 잡음 수준(±3개)을 넘었고, 평균 IoU도 0.26 → 0.49입니다. bge-m3도 10 / 6 / 12개로 오르지만 차이가 +3 안팎이라 잡음 수준 경계입니다.
 2. **화면을 묘사한 S 질의(12개)와 V 질의의 자막 검색에서는 차이가 없습니다.** 자막에 그 장면을 말로 묘사한 문장이 없으면 임베딩을 바꿔도 찾을 수 없습니다. V의 자막 검색은 세 모델 모두 0입니다.
 3. **설명문 검색(e)은 V에서 큰 모델이 낫습니다.** R@3이 MiniLM 7개 → bge-m3 14개, e5-large 13개로 잡음 수준을 넘었고, IoU ≥ 0.3은 bge-m3 7개(+4)입니다. 1위 정확도보다 상위 후보 안에 정답이 들어오는 비율이 더 많이 올랐습니다.
 4. **말 내용 S 질의의 설명문 검색도 2 → 5개로 올랐는데,** 말 내용 질의 28개 중 21개는 같은 내용이 화면 자막으로도 나와서(overlay_text) 설명문이 화면 글자를 옮겨 적은 경우입니다.
 5. **비용:** 큰 모델은 GPU 메모리가 약 2.1~2.8GB로 MiniLM(0.4~0.6GB)의 약 5배, 색인이 약 12배(dev 6개 영상 2.7초 → 33~34초, 영상 하나당 약 5~6초), 질의 검색이 7ms → 13ms, 모델 로딩이 5초 → 10~11초입니다. 서비스에서는 MiniLM 자리를 대신하므로 GPU 사용량이 약 2GB 늘어납니다(백엔드 약 3.1GB + Whisper turbo 약 2.5GB에 더해).
-6. **dev 기준 후보는 multilingual-e5-large입니다.** 말 내용 질의의 자막 검색에서 유일하게 세 지표 모두 잡음 수준을 넘었고, 설명문 검색 V의 R@3도 bge-m3와 비슷합니다. 다만 질의 수가 15·12·33개로 작고, MiniLM은 한국어 데이터로 추가 학습한 모델인 반면 e5-large는 추가 학습 없이 쓴 결과입니다. 규칙대로 **test에서 한 번 확인한 뒤** 서비스 적용을 정하는 것이 맞습니다.
+6. **dev 기준 후보는 multilingual-e5-large입니다.** (아래 「test 확인」 참고) 말 내용 질의의 자막 검색에서 유일하게 세 지표 모두 잡음 수준을 넘었고, 설명문 검색 V의 R@3도 bge-m3와 비슷합니다. 다만 질의 수가 15·12·33개로 작고, MiniLM은 한국어 데이터로 추가 학습한 모델인 반면 e5-large는 추가 학습 없이 쓴 결과입니다. 규칙대로 **test에서 한 번 확인한 뒤** 서비스 적용을 정하는 것이 맞습니다.
 
 이전 비교(Whisper small 자막, 1장씩 설명문, 검수 전 말 내용 질의)는 커밋 8522598의 이 문서에 있습니다.
+
+## test 확인 (1회)
+
+dev에서 정한 후보(multilingual-e5-large)를 test 영상 6개, 질의 58개에서 **한 번만** 확인했습니다. 자막·설명문·검색 방식은 dev와 같습니다. ▲/▼는 dev와 같이 MiniLM 대비 ±3개를 넘는 차이입니다.
+
+### 자막 검색 (d), Whisper large-v3-turbo
+
+각 칸: IoU ≥ 0.3 / IoU ≥ 0.5 / R@3 (개수, 괄호는 평균 IoU)
+
+| 모델 | S 말 내용 (n=15) | S 화면 묘사 (n=16) | V (n=27) |
+|---|---|---|---|
+| fine-tuned MiniLM (서비스 현재) | 10 / 6 / 11 (0.35) | 6 / 3 / 7 (0.23) | 1 / 1 / 3 (0.03) |
+| intfloat/multilingual-e5-large | 11 / 6 / 14 (0.40) | 5 / 3 / 9 (0.25) | 0 / 0 / 1 (0.00) |
+
+### 설명문 검색 (e), 8장 묶음 설명문
+
+각 칸: IoU ≥ 0.3 / IoU ≥ 0.5 / R@3 (개수, 괄호는 평균 IoU)
+
+| 모델 | S 말 내용 (n=15) | S 화면 묘사 (n=16) | V (n=27) |
+|---|---|---|---|
+| fine-tuned MiniLM (서비스 현재) | 0 / 0 / 2 (0.04) | 3 / 0 / 7 (0.13) | 6 / 2 / 12 (0.14) |
+| intfloat/multilingual-e5-large | 4▲ / 0 / 5 (0.11) | 5 / 1 / 8 (0.15) | 12▲ / 5 / 17▲ (0.26) |
+
+서비스와 같은 일(영상 하나의 자막 창 임베딩)의 영상별 시간 (test):
+
+| 모델 | airpods_review | battery_lecture | tofu_braise | wc_goals | piano_canon | tofu_silent |
+|---|---|---|---|---|---|---|
+| fine-tuned MiniLM (서비스 현재) | 0.12초 (창 378) | 0.15초 (창 684) | 0.04초 (창 240) | 0.04초 (창 216) | 0.00초 (창 0) | 0.00초 (창 0) |
+| intfloat/multilingual-e5-large | 0.75초 (창 378) | 1.43초 (창 684) | 0.37초 (창 240) | 0.35초 (창 216) | 0.00초 (창 0) | 0.00초 (창 0) |
+
+- fine-tuned MiniLM 결과가 run.py 결과와 같은지 확인: 같음
+
+### 해석 (test)
+
+1. **설명문 검색(e)의 개선은 test에서도 재현됐습니다.** V 27개에서 IoU ≥ 0.3이 MiniLM 6개 → e5-large 12개, R@3이 12 → 17개로 잡음 수준(±3개)을 넘었고(dev에서도 R@3 7 → 13), 말 내용 S의 설명문 검색도 0 → 4개입니다.
+2. **자막 검색(d)의 개선은 test에서 재현되지 않았습니다.** 말 내용 S 15개에서 IoU ≥ 0.3이 10 → 11개, IoU ≥ 0.5는 6 → 6개, R@3만 11 → 14개(+3, 잡음 수준 경계)입니다. dev에서는 7 / 4 / 9 → 11 / 8 / 13으로 컸지만, test에서는 MiniLM이 이미 10/15를 맞혀 차이가 작았습니다. 화면 묘사 S·V의 자막 검색도 차이가 없습니다.
+3. **서비스 판단:** 서비스는 지금 설명문 검색을 쓰지 않고 자막 검색만 쓰므로, 서비스 관점의 효과는 2번(자막 검색)이 기준입니다. dev·test를 합치면 e5-large가 낫거나 같지만, test에서 잡음 수준을 넘는 차이는 없었습니다. 검색마다 영상당 최대 약 1.3초와 GPU 약 2GB가 더 드는 것을 감안하면 **지금 바로 서비스의 자막 검색 모델을 바꿀 근거는 약합니다.** 설명문 검색을 서비스에 넣는다면 그때는 e5-large가 맞습니다.
+4. test는 이번에 한 번 썼습니다. e5-large fine-tuning처럼 앞으로 설정을 더 바꾸면, 같은 test로 다시 확인할수록 test에 맞춰지는 위험이 커지므로 새 test 질의를 만들거나 그 위험을 문서에 적고 써야 합니다.
 
 ## 재현 방법
 
     python ai/experiments/translation_compare/embedding_compare.py --results ~/scenefinder_eval/results_v2_whisper_turbo_b8 \
-        --queries <라벨 JSON> --subset dev --out <결과 JSON>
-    python ai/experiments/translation_compare/embedding_compare.py --report <결과 JSON>
+        --queries <라벨 JSON> --subset dev --out <dev 결과 JSON>
+    python ai/experiments/translation_compare/embedding_compare.py --results ~/scenefinder_eval/results_v2_whisper_turbo_b8 \
+        --queries <라벨 JSON> --subset test --models minilm,e5-large --out <test 결과 JSON>   # 최종 확인 1회
+    python ai/experiments/translation_compare/embedding_compare.py --report <dev 결과 JSON> --test-report <test 결과 JSON>
 
 - bge-m3·multilingual-e5-large는 처음 실행할 때 Hugging Face에서 내려받습니다(각각 약 2GB).
