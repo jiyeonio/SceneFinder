@@ -6,6 +6,7 @@
 - 결과 폴더의 results.json(run.py), fusion_results.json(fusion.py)을 읽습니다.
 - --queries: 실험에 쓴 라벨 JSON (기본: 결과 폴더의 labels_snapshot.json). source·overlay_text·영상 정보를 여기서 읽습니다.
 - --draft: 검수 전 AI 초안. 주면 검수한 질의 중 초안에서 바뀐 것(질의 문장·유형·정답 구간·화면 글자 표시)을 셉니다.
+- --captions-compare: 설명문만 다른 방식(예: 1장씩 처리)으로 만든 결과 폴더. 주면 두 설명문의 차이와 결과 비교 절을 넣습니다.
 - --whisper-compare: 같은 라벨로 Whisper 모델만 바꿔 돌린 결과 폴더. 주면 (d)·융합 결과를 비교하는 절을 넣습니다.
 - --s-kinds: S 질의를 '말 내용'/'화면 묘사'로 나눈 TSV (기본 docs/experiments/eval_v2_s_query_kinds.tsv).
 - dev/test 나누기는 docs/experiments/eval_youtube_videos.tsv의 split 열을 씁니다.
@@ -63,37 +64,49 @@ test(3 → 6/16) 모두 올라, 한쪽 영상에만 맞춘 결과는 아닙니�
 다른 창이 1위가 된 경우(「기기라는 메뉴가 있을 거예요」)도 있습니다.
 2. **새로 틀린 질의도 있습니다.** wc_goals의 프리킥 골은 turbo가 해설 구간을 「라이터.」 같은 짧은 오인식으로 만들어 1위를 놓쳤습니다. \
 경기 해설처럼 함성·잡음이 큰 영상은 두 모델 모두 불안정합니다.
-3. **융합도 함께 오릅니다(S 기준 A 27% → 40%, B 30% → 47%).** V에서는 (d)·B가 그대로이고 A만 13% → 18%로, \
+3. **융합도 함께 오릅니다(S 기준 A 17% → 33%, B 23% → 40%, 8장 묶음 설명문 기준).** V에서는 (d)·B가 거의 그대로이고 A만 10% → 15%로, \
 자막 품질 개선의 효과는 주로 말로 설명되는 장면에 나타납니다.
 4. 이 비교는 dev/test를 나누기 전에 12개 전체로 한 것입니다. 서비스 기본 모델을 바꿀지는 처리 시간·GPU 메모리와 함께 dev에서 다시 확인한 뒤 정하는 것이 맞습니다.
 """
 
-INTERPRETATION = """\
-1. **처음 실험보다 모든 방식이 크게 낮습니다.** IoU ≥ 0.3 기준 가장 좋은 방식도 34%입니다. 영상이 1분 안팎에서 2:40~15분으로 길어져 \
-후보 구간이 많아졌고, 무작위 기준선도 13%에서 3%로 떨어졌습니다. 처음 실험 수치는 짧은 영상 4개라 높게 나온 것으로 봐야 합니다.
-2. **설명문 검색에 구간 확장(M1)을 붙인 방식이 가장 좋습니다.** 전체 IoU ≥ 0.3 기준 34%(31/90), IoU ≥ 0.5 기준 17%(15/90)로, \
-S에서도 자막 검색(27%)보다 높습니다. 설명문 검색의 1위 구간은 2초(중앙값)인데 정답은 7초(중앙값)라, 위치가 맞아도 IoU가 낮게 나왔습니다. \
-V에서 놓친 질의 중 19개는 1위 구간 중심이 정답 중심과 10초 안이었습니다. 처음 실험에서는 정답이 2~3초로 짧아 M1이 IoU ≥ 0.5를 낮췄지만, \
-이번에는 두 기준 모두 올랐습니다. M1은 미리 정한 세 규칙(M0·M1·M2) 중 결과를 보고 고른 것이라, 다른 평가셋에서 한 번 더 확인해야 합니다.
-3. **자막 검색(d)은 S에서도 27%(8/30)로 처음 실험(100%)보다 크게 떨어졌습니다.** 틀린 경우는 같은 내용을 다른 시점에 말한 경우(조명 이야기는 \
-87초, 켜는 장면은 309초), Whisper 오인식(「고추 REALLY」, 다른 경기 해설로 인식), 말 없는 450초를 한 문장으로 합친 자막(먹방 마지막 인사)이었습니다. \
-1위 자막 하나만 쓰는 지금 방식은 문장이 100~250개인 긴 영상에서 약합니다.
-4. **융합 A·B는 설명문 검색 단독과 비슷합니다(18~20%).** 처음 실험처럼 자막 검색이 강하지 않아 합쳐도 크게 오르지 않았습니다. \
-B에 구간 확장을 붙여도 29%로 설명문 검색 + 확장(34%)보다 낮습니다. 자막 점수가 이긴 질의에서 자막 1위가 틀린 경우가 많기 때문입니다.
-5. **다국어 CLIP(c)은 IoU ≥ 0.5에서 11%로 설명문 검색(확장 전 7%)보다 높고**, 말 없는 영상 4개(27개 질의)에서 6개를 맞혀 \
-설명문 검색 확장 전(1개)보다 좋았습니다(확장 후 7개). Moment-DETR(a)(b)는 1위 구간이 32초(중앙값)로 길어 7~8%에 그쳤습니다.
-6. **화면 글자가 있는 V 질의에서 설명문 검색이 오히려 낮았습니다(확장 후 8/26, 글자 없음 13/34).** 다만 글자 있음 질의는 tofu_silent(7개)·airpods_fake(5개)처럼 \
-화면 전체에 글자가 깔린 영상에 몰려 있어, 화면 글자의 효과와 영상의 난이도를 이 결과로는 나눌 수 없습니다.
+INTERPRETATION_CAPTIONS = """\
+**해석 (작성자 판단)**
 
-7. **R@3·시작점 오차로 보면 '위치는 맞는데 1위·구간 길이가 틀린' 경우가 많습니다.** 설명문 검색(e)은 1위 IoU ≥ 0.3이 18%지만 \
-R@3은 40%, 시작 ±5초는 33%입니다. 자막 검색(d)도 S에서 1위 27% → R@3 50%로, 맞는 자막이 2~3위에 있는 경우가 많았습니다. \
+1. **8장 묶음 처리는 약 6배 빠릅니다(109분 → 18분, 장당 2.37초 → 0.39초).** GPU 최대 할당은 8.4 → 8.9 GiB로 큰 차이가 없습니다.
+2. **설명문은 39%만 완전히 같고, 결과는 조금 낮아졌습니다.** 같은 영상의 프레임은 크기와 프롬프트가 같아 패딩 차이는 없고, \
+묶음 크기에 따라 bf16 행렬 연산의 순서·방식이 달라져 생긴 작은 수치 차이가 greedy 생성에서 뒤쪽 문장을 바꿉니다. \
+(e) 1위가 바뀐 질의는 18/90개이고, IoU ≥ 0.3은 18% → 14%, R@3은 40% → 32%로 내려갔습니다.
+3. **이 차이가 '묶음 처리가 설명을 더 못 한다'는 뜻인지는 이 데이터로 판단할 수 없습니다.** 바뀐 설명문이 더 나쁜지 직접 비교하지 않았고, \
+90개 질의에서 1위 기준 3~4개 차이는 우연일 수 있습니다. 다만 R@3 7개 차이(36 → 29)는 작지 않아, 묶음 크기 4 등 중간값과 \
+dev에서 한 번 더 비교해 볼 만합니다.
+4. 이후 설정 비교(구간 규칙, 임베딩 모델 등)는 모두 같은 8장 묶음 설명문으로 하므로, 비교 자체의 공정성에는 영향이 없습니다.
+"""
+
+INTERPRETATION = """\
+수치는 8장 묶음 처리한 설명문 기준입니다(1장씩 처리와의 차이는 「설명문 1장씩 처리 → 8장 묶음 처리」 절).
+
+1. **처음 실험보다 모든 방식이 크게 낮습니다.** IoU ≥ 0.3 기준 가장 좋은 방식도 32%입니다. 영상이 1분 안팎에서 2:40~15분으로 길어져 \
+후보 구간이 많아졌고, 무작위 기준선도 13%에서 3%로 떨어졌습니다. 처음 실험 수치는 짧은 영상 4개라 높게 나온 것으로 봐야 합니다.
+2. **설명문 검색에 구간 확장(M1, 탐색적)을 붙인 방식이 가장 좋습니다.** 전체 IoU ≥ 0.3 기준 32%(29/90), IoU ≥ 0.5 기준 18%(16/90)입니다. \
+설명문 검색의 1위 구간은 2초(중앙값)인데 정답은 대부분 그보다 길어, 위치가 맞아도 IoU가 낮게 나옵니다. 다만 M1은 결과를 본 뒤 추가한 것이라 \
+dev에서 정하고 test에서 확인해야 합니다.
+3. **자막 검색(d)은 S에서도 27%(8/30)로 처음 실험(100%)보다 크게 떨어졌습니다.** 틀린 경우는 같은 내용을 다른 시점에 말한 경우(조명 이야기는 \
+87초, 켜는 장면은 309초), Whisper 오인식, 말 없는 450초를 한 문장으로 합친 자막(먹방 마지막 인사)이었습니다. Whisper를 large-v3-turbo로 \
+바꾸면 43%로 오릅니다(「Whisper」 절).
+4. **융합 A·B는 설명문 검색 단독(14%)과 비슷하거나 낮습니다(A 12%, B 16%).** 자막 검색이 강하지 않아 합쳐도 오르지 않았고, \
+B에 구간 확장을 붙여도 24%로 설명문 검색 + 확장(32%)보다 낮습니다. 자막 점수가 이긴 질의에서 자막 1위가 틀린 경우가 많기 때문입니다.
+5. **다국어 CLIP(c)은 IoU ≥ 0.5에서 11%로 설명문 검색(3%)보다 높고**, 말 없는 영상 4개(27개 질의)에서 6개를 맞혀 설명문 검색(1개)보다 \
+좋았습니다(확장 후 7개). Moment-DETR(a)(b)는 1위 구간이 32초(중앙값)로 길어 7~8%에 그쳤습니다.
+6. **화면 글자가 있는 V 질의에서 설명문 검색이 오히려 낮았습니다(확장 후 7/26, 글자 없음 13/34).** 다만 글자 있음 질의는 \
+tofu_silent(7개)·airpods_fake(5개)처럼 화면 전체에 글자가 깔린 영상에 몰려 있어, 화면 글자의 효과와 영상의 난이도를 이 결과로는 나눌 수 없습니다.
+7. **R@3·시작점 오차로 보면 '위치는 맞는데 1위·구간 길이가 틀린' 경우가 많습니다.** 설명문 검색(e)은 1위 IoU ≥ 0.3이 14%지만 \
+R@3은 32%, 시작 ±5초는 31%입니다. 자막 검색(d)도 S에서 1위 27% → R@3 50%로, 맞는 자막이 2~3위에 있는 경우가 많았습니다. \
 순위를 다시 매기거나(re-ranking) 상위 후보를 함께 보여주는 화면이 1위 정확도를 올리는 것보다 효과가 클 수 있습니다. \
 번역 + Moment-DETR(a)(b)는 R@3도 12~17%로, 후보를 늘려도 낮습니다.
-8. 이 두 지표는 결과를 본 뒤 추가한 것이 아니라 요청에 따라 정의를 먼저 정하고(중복 후보 제외 기준 IoU 0.5, 시작 허용 ±5초) 계산했습니다. \
-다만 (M1, 탐색적) 방식의 R@3·시작점 값도 같은 이유로 탐색적 결과입니다.
+8. R@3·시작점은 정의(중복 후보 제외 기준 IoU 0.5, 시작 허용 ±5초)를 먼저 정하고 계산했습니다. (M1, 탐색적) 방식의 값은 같은 이유로 탐색적 결과입니다.
 
-**다음 단계:** (1) 설명문 구간 길이 규칙(M1 등)·재순위·Whisper 모델은 dev에서만 비교해 정하고 test로 확인, \
-(2) 말 내용을 찾는 S 질의를 dev·test에 10개 이상씩 추가, (3) 정답 없음 질의 12개로 점수 임계값(결과 없음 판정) 평가.
+**다음 단계:** (1) 설명문 구간 길이 규칙(M1 등)·재순위·Whisper 모델·임베딩 모델은 dev에서만 비교해 정하고 test로 확인 \
+([embedding_compare.md](embedding_compare.md)), (2) 추가한 말 내용 S 질의(AI 초안 28개) 검수, (3) 정답 없음 질의 12개로 점수 임계값(결과 없음 판정) 평가.
 """
 
 
@@ -172,6 +185,7 @@ def main():
     parser.add_argument("--draft", default=None, help="검수 전 AI 초안 JSON (수정 통계용)")
     parser.add_argument("--output", default=str(ROOT / "docs/experiments/eval_v2.md"))
     parser.add_argument("--whisper-compare", default=None, help="Whisper 모델만 바꿔 돌린 결과 폴더")
+    parser.add_argument("--captions-compare", default=None, help="설명문만 다른 방식으로 만든 결과 폴더 (예: 1장씩 처리)")
     parser.add_argument("--s-kinds", default=str(ROOT / "docs/experiments/eval_v2_s_query_kinds.tsv"))
     args = parser.parse_args()
     out = Path(args.results).expanduser()
@@ -310,7 +324,9 @@ def main():
               f"- 화면 묘사 S {len(vis)}개에서도 자막 검색(d)은 IoU ≥ 0.3 기준 {hit('d')}개로 설명문 검색(e) {hit('e_qwen_incl')}개와 "
               "비슷했습니다. 즉 이번 데이터로는 '질의 말투가 자막 검색을 불리하게 만들었다'는 것도, 그 반대도 확인되지 않습니다.",
               f"- 말 내용 질의가 {n_speech}개뿐이라 두 종류의 차이는 판단할 수 없습니다. 자막 검색이 실제로 강할 것으로 보이는 "
-              "말 내용 질의(설명·주장·팁·특정 발언을 찾는 질의)를 dev·test에 각각 10개 이상 추가해야 합니다.", ""]
+              "말 내용 질의(설명·주장·팁·특정 발언을 찾는 질의)를 dev·test에 각각 10개 이상 추가해야 합니다. "
+              "AI 초안으로 dev 13개·test 15개를 라벨 파일에 추가했고(검수 전이라 이 문서의 수치에는 넣지 않음), "
+              "임베딩 모델 비교([embedding_compare.md](embedding_compare.md))에서 dev 13개를 참고용으로 썼습니다.", ""]
 
     # ---------- dev/test ----------
     L += ["## dev/test 나누기", "",
@@ -331,6 +347,49 @@ def main():
           "- 길이: 15분 가까운 영상을 한쪽에 몰지 않음 (steak_camp dev, battery_lecture test)",
           "- 질의 구성: S/V 수와 화면 글자 V 수가 비슷하게, Whisper 자막이 크게 틀린 영상도 2개씩",
           "- 이 문서의 수치는 나누기 전에 12개 전체로 낸 것이라 test도 이미 한 번 본 상태입니다. 이후 설정 변경은 dev에서만 비교합니다.", ""]
+
+    # ---------- 설명문 처리 방식 비교 ----------
+    if args.captions_compare:
+        import difflib
+        cout = Path(args.captions_compare).expanduser()
+        cres, cfus, crows = merged_rows(cout, qs)
+        csm = summary.summarize(crows, methods)
+        cap_a = json.loads((cout / "captions_qwen_incl.json").read_text(encoding="utf-8"))
+        cap_b = json.loads((out / "captions_qwen_incl.json").read_text(encoding="utf-8"))
+        bs_a, bs_b = cap_a["meta"].get("result_batch_size", 1), cap_b["meta"].get("result_batch_size", 1)
+        lab = lambda bs: "1장씩" if bs == 1 else f"{bs}장 묶음"  # noqa: E731
+        same = total = 0
+        sims = []
+        for key in qs.video_keys:
+            for x, y in zip(cap_a["videos"][key], cap_b["videos"][key]):
+                total += 1
+                same += x["text"] == y["text"]
+                sims.append(difflib.SequenceMatcher(None, x["text"], y["text"]).ratio())
+
+        def cap_time(meta):
+            bs = meta.get("result_batch_size", 1)
+            t = {k: v for k, v in (meta["single"] if bs == 1 else meta["batch"]).items() if k != "peak_gpu_gib"}
+            fr, sec = sum(v["frames"] for v in t.values()), sum(v["total_sec"] for v in t.values())
+            peak = meta.get("peak_gpu_gib_single") if bs == 1 else meta["batch"].get("peak_gpu_gib")
+            return fr, sec, peak
+        fa, ta, pa = cap_time(cap_a["meta"])
+        fb, tb, pb = cap_time(cap_b["meta"])
+        L += [f"## 설명문 {lab(bs_a)} 처리 → {lab(bs_b)} 처리", "",
+              f"이 문서의 (e)·융합 수치는 **{lab(bs_b)} 처리**한 설명문 기준입니다. 같은 프레임을 {lab(bs_a)} 처리한 설명문(처음 v2 결과)과 비교했습니다. "
+              "생성은 둘 다 greedy라 무작위성은 없고, 묶음 처리에서 생기는 패딩·연산 순서 차이로 문장이 달라집니다.", "",
+              f"| 항목 | {lab(bs_a)} | {lab(bs_b)} |", "|---|---|---|",
+              f"| 생성 시간 ({fa}장) | {ta / 60:.0f}분 (장당 {ta / fa:.2f}초) | {tb / 60:.0f}분 (장당 {tb / fb:.2f}초) |",
+              f"| GPU 최대 할당 | {pa:.1f} GiB | {pb:.1f} GiB |" if pa and pb else "| GPU 최대 할당 | – | – |",
+              f"| 완전히 같은 설명문 | {same}/{total}장 ({same / total * 100:.0f}%) | |",
+              f"| 평균 글자 유사도 | {sum(sims) / len(sims):.3f} | |", "",
+              "설명문을 쓰는 방식의 결과 (각 칸: IoU ≥ 0.3 / IoU ≥ 0.5 / 평균 IoU, 그다음 R@3):", "",
+              f"| 방식 | 묶음 | {lab(bs_a)} | {lab(bs_b)} |", "|---|---|---|---|"]
+        for k in ("e_qwen_incl", "e_M1", "A", "B_M0", "B_M1"):
+            for g in ("전체", "S", "V"):
+                L.append(f"| {names[k]} | {g} (n={sm[g]['n']}) | {cell3(csm[g][k])}, R@3 {p0(csm[g][k]['r3'])} | "
+                         f"{cell3(sm[g][k])}, R@3 {p0(sm[g][k]['r3'])} |")
+        changed = sum(1 for r, c in zip(rows, crows) if abs(methods["e_qwen_incl"](r)[0] - methods["e_qwen_incl"](c)[0]) > 1e-9)
+        L += ["", f"- (e) 1위 구간이 바뀐 질의 {changed}/{len(rows)}개.", "", INTERPRETATION_CAPTIONS, ""]
 
     # ---------- Whisper 비교 ----------
     if args.whisper_compare:
@@ -389,8 +448,8 @@ def main():
         bs = cap.get("result_batch_size", 1)
         L.append(f"- (e) 설명문 생성: {frames}장, {secs / 60:.0f}분 (장당 {secs / frames:.2f}초, "
                  + ("1장씩 처리" if bs == 1 else f"{bs}장 묶음 처리") + ")")
-    L.append("- 앞으로 설명문은 8장 묶음 처리로 만듭니다(captions.py 기본값). 1장씩 처리와 글자 단위로 조금 달라(tofu_silent 80장 중 "
-             "31장만 완전히 같음, 평균 글자 유사도 0.86) 이 문서의 (e) 수치를 그대로 재현하려면 `--batch-size 1`이 필요합니다.")
+    if args.captions_compare:
+        L.append("- 설명문은 captions.py 기본값(8장 묶음 처리)으로 만들었습니다. 1장씩 처리한 결과와의 차이는 「설명문 처리 방식」 절에 있습니다.")
     L.append("")
 
     # ---------- 질의별 ----------
@@ -411,14 +470,14 @@ def main():
 
     # ---------- 재현·한계 ----------
     L += ["## 재현 방법", "", "프로젝트 루트에서, 영상 12개를 `~/scenefinder_eval/videos/<YouTube ID>.mp4`에 둔 상태로 실행합니다.", "",
-          "    OUT=~/scenefinder_eval/results_v2",
+          "    OUT=~/scenefinder_eval/results_v2_b8",
           "    cp ~/scenefinder_eval/labels_draft.json $OUT/labels_snapshot.json",
-          "    python ai/experiments/translation_compare/captions.py --out $OUT --queries $OUT/labels_snapshot.json --variants qwen_incl --batch-size 1 --skip-batch-timing",
+          "    python ai/experiments/translation_compare/captions.py --out $OUT --queries $OUT/labels_snapshot.json --variants qwen_incl   # 8장 묶음(기본)",
           "    python ai/experiments/translation_compare/run.py --out $OUT --queries $OUT/labels_snapshot.json",
           "    python ai/experiments/translation_compare/fusion.py --out $OUT",
           "",
           "    # Whisper 비교: feature·설명문은 복사하고 자막만 large-v3-turbo로 다시 만듦",
-          "    W=~/scenefinder_eval/results_v2_whisper_turbo; mkdir -p $W",
+          "    W=~/scenefinder_eval/results_v2_whisper_turbo_b8; mkdir -p $W",
           "    cp $OUT/bench_*_clip_features.pt $OUT/captions_qwen_incl.json $OUT/labels_snapshot.json $W/",
           "    WHISPER_MODEL_SIZE=large-v3-turbo python ai/experiments/translation_compare/run.py --out $W --queries $W/labels_snapshot.json",
           "    WHISPER_MODEL_SIZE=large-v3-turbo python ai/experiments/translation_compare/fusion.py --out $W",
