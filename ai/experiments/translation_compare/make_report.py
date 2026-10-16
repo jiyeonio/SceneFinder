@@ -299,7 +299,7 @@ def main():
           "## 실험 설정", "",
           "- 영상: 로컬 한국어 테스트 영상 4개 — "
           + ", ".join(f"{VIDEO_NAMES[k]} {v:.0f}초" for k, v in meta["durations"].items())
-          + " (YouTube 다운로드 없음, `ai/experiments/korean_ai_handoff/.../02_Korean_Video_Test`의 영상)",
+          + " (YouTube 다운로드 없음, 로컬 테스트 영상 `data/raw/korean_test/`)",
           "- 영상 feature: CLIP ViT-B/32, 2초 단위 (서비스와 같은 `build_feature`)",
           f"- (a) `{meta['nllb']}` 번역 (`backend/services/translate.py`의 `to_english`) → `predict_moments_hybrid` 1위 구간",
           f"- (b) `{meta['opus']}` 번역 → 같은 `predict_moments_hybrid` 1위 구간",
@@ -341,8 +341,8 @@ def main():
           "    python ai/experiments/translation_compare/make_report.py --results /tmp/translation_compare/results.json", "",
           "- 질의·정답 구간·번역 품질 판단은 `ai/experiments/translation_compare/queries.py`에 있습니다.",
           "- `run.py`는 영상 feature(`.pt`), Whisper 자막, `results.json`을 `--out` 폴더(기본: 시스템 임시 폴더)에 저장합니다. **저장소 안 폴더를 `--out`으로 지정하지 마세요.** feature 파일은 저장소에 넣지 않습니다.",
-          "- 테스트 영상은 `data/raw/korean_test/`에 있으면 그것을, 없으면 `ai/experiments/korean_ai_handoff/remaining_176_files/02_Korean_Video_Test/`(Git LFS)의 영상을 사용합니다.",
-          f"- `{meta['opus']}` 모델은 처음 실행할 때 HuggingFace에서 내려받습니다(약 300MB). 다국어 CLIP은 `ai/experiments/korean_ai_handoff/model_assets/multilingual_clip/`의 로컬 모델을 씁니다.",
+          "- 테스트 영상 4개(`kr_tofu_001.mp4`, `kr_squat_001.mp4`, `kr_daiso_001.mp4`, `kr_kitchen_001.mp4`)는 저장소에 포함하지 않으므로 `data/raw/korean_test/`에 두고 실행합니다.",
+          f"- `{meta['opus']}` 모델은 처음 실행할 때 HuggingFace에서 내려받습니다(약 300MB). 다국어 CLIP은 로컬 모델 폴더가 없으면 HuggingFace의 `sentence-transformers/clip-ViT-B-32-multilingual-v1`을 내려받아 씁니다.",
           "- (e)용 `captions.py`는 처음 실행할 때 `Qwen/Qwen3-VL-4B-Instruct`(약 8.9GB)와 `NCSOFT/VARCO-VISION-2.0-1.7B`(약 4.2GB)를 내려받고, 설명문을 `--out`의 `captions_<변형>.json`으로 저장합니다. `run.py`는 이 파일이 있으면 (e)를 함께 평가합니다. GPU 메모리는 최대 약 9GiB 사용합니다.",
           "- 모델 다운로드가 멈추면(Hugging Face Xet 전송 문제) `HF_HUB_DISABLE_XET=1`을 붙여 다시 실행하세요.",
           "- GPU 기준 (a)~(d) 실행은 수 분, (e) 설명문 생성은 변형 3개에 약 20분 걸립니다. 같은 입력이면 같은 결과가 나옵니다(무작위 기준선 seed 고정, greedy 생성).", "",

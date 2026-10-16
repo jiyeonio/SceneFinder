@@ -38,6 +38,7 @@ from queries import QUERIES, VIDEO_FILES  # noqa: E402
 
 HANDOFF_VIDEO_DIR = ROOT / "ai/experiments/korean_ai_handoff/remaining_176_files/02_Korean_Video_Test"
 MULTI_CLIP_DIR = ROOT / "ai/experiments/korean_ai_handoff/model_assets/multilingual_clip"
+MULTI_CLIP_HF = "sentence-transformers/clip-ViT-B-32-multilingual-v1"  # 로컬 폴더가 없으면 HuggingFace에서 받음
 OPUS = "Helsinki-NLP/opus-mt-ko-en"
 RANDOM_SAMPLES = 100
 RANDOM_SEED = 0
@@ -48,8 +49,8 @@ DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
 
 def find_video(key: str) -> Path:
-    """data/raw/korean_test에 있으면 그것을, 없으면 저장소의 인수인계 폴더에서 찾습니다.
-    (인수인계 폴더의 한글 파일명은 NFD로 저장돼 있어 정규화해서 비교)"""
+    """data/raw/korean_test에 있으면 그것을, 없으면 인수인계 폴더(있는 경우)에서 찾습니다.
+    테스트 영상은 저장소에 포함하지 않습니다. (인수인계 폴더의 한글 파일명은 NFD라 정규화해서 비교)"""
     local_name, handoff_name = VIDEO_FILES[key]
     local = ROOT / "data/raw/korean_test" / local_name
     if local.exists():
@@ -58,7 +59,7 @@ def find_video(key: str) -> Path:
     for p in HANDOFF_VIDEO_DIR.glob("*.mp4"):
         if unicodedata.normalize("NFC", p.name) == want:
             return p
-    raise FileNotFoundError(f"테스트 영상을 찾을 수 없습니다: {local_name} / {handoff_name}")
+    raise FileNotFoundError(f"테스트 영상을 찾을 수 없습니다: data/raw/korean_test/{local_name} 에 두세요")
 
 
 def duration(path: Path) -> float:
@@ -172,7 +173,7 @@ def main():
     # 유사도 평활화 → 상위 VISUAL_TOP_K개 bin → 연속 구간 중 (길이, 평균 유사도)가 가장 큰 것
     from sentence_transformers import SentenceTransformer
 
-    mclip = SentenceTransformer(str(MULTI_CLIP_DIR), device=DEVICE)
+    mclip = SentenceTransformer(str(MULTI_CLIP_DIR) if MULTI_CLIP_DIR.is_dir() else MULTI_CLIP_HF, device=DEVICE)
 
     @torch.no_grad()
     def mclip_top1(key, ko):
