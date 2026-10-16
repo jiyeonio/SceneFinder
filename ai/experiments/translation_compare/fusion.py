@@ -6,6 +6,7 @@ run.py와 captions.py가 --out에 만든 results.json, bench_<영상>_subtitles.
 결과를 --out/fusion_results.json으로 저장합니다. 서비스 코드는 바꾸지 않습니다.
 질의·정답 구간은 --queries의 JSON에서 읽습니다. 생략하면 run.py가 쓴 질의 세트(results.json의 queries_source),
 그 기록도 없으면 queries.py를 씁니다. 자막이 없는 영상(말소리 없음)은 (d) 없이 설명문만으로 검색합니다.
+결과 요약(fusion_results.json의 summary)은 run.py와 같은 묶음(S/V, 화면 글자 유무, source별)으로 집계합니다.
 
 방식
   (e) 단독: 설명문만 검색. 구간 규칙 M0(그대로) / M1(앞뒤 1칸 확장) / M2(점수가 비슷한 이웃 칸 병합)
@@ -24,6 +25,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from run import ROOT, SUBTITLE_MIN_LEN, SUBTITLE_PAD_BEFORE, best_iou  # noqa: E402  (ROOT를 sys.path에 추가)
 import query_set  # noqa: E402
+import summary  # noqa: E402
 
 from sentence_transformers import util  # noqa: E402
 
@@ -31,6 +33,9 @@ CAPTION_VARIANT = "qwen_incl"
 MERGE_DELTA = 0.03       # M2: 1위 점수와 이 이내인 이웃 칸만 병합 (실험 전에 정한 값, 질의에 맞춰 조정하지 않음)
 MERGE_MAX_BINS = 5       # M2: 최대 10초
 CLIP_LEN = 2.0
+SUMMARY_LABELS = {"d": "(d) 자막 검색", "e_M0": "(e) 설명문·구간 그대로", "e_M1": "(e) 설명문·앞뒤 1칸",
+                  "e_M2": "(e) 설명문·이웃 병합", "A": "A 하나의 목록", "B_M0": "B 점수 max·그대로",
+                  "B_M1": "B 점수 max·앞뒤 1칸", "B_M2": "B 점수 max·이웃 병합"}
 QUOTE_RE = re.compile(r"['\"“‘「『][^'\"”’」』]*['\"”’」』]|['\"“‘「『][^'\"”’」』]*$")
 
 
@@ -200,15 +205,20 @@ def main():
                        if any(min(c["end_time"], b) - max(c["start_time"], a) > 0 for a, b in gts)
                        for m in QUOTE_RE.finditer(c["text"])],
         }
-        rows.append(out_row)
+        rows.append(summary.annotate(out_row, qs))
         print(f"#{num:2d} {typ} d={out_row['d']['iou']:.2f} e0={out_row['e_M0']['iou']:.2f} "
               f"e1={out_row['e_M1']['iou']:.2f} e2={out_row['e_M2']['iou']:.2f} A={out_row['A']['iou']:.2f}({kind}) "
               f"B0={out_row['B_M0']['iou']:.2f}({out_row['B_M0']['from']}) B2={out_row['B_M2']['iou']:.2f}", flush=True)
 
+    # S/V, V의 화면 글자 유무, source별 집계
+    keys = ["d", "e_M0", "e_M1", "e_M2", "A", "B_M0", "B_M1", "B_M2"]
+    result_summary = summary.summarize(rows, {k: summary.by_iou(lambda r, k=k: r[k]["iou"]) for k in keys})
+    print(summary.format_table(result_summary, SUMMARY_LABELS))
+
     meta = {"queries_source": qs.source, "caption_variant": CAPTION_VARIANT, "merge_delta": MERGE_DELTA,
             "merge_max_bins": MERGE_MAX_BINS, "d_reproduction_checked": checked, "d_reproduction_mismatches": mismatch}
-    (out / "fusion_results.json").write_text(json.dumps({"meta": meta, "rows": rows}, ensure_ascii=False, indent=1),
-                                             encoding="utf-8")
+    (out / "fusion_results.json").write_text(
+        json.dumps({"meta": meta, "summary": result_summary, "rows": rows}, ensure_ascii=False, indent=1), encoding="utf-8")
     print(f"(d) 재현 불일치: {mismatch}/{checked} | 저장:", out / "fusion_results.json")
 
 

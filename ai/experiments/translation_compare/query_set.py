@@ -12,6 +12,10 @@ JSON 형식 (tools/labeler/README.md 참고)
   폴더는 환경변수 SCENEFINDER_EVAL_VIDEO_DIRS(여러 개는 ':'로 구분)로 바꿀 수 있음
 - type: S = 말로 설명되는 장면, V = 말로는 안 나오고 화면에만 보이는 장면
 - gt: 정답 구간 목록 [[시작초, 끝초], ...] (여러 개면 가장 높은 IoU로 판정)
+- source(선택): ai_draft(AI 초안, 미검수) / human_reviewed(AI 초안을 사람이 검수) / human(사람이 처음부터 작성).
+  없으면 human으로 봄
+- overlay_text(선택): true면 화면에 덧씌운 글자만으로도 찾을 수 있는 장면. 없으면 미표시(None)
+- negative_queries(선택): 영상에 없는 장면(정답 없음) 질의. 지금 실험 스크립트는 평가하지 않음
 """
 import json
 import os
@@ -22,6 +26,7 @@ ROOT = Path(__file__).resolve().parents[3]
 LOCAL_VIDEO_DIR = ROOT / "data/raw/korean_test"
 HANDOFF_VIDEO_DIR = ROOT / "ai/experiments/korean_ai_handoff/remaining_176_files/02_Korean_Video_Test"
 FORMAT = "scenefinder-labels/1"
+SOURCES = ("ai_draft", "human_reviewed", "human")
 VIDEO_EXTS = (".mp4", ".webm", ".mkv", ".mov", ".m4v")
 
 
@@ -33,8 +38,10 @@ def eval_video_dirs():
 
 
 class QuerySet:
-    def __init__(self, source, videos, queries):
+    def __init__(self, source, videos, queries, info=None):
         self.source = source      # 읽은 파일 (결과 meta에 기록)
+        # 번호 → {"source": 작성 출처, "overlay_text": True/False/None}
+        self.info = info or {q[0]: {"source": "human", "overlay_text": None} for q in queries}
         self.videos = videos      # 키 → {"file": 경로 또는 None, "youtube_id": ID 또는 None, "name": 표시 이름,
                                   #        "handoff": 인수인계 파일명 또는 None}
         self.queries = queries    # [(번호, 영상 키, 유형, 질의, [(시작, 끝), ...])]
@@ -99,7 +106,7 @@ def _from_json(path: Path):
             raise ValueError(f"{path} 영상 {k}: file 또는 youtube_id가 필요합니다")
         videos[k] = {"file": v.get("file"), "youtube_id": v.get("youtube_id"), "name": v.get("name") or k,
                      "handoff": v.get("handoff")}
-    queries, seen = [], set()
+    queries, seen, info = [], set(), {}
     for item in data["queries"]:
         num, key, typ, ko = int(item["num"]), item["video"], item["type"], item["query"].strip()
         gts = [(float(a), float(b)) for a, b in item["gt"]]
@@ -114,11 +121,17 @@ def _from_json(path: Path):
             problems.append("질의가 비어 있음")
         if not gts or any(b <= a for a, b in gts):
             problems.append(f"정답 구간이 없거나 끝 ≤ 시작 ({gts})")
+        src, overlay = item.get("source", "human"), item.get("overlay_text")
+        if src not in SOURCES:
+            problems.append(f"source는 {'/'.join(SOURCES)} 중 하나 ({src!r})")
+        if overlay not in (None, True, False):
+            problems.append(f"overlay_text는 true/false ({overlay!r})")
         if problems:
             raise ValueError(f"{path} 질의 #{num}: " + ", ".join(problems))
         seen.add(num)
         queries.append((num, key, typ, ko, gts))
-    return QuerySet(_source(path), videos, sorted(queries))
+        info[num] = {"source": src, "overlay_text": overlay}
+    return QuerySet(_source(path), videos, sorted(queries), info)
 
 
 def load(path=None) -> QuerySet:

@@ -13,6 +13,7 @@
 영상 feature, 자막, 결과 JSON은 --out 폴더(기본: 시스템 임시 폴더)에 저장하고 저장소에는 쓰지 않습니다.
 --queries를 주면 queries.py 대신 라벨링 도구(tools/labeler)가 저장한 JSON의 질의·정답 구간·영상을 씁니다.
 feature·자막 캐시 파일 이름은 영상 키(bench_<키>)라, 같은 --out 폴더에서 같은 키를 다른 영상에 쓰면 안 됩니다.
+결과 요약(results.json의 summary)은 전체·S·V, V의 화면 글자 있음/없음/미표시, 질의 source별로 나눠 집계합니다.
 """
 import argparse
 import json
@@ -36,6 +37,7 @@ import torch  # noqa: E402
 import torch.nn.functional as F  # noqa: E402
 
 import query_set  # noqa: E402
+import summary  # noqa: E402
 
 MULTI_CLIP_DIR = ROOT / "ai/experiments/korean_ai_handoff/model_assets/multilingual_clip"
 MULTI_CLIP_HF = "sentence-transformers/clip-ViT-B-32-multilingual-v1"  # 로컬 폴더가 없으면 HuggingFace에서 받음
@@ -46,6 +48,8 @@ RANDOM_SEED = 0
 SUBTITLE_PAD_BEFORE = float(os.getenv("SUBTITLE_PAD_BEFORE", "2.0"))
 SUBTITLE_MIN_LEN = float(os.getenv("SUBTITLE_MIN_LEN", "6.0"))
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+SUMMARY_LABELS = {"a": "(a) NLLB+Moment-DETR", "b": "(b) opus-mt+Moment-DETR", "c": "(c) 다국어 CLIP",
+                  "d": "(d) 자막 검색", "d_raw": "(d) 자막 검색·보정 전", "random": "무작위 기준선"}
 
 
 def duration(path: Path) -> float:
@@ -224,7 +228,7 @@ def main():
                         "raw_seg": raw, "raw_iou": best_iou(raw, gts)}
         for variant in captions:
             row[f"e_{variant}"] = caption_eval(variant, key, ko, gts)
-        rows.append(row)
+        rows.append(summary.annotate(row, qs))
         print(f"#{num:2d} {typ} a={row['a']['iou']:.2f} b={row['b']['iou']:.2f} c={row['c']['iou']:.2f} "
               f"d={row.get('d', {}).get('iou', float('nan')):.2f}", flush=True)
 
@@ -239,8 +243,19 @@ def main():
         "durations": durs, "gt_mean_len": gt_len, "random_samples": RANDOM_SAMPLES, "random_seed": RANDOM_SEED,
         "gpu": torch.cuda.get_device_name(0) if torch.cuda.is_available() else "cpu",
     }
+    # S/V, V의 화면 글자 유무, source별 집계 (자막이 없어 (d) 결과가 없는 질의는 IoU 0)
+    methods = {m: summary.by_iou(lambda r, m=m: r[m]["iou"]) for m in ("a", "b", "c")}
+    methods["d"] = summary.by_iou(lambda r: r.get("d", {}).get("iou"))
+    methods["d_raw"] = summary.by_iou(lambda r: r.get("d", {}).get("raw_iou"))
+    for v in captions:
+        methods[f"e_{v}"] = summary.by_iou(lambda r, v=v: r.get(f"e_{v}", {}).get("iou"))
+    methods["random"] = lambda r: (r["random"]["mean_iou"], r["random"]["hit30"], r["random"]["hit50"])
+    result_summary = summary.summarize(rows, methods)
+    print(summary.format_table(result_summary, SUMMARY_LABELS))
+
     path = out / "results.json"
-    path.write_text(json.dumps({"meta": meta, "rows": rows}, ensure_ascii=False, indent=1), encoding="utf-8")
+    path.write_text(json.dumps({"meta": meta, "summary": result_summary, "rows": rows}, ensure_ascii=False, indent=1),
+                    encoding="utf-8")
     print("저장:", path)
 
 
