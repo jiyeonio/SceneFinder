@@ -296,6 +296,21 @@ class _Captioner:
                 torch.cuda.empty_cache()
                 logger.info("[caption] %.0f분 동안 쓰지 않아 설명문 모델을 GPU에서 내림", idle_sec / 60)
 
+    def release(self) -> bool:
+        """설명문을 만드는 중이 아니면 모델을 바로 내림. 내렸으면 True (만드는 중이면 기다리지 않고 False)."""
+        if not self._lock.acquire(blocking=False):
+            return False
+        try:
+            if self._model is None:
+                return False
+            import torch
+            self._model = self._processor = None
+            torch.cuda.empty_cache()
+            logger.info("[caption] GPU 메모리가 부족해 설명문 모델을 내림 (다음 생성 때 다시 올림)")
+            return True
+        finally:
+            self._lock.release()
+
     def caption(self, images, batch_size, name, idle_unload_min):
         import torch
 
@@ -315,6 +330,9 @@ class _Captioner:
                     out = self._model.generate(**inputs, max_new_tokens=MAX_NEW_TOKENS, do_sample=False)
                 trimmed = out[:, inputs["input_ids"].shape[1]:]
                 texts += [t.strip() for t in self._processor.batch_decode(trimmed, skip_special_tokens=True)]
+                del inputs, out, trimmed
+            # 묶음 생성에 쓴 캐시 메모리를 돌려줌. 안 하면 torch가 잡고 있어 Whisper(ctranslate2)가 GPU 메모리 부족으로 실패함
+            torch.cuda.empty_cache()
             self._last_used = time.time()
         if idle_unload_min > 0:
             if self._timer:
@@ -344,6 +362,11 @@ def _encode_e5(texts, name, prefix):
     model = _e5(name)
     with _E5_LOCK:
         return model.encode([prefix + t for t in texts], convert_to_tensor=True, normalize_embeddings=True, batch_size=64)
+
+
+def release_gpu() -> bool:
+    """다른 모델(Whisper)이 GPU 메모리가 부족할 때 부름. 설명문 모델을 내렸으면 True."""
+    return _CAPTIONER.release()
 
 
 def warmup() -> None:

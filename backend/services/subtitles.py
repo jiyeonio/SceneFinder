@@ -74,8 +74,10 @@ def _transcribe(video_path: str):
     if not _force_cpu and _model is None and not _load_torch_cuda_libs():
         _force_cpu = True
     devices = ["cpu"] if _force_cpu else ["cuda", "cpu"]
+    freed = False
 
-    for device in devices:
+    while devices:
+        device = devices.pop(0)
         try:
             model = _get_model(device)
             segments, info = model.transcribe(
@@ -95,6 +97,18 @@ def _transcribe(video_path: str):
             ]
             return items, info.language, float(info.language_probability)
         except Exception as e:
+            if device == "cuda" and "out of memory" in str(e).lower():
+                # GPU 메모리 부족은 잠깐일 수 있음: 설명문 모델을 내릴 수 있으면 내리고 GPU로 한 번 더,
+                # 그래도 안 되면 이번 영상만 CPU (다음 영상은 다시 GPU부터)
+                if not freed:
+                    freed = True
+                    from . import captions
+                    if captions.release_gpu():
+                        logger.warning("Whisper GPU 메모리 부족, 설명문 모델을 내리고 다시 시도합니다: %s", e)
+                        devices.insert(0, "cuda")
+                        continue
+                logger.warning("Whisper GPU 메모리 부족, 이번 영상만 CPU로 만듭니다 (느림): %s", e)
+                continue
             if device == "cuda":
                 logger.warning("Whisper GPU 사용 실패, CPU로 전환합니다 (이후 자막 생성은 모두 CPU, 느림): %s", e)
                 _force_cpu = True
