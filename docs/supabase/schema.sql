@@ -87,6 +87,33 @@ create table public.video_features (
 create index if not exists video_features_video_id_idx on public.video_features (video_id, id desc);
 
 -- ============================================================
+-- video_captions: VLM 설명문 생성 상태 (영상당 1행)  [2026-10-17 추가, migrations/20261017_video_captions.sql]
+-- 코드: backend/services/captions.py. 설명문·임베딩 파일은 서버 디스크(data/processed/captions/)에 있음
+-- CAPTION_SEARCH_ENABLED=0이면 쓰지 않음
+-- ============================================================
+create table public.video_captions (
+    video_id       uuid primary key references public.videos (video_id) on delete cascade,
+    status         text not null default 'PENDING'
+                   check (status in ('PENDING', 'PROCESSING', 'READY', 'FAILED')),
+    caption_model  text,
+    embed_model    text,
+    batch_size     integer,
+    num_frames     integer,
+    caption_path   text,
+    error_message  text,
+    started_at     timestamptz,
+    finished_at    timestamptz,
+    created_at     timestamptz default now(),
+    updated_at     timestamptz default now()
+);
+
+create trigger video_captions_set_updated_at
+    before update on public.video_captions
+    for each row execute function public.set_updated_at();
+
+create index if not exists video_captions_status_idx on public.video_captions (status, updated_at);
+
+-- ============================================================
 -- search_history: 로그인 사용자의 검색 기록  [확인]
 -- 코드: search_api (검색 시 insert), main.get_history (user_id로 조회, searched_at 내림차순)
 -- ============================================================
@@ -139,6 +166,7 @@ alter table public.videos         enable row level security;
 alter table public.video_features enable row level security;
 alter table public.search_history enable row level security;
 alter table public.favorites      enable row level security;
+alter table public.video_captions enable row level security;
 
 -- ============================================================
 -- Storage  [확인: 코드]
