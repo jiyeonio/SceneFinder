@@ -116,6 +116,7 @@ GPU, 모델 준비 등 백엔드 상세 설정은 [docs/backend-setup.md](docs/b
 | `SCENEFINDER_MINILM_MODEL_PATH` | 필수 | 한국어 자막 검색용 MiniLM 모델 폴더의 절대 경로 |
 | `CORS_ORIGINS` | 선택 | 허용할 프론트엔드 주소 (쉼표로 구분). 비우면 `localhost`/`127.0.0.1`의 3000, 5173 포트 |
 | `DOWNLOAD_BLOCK_COOLDOWN_MIN` | 선택 | 기본 `10`. YouTube가 다운로드를 막아(봇 확인, 403 등) 분석에 실패한 영상은 이 시간(분) 동안 다시 받지 않고 "잠시 후 다시 시도해주세요" 안내만 돌려줍니다. 제한이 걸린 상태에서 요청이 더 쌓이지 않게 하기 위한 값이며, `0`이면 끕니다 |
+| `CAPTION_SEARCH_ENABLED` | 선택 | 기본 `0`(꺼짐). `1`이면 분석 후 VLM(Qwen3-VL)으로 화면 설명문을 만들어 자막과 함께 검색합니다. GPU 메모리 약 12GB 추가, DB에 `video_captions` 테이블 필요. 세부 설정(`CAPTION_*`)은 `.env.example` 참고 ([설계](docs/design/vlm_search.md)) |
 | `WHISPER_MODEL_SIZE` | 선택 | 기본 `large-v3-turbo`. 자막 생성(Whisper) 모델. 처음 실행 때 약 1.6GB를 내려받고 GPU 메모리를 약 2.4GB 씁니다. GPU 메모리가 부족하면 `small` ([비교](docs/experiments/whisper_turbo_switch.md)) |
 | `TRANSLATE_MODEL`, `SUBTITLE_PAD_BEFORE`, `SUBTITLE_MIN_LEN` | 선택 | 검색어 번역 모델, 자막 구간 보정값 (`.env.example`의 설명 참고) |
 

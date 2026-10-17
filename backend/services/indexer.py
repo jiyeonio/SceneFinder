@@ -10,9 +10,11 @@ from supabase import create_client
 try:
     from .acquire import download_video
     from .subtitles import transcribe_video, load_subtitles
+    from . import captions
 except ImportError:
     from acquire import download_video
     from subtitles import transcribe_video, load_subtitles
+    import captions
 
 ROOT = Path(__file__).resolve().parents[2]
 RAW_DIR = ROOT / "data" / "raw"
@@ -310,12 +312,15 @@ def prepare(youtube_video_id: str, title: str, force: bool = False, **meta) -> d
     }
 
 
-def run_indexing(video_id: str, youtube_video_id: str, local_path: str | None = None) -> None:
+def run_indexing(video_id: str, youtube_video_id: str, local_path: str | None = None, priority: bool = False) -> None:
     """
     다운로드 → Whisper 자막 생성 → 자막이 없을 때만 visual feature 생성 → 저장.
     Subtitle-first 구조에 맞춘 분석 파이프라인.
 
     local_path를 주면 YouTube에서 받지 않고 그 파일을 분석하며, 분석이 끝나도 파일을 지우지 않습니다.
+
+    CAPTION_SEARCH_ENABLED=1이면 INDEXED(자막 검색 가능) 다음에 같은 작업에서 설명문을 이어서 만듭니다
+    (대기열 차례를 기다리는 동안 영상 파일을 지우지 않음). priority=True면 설명문 대기열 맨 앞.
     """
     video_path = None
 
@@ -410,6 +415,14 @@ def run_indexing(video_id: str, youtube_video_id: str, local_path: str | None = 
             f"subtitle_ready={subtitles_available} | "
             f"visual_feature_generated={feature_path is not None}"
         )
+
+        # 4) 설명문 (CAPTION_SEARCH_ENABLED=1일 때만). 자막 검색은 이미 가능하고, 여기서 실패해도 영상 상태는 그대로
+        if USE_REAL_AI and captions.enabled():
+            try:
+                captions.run_for_video(video_id, youtube_video_id, str(video_path),
+                                       priority=priority, keep_file=bool(local_path))
+            except Exception as e:
+                print(f"[caption] 설명문 단계 오류 ({youtube_video_id}): {e}")
 
     except Exception as e:
         # 원문은 서버 로그에만, DB(사용자에게 보이는 값)에는 한국어 안내를 저장

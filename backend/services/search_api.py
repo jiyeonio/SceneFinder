@@ -12,11 +12,12 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 try:
-    from . import indexer
+    from . import captions, indexer
     from .subtitles import load_subtitles
     from .translate import to_english
     from .youtube_search import fetch_video_meta, search_youtube_page
 except ImportError:
+    import captions
     import indexer
     from subtitles import load_subtitles
     from translate import to_english
@@ -157,6 +158,19 @@ def predict_moments(
     """
     if indexer.USE_REAL_AI:
         subtitles, language = load_subtitles(video_id)
+
+        # 0) 설명문 검색이 켜져 있고 이 영상의 설명문이 준비됐으면 자막+설명문 결합 (docs/design/vlm_search.md)
+        if captions.enabled():
+            index = captions.load_index(video_id)
+            if index is not None:
+                try:
+                    from ai.features.fusion_search import get_semantic_model
+                    return captions.fused_search(
+                        video_id, query, top_k,
+                        subtitles if (language == "ko" and subtitles) else [],
+                        index, _widen_subtitle, get_semantic_model(model_type="finetuned"), indexer._AI_LOCK)
+                except Exception as e:
+                    logger.warning("설명문 결합 검색 실패, 기존 검색으로 대신함: %s", e)
 
         # 1) 한국어 자막이 있으면 MiniLM 검색
         if language == "ko" and subtitles:
@@ -304,6 +318,7 @@ def create_search_router(get_current_user) -> APIRouter:
             return _err(404, "VIDEO_NOT_FOUND", "등록되지 않은 영상입니다.")
         return {"youtube_video_id": youtube_video_id,
                 "status": s["status"],
+                "caption_status": captions.get_status(s["video_id"], youtube_video_id),
                 # 예전에 저장된 영어 원문 오류도 한국어 안내로 바꿔서 전달
                 "error_message": indexer.user_error_message(s["error_message"])}
 
@@ -361,7 +376,7 @@ def create_search_router(get_current_user) -> APIRouter:
 
         r = indexer.prepare(yid, title, force=force, **meta)
         if r["state"] == "STARTED":
-            background_tasks.add_task(indexer.run_indexing, r["video_id"], yid, str(local))
+            background_tasks.add_task(indexer.run_indexing, r["video_id"], yid, str(local), True)
             return JSONResponse(status_code=202, content={
                 "status": "PROCESSING", "youtube_video_id": yid, "source": "local",
                 "message": "로컬 영상 파일을 분석 중입니다.",
@@ -412,13 +427,17 @@ def create_search_router(get_current_user) -> APIRouter:
         r = indexer.prepare(yid, title, **meta)
 
         if r["state"] == "STARTED":
-            background_tasks.add_task(indexer.run_indexing, r["video_id"], yid)
+            # 사용자가 직접 연 영상이라 설명문 대기열 맨 앞
+            background_tasks.add_task(indexer.run_indexing, r["video_id"], yid, None, True)
         if r["state"] in ("STARTED", "PROCESSING"):
+            captions.bump(yid)
             return JSONResponse(status_code=202, content={
                 "status": "PROCESSING",
                 "youtube_video_id": yid,
+                "caption_status": captions.get_status(r["video_id"], yid),
                 "message": "영상을 분석 중입니다.",
             })
+        captions.bump(yid)  # 설명문 대기 중이면 맨 앞으로
 
         feature_path = r.get("feature_path")
         feature = (
@@ -445,6 +464,7 @@ def create_search_router(get_current_user) -> APIRouter:
         v = indexer.get_video(yid)
         return {
             "status": "INDEXED",
+            "caption_status": captions.get_status(v["video_id"], yid),
             "video": {"video_id": v["video_id"], "youtube_video_id": yid,
                       "title": v["title"], "thumbnail_url": v.get("thumbnail_url")},
             "query": query,
@@ -497,6 +517,9 @@ def create_search_router(get_current_user) -> APIRouter:
                 "best_score": max(m["score"] for m in moments),
                 "moments": moments,
             })
+        statuses = captions.get_statuses([(x["video"]["video_id"], x["video"]["youtube_video_id"]) for x in videos])
+        for x in videos:
+            x["caption_status"] = statuses.get(x["video"]["video_id"], "NONE")
         videos.sort(key=lambda x: x["best_score"], reverse=True)
 
         pending = []
@@ -535,6 +558,13 @@ def warmup_ai() -> None:
     """서버 시작 직후 모델을 미리 올려 첫 검색 지연을 없앱니다."""
     if not indexer.USE_REAL_AI:
         return
+    if captions.enabled():
+        try:
+            captions.cleanup_after_restart()  # 이전 실행에서 멈춘 설명문 작업 정리
+            captions.warmup()                 # 설명문 검색용 e5 미리 올리기
+            logger.info("[caption] 설명문 검색 켜짐 (CAPTION_SEARCH_ENABLED=1)")
+        except Exception as e:
+            logger.warning("[caption] 준비 실패: %s", e)
     try:
         rows = indexer.list_indexed(limit=1)
         if rows:

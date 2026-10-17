@@ -141,6 +141,23 @@ curl -F path=/home/team22/scenefinder_eval/videos/x54thOO7NHU.mp4 -F force=true 
 - 에러: `INVALID_YOUTUBE_ID`(400), `LOCAL_SOURCE_REQUIRED`(400, path·file이 없거나 둘 다), `UNSUPPORTED_FILE`(400),
   `INVALID_VIDEO_FILE`(400, 영상을 읽을 수 없음), `LOCAL_PATH_NOT_ALLOWED`(403), `LOCAL_FILE_NOT_FOUND`(404), `VIDEO_TOO_LONG`(422)
 
+## 3-2. 설명문 검색 상태 (`caption_status`)
+
+`.env`의 `CAPTION_SEARCH_ENABLED=1`이면, 분석이 끝난 영상(`INDEXED`)에 대해 VLM 화면 설명문을 이어서 만들고 자막과 함께 검색해요.
+다음 응답에 `caption_status`가 들어가요: `GET .../status`, `POST /api/search`(200·202), `POST /api/search/multi`의 `videos[]`.
+
+| 값 | 뜻 | 화면 표시 예 |
+|---|---|---|
+| `OFF` | 기능 꺼짐 (지금 서비스와 같음) | 표시 없음 |
+| `NONE` | 이 영상은 설명문을 만든 적 없음 | 「자막 검색만 가능」 |
+| `PENDING` | 설명문 대기 중, 또는 대기열이 가득 차 만들지 않음(다시 분석하면 생성) | 「화면 분석 대기 중」 |
+| `PROCESSING` | 설명문 만드는 중 (자막 검색은 이미 가능) | 「자막 검색 가능 · 화면 분석 중」 |
+| `READY` | 설명문 검색까지 가능 | 「분석 완료」 |
+| `FAILED` | 설명문 만들기 실패 (자막 검색은 가능) | 「자막 검색만 가능」 |
+
+- 설명문이 `READY`인 영상은 검색 결과의 `source`가 `subtitle`(자막) 또는 `caption`(화면 설명)이에요. 점수(`score`)는 각 모델의 유사도라 출처가 다르면 직접 비교하지 않아요.
+- 사용자가 연 영상(2번 `POST /api/search`, 3-1번 로컬 분석)은 설명문 대기열 맨 앞으로 가요.
+
 ## 4. 다중 장면 검색
 `POST /api/search/multi`
 
