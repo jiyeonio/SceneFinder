@@ -187,7 +187,7 @@ const SidebarVideoCard: React.FC<{
                 재생 중
               </span>
             ) : (
-              <AnalysisStatusBadge status={status} reason={reason} />
+              <AnalysisStatusBadge status={status} reason={reason} captionStatus={card.captionStatus} />
             )}
 
             {status === 'done' && best && (

@@ -19,6 +19,7 @@ import {
 import {
   buildSearchCards,
   deriveCardStatuses,
+  hasCaptionsInProgress,
   hasUnfinishedCards,
 } from './utils/searchCards';
 import { Header } from './components/Header';
@@ -403,16 +404,20 @@ const [videosMap, setVideosMap] =
 
         console.log('AI 다중 검색 결과:', response);
 
-        // 분석 대기/분석 중인 영상이 남아 있을 때만 계속 갱신
+        // 분석 대기/분석 중인 영상이 남아 있을 때만 계속 갱신.
+        // 화면 설명을 만드는 중인 영상이 있으면 '분석 중' 표시 없이 결과만 계속 갱신
         const stillAnalyzing = hasUnfinishedCards(latestStatuses);
+        const captionsInProgress = hasCaptionsInProgress(latestStatuses);
 
         if (!stillAnalyzing) {
           setIsAnalyzing(false);
-          return;
+          if (!captionsInProgress) return;
         }
 
         if (Date.now() - pollingStartedAt > POLLING_MAX_DURATION_MS) {
           setIsAnalyzing(false);
+          // 화면 설명만 남은 경우는 자막 검색 결과가 이미 있으므로 안내 없이 멈춤
+          if (!stillAnalyzing) return;
           setPollingNotice(
             '분석이 오래 걸려 자동 갱신을 멈췄습니다. 다시 검색하면 최신 상태를 확인할 수 있습니다.'
           );
@@ -634,7 +639,7 @@ const [videosMap, setVideosMap] =
 
       if (!video || results.length === 0) {
         setCardAnalysis({ card, phase: 'no_results', status: 'queued' });
-        updateCardStatus({ status: 'no_results' });
+        updateCardStatus({ status: 'no_results', captionStatus: response.caption_status });
         return;
       }
 
@@ -643,7 +648,7 @@ const [videosMap, setVideosMap] =
         ...previous.filter((item) => item.video_id !== video.video_id),
         ...results,
       ]);
-      updateCardStatus({ status: 'done' });
+      updateCardStatus({ status: 'done', captionStatus: response.caption_status });
 
       setCardAnalysis(null);
       handleSelectResult(results[0]);

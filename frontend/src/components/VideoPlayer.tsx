@@ -796,7 +796,7 @@ const handleSaveSegment = async () => {
                   data-testid="segment-chip"
                   data-current={isCurrent}
                   onClick={() => selectSegment(item)}
-                  title={`Score ${item.score.toFixed(3)}`}
+                  title={`${item.source === 'caption' ? '화면 설명으로 찾음' : item.source === 'subtitle' ? '자막으로 찾음' : '영상으로 찾음'} · Score ${item.score.toFixed(3)}`}
                   className={`shrink-0 whitespace-nowrap rounded-full border px-3 py-1 font-mono text-xs font-semibold transition-colors ${
                     isCurrent
                       ? 'border-blue-600 bg-blue-600 text-white'
@@ -804,6 +804,11 @@ const handleSaveSegment = async () => {
                   }`}
                 >
                   {formatTime(item.start_time)} - {formatTime(item.end_time)}
+                  {item.source === 'caption' && (
+                    <span className={`ml-1.5 font-sans text-[10px] ${isCurrent ? 'text-violet-100' : 'text-violet-600'}`}>
+                      화면
+                    </span>
+                  )}
                 </button>
               );
             })}

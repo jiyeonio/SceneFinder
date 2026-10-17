@@ -5,7 +5,14 @@ export interface SearchResultItem
   start_time: number; // seconds (float)
   end_time: number;   // seconds (float)
   score: number;      // 0.0 - 1.0 (relevance score)
+  // 어디서 찾은 구간인지: 자막 / 영상 feature / VLM 화면 설명
+  source?: 'subtitle' | 'visual' | 'caption';
+  // 백엔드가 정한 영상 안 순서 (0부터). 출처마다 점수 척도가 달라 점수 대신 이 순서를 씀
+  rank?: number;
 }
+
+// 설명문(VLM 화면 설명) 검색 상태. OFF: 기능 꺼짐, NONE: 만든 적 없음
+export type CaptionStatus = 'OFF' | 'NONE' | 'PENDING' | 'PROCESSING' | 'READY' | 'FAILED';
 
 export interface SearchResponse {
   query: string;
@@ -56,6 +63,8 @@ export interface CardStatusInfo {
   status: CardAnalysisStatus;
   // failed일 때 이유 (예: 30분 초과)
   reason?: string;
+  // 설명문 검색 상태 (분석 완료된 영상만)
+  captionStatus?: CaptionStatus;
 }
 
 export interface SearchCard {
@@ -64,6 +73,7 @@ export interface SearchCard {
   video: VideoMetadata;
   status: CardAnalysisStatus;
   reason?: string;
+  captionStatus?: CaptionStatus;
   // 관련도 높은 순으로 정렬된 AI 검색 구간 (done일 때만 채워짐)
   segments: SearchResultItem[];
   // YouTube 검색 순서 (0부터)

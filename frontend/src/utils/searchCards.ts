@@ -4,7 +4,7 @@ import {
   SearchResultItem,
   VideoMetadata,
 } from '../types';
-import { MultiSearchResponse } from '../services/searchApi';
+import { byBackendRank, MultiSearchResponse } from '../services/searchApi';
 
 /**
  * /api/search/multi 응답으로 영상별 분석 상태를 계산합니다.
@@ -20,6 +20,9 @@ export function deriveCardStatuses(
   const done = new Set(
     (response.videos ?? []).map((entry) => entry.video.youtube_video_id)
   );
+  const captionStatuses = new Map(
+    (response.videos ?? []).map((entry) => [entry.video.youtube_video_id, entry.caption_status])
+  );
   const pending = new Map(
     (response.pending ?? []).map((item) => [item.youtube_video_id, item.status])
   );
@@ -28,7 +31,7 @@ export function deriveCardStatuses(
 
   for (const id of youtubeVideoIds) {
     if (done.has(id)) {
-      statuses[id] = { status: 'done' };
+      statuses[id] = { status: 'done', captionStatus: captionStatuses.get(id) };
       continue;
     }
 
@@ -89,9 +92,8 @@ export function buildSearchCards(
     if (!video) return;
 
     const info = statuses[yid] ?? { status: 'queued' };
-    const segments = [...(segmentsByYid.get(yid) ?? [])].sort(
-      (a, b) => b.score - a.score
-    );
+    // 백엔드가 정한 순서 (자막·화면 설명이 섞이면 점수 척도가 달라 점수로 다시 정렬하지 않음)
+    const segments = [...(segmentsByYid.get(yid) ?? [])].sort(byBackendRank);
 
     // 점수가 있는 구간이 하나도 없으면 '결과 없음'으로 표시
     const status =
@@ -104,6 +106,7 @@ export function buildSearchCards(
       video,
       status,
       reason: info.reason,
+      captionStatus: info.captionStatus,
       segments,
       youtubeRank,
     });
@@ -122,4 +125,11 @@ export function hasUnfinishedCards(
       info.status === 'queued' ||
       info.status === 'analyzing'
   );
+}
+
+/** 화면 설명(설명문)을 만드는 중인 영상이 있는지 (끝나면 결과가 바뀌므로 갱신 계속) */
+export function hasCaptionsInProgress(
+  statuses: Record<string, CardStatusInfo>
+): boolean {
+  return Object.values(statuses).some((info) => info.captionStatus === 'PROCESSING');
 }

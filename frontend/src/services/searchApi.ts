@@ -1,5 +1,5 @@
 
-import { SearchResponse, SearchResultItem, VideoMetadata } from '../types';
+import { CaptionStatus, SearchResponse, SearchResultItem, VideoMetadata } from '../types';
 import { DEFAULT_SEARCH_RESPONSES } from '../data/mockData';
 
 /**
@@ -189,7 +189,7 @@ export async function searchYouTubeVideos(
 
 // ===================== 다중 영상 AI 검색 =====================
 
-export type MomentSource = 'subtitle' | 'visual';
+export type MomentSource = 'subtitle' | 'visual' | 'caption';
 
 export interface MomentResult {
   segment_id: string;
@@ -214,6 +214,7 @@ export interface MultiSearchVideo {
   };
   best_score: number | null;
   moments: MomentResult[];
+  caption_status?: CaptionStatus;
 }
 
 export type PendingVideoStatus =
@@ -294,6 +295,7 @@ export type VideoAnalysisStatus =
 export interface VideoStatusResponse {
   youtube_video_id: string;
   status: VideoAnalysisStatus;
+  caption_status?: CaptionStatus;
   error_message: string | null;
 }
 
@@ -319,6 +321,7 @@ export async function getYouTubeVideoStatus(
 
 export interface SingleSearchResponse {
   status?: 'INDEXED' | 'PROCESSING';
+  caption_status?: CaptionStatus;
   youtube_video_id?: string;
   message?: string;
   query?: string;
@@ -410,7 +413,7 @@ export function convertMultiSearchResults(
       chapters: [],
     };
 
-    for (const moment of entry.moments ?? []) {
+    (entry.moments ?? []).forEach((moment, rank) => {
       const score = getMomentScore(moment);
 
       if (score === null) {
@@ -418,7 +421,7 @@ export function convertMultiSearchResults(
           '유효한 점수가 없어 검색 결과에서 제외했습니다:',
           moment
         );
-        continue;
+        return;
       }
 
       results.push({
@@ -427,13 +430,23 @@ export function convertMultiSearchResults(
         start_time: moment.start_time,
         end_time: moment.end_time,
         score,
+        source: moment.source,
+        rank,
       });
-    }
+    });
   }
 
   results.sort((a, b) => b.score - a.score);
 
   return { results, videos };
+}
+
+/** 한 영상 안의 구간 순서: 백엔드가 정한 순서(rank), 없으면 점수 높은 순 */
+export function byBackendRank(a: SearchResultItem, b: SearchResultItem): number {
+  if (a.rank !== undefined && b.rank !== undefined && a.rank !== b.rank) {
+    return a.rank - b.rank;
+  }
+  return b.score - a.score;
 }
 
 /**
@@ -470,9 +483,9 @@ export function convertSingleSearchResults(
 
   const results: SearchResultItem[] = [];
 
-  for (const moment of response.results ?? []) {
+  (response.results ?? []).forEach((moment, rank) => {
     const score = getMomentScore(moment);
-    if (score === null) continue;
+    if (score === null) return;
 
     results.push({
       video_id: v.video_id,
@@ -480,10 +493,13 @@ export function convertSingleSearchResults(
       start_time: moment.start_time,
       end_time: moment.end_time,
       score,
+      source: moment.source,
+      rank,
     });
-  }
+  });
 
-  results.sort((a, b) => b.score - a.score);
+  // 백엔드 순서 그대로 (자막·화면 설명은 점수 척도가 달라 점수로 다시 정렬하지 않음)
+  results.sort(byBackendRank);
 
   return { results, video };
 }

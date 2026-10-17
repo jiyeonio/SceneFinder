@@ -203,7 +203,7 @@ const VideoCard: React.FC<{
             {video.title}
           </h2>
 
-          <AnalysisStatusBadge status={status} reason={reason} />
+          <AnalysisStatusBadge status={status} reason={reason} captionStatus={card.captionStatus} />
         </div>
 
         <p className="mt-2 text-sm text-slate-500">
