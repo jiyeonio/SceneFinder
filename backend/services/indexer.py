@@ -319,10 +319,13 @@ def run_indexing(video_id: str, youtube_video_id: str, local_path: str | None = 
 
     local_path를 주면 YouTube에서 받지 않고 그 파일을 분석하며, 분석이 끝나도 파일을 지우지 않습니다.
 
-    CAPTION_SEARCH_ENABLED=1이면 INDEXED(자막 검색 가능) 다음에 같은 작업에서 설명문을 이어서 만듭니다
-    (대기열 차례를 기다리는 동안 영상 파일을 지우지 않음). priority=True면 설명문 대기열 맨 앞.
+    CAPTION_SEARCH_ENABLED=1이면 INDEXED(자막 검색 가능) 다음에 설명문 대기열에 넣고 바로 끝냅니다.
+    설명문은 작업 스레드가 따로 만들고, 그 영상 파일도 작업 스레드가 생성 후 지웁니다
+    (한 검색 요청의 여러 영상 분석이 차례로 실행되므로, 여기서 기다리면 다음 영상 분석이 늦어짐).
+    priority=True면 설명문 대기열 맨 앞.
     """
     video_path = None
+    file_handed_over = False   # 설명문 대기열이 영상 파일을 맡았으면 True (여기서 지우지 않음)
 
     try:
         total_start = time.perf_counter()
@@ -419,8 +422,8 @@ def run_indexing(video_id: str, youtube_video_id: str, local_path: str | None = 
         # 4) 설명문 (CAPTION_SEARCH_ENABLED=1일 때만). 자막 검색은 이미 가능하고, 여기서 실패해도 영상 상태는 그대로
         if USE_REAL_AI and captions.enabled():
             try:
-                captions.run_for_video(video_id, youtube_video_id, str(video_path),
-                                       priority=priority, keep_file=bool(local_path))
+                file_handed_over = captions.submit(video_id, youtube_video_id, str(video_path),
+                                                   priority=priority, keep_file=bool(local_path))
             except Exception as e:
                 print(f"[caption] 설명문 단계 오류 ({youtube_video_id}): {e}")
 
@@ -434,8 +437,8 @@ def run_indexing(video_id: str, youtube_video_id: str, local_path: str | None = 
         )
 
     finally:
-        # 내려받은 파일만 지움 (로컬 파일 분석이면 원본을 남김)
-        if not local_path and video_path and Path(video_path).exists():
+        # 내려받은 파일만 지움 (로컬 파일 분석이면 원본을 남김, 설명문 대기열이 맡았으면 작업 스레드가 지움)
+        if not local_path and not file_handed_over and video_path and Path(video_path).exists():
             Path(video_path).unlink()
 
 def backfill_subtitles(youtube_video_id: str) -> str:

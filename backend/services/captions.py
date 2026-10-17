@@ -132,22 +132,25 @@ def cleanup_after_restart() -> None:
 # ===================== 대기열 =====================
 
 class _Ticket:
-    def __init__(self, youtube_video_id: str, video_path: str, priority: bool, keep_file: bool, seq: int):
+    def __init__(self, video_id: str, youtube_video_id: str, video_path: str, priority: bool, keep_file: bool, seq: int):
+        self.video_id = video_id
         self.youtube_video_id = youtube_video_id
         self.video_path = video_path
         self.priority = priority
-        self.keep_file = keep_file   # 로컬 파일 분석이면 원본이라 디스크 사용량 집계에서 뺌
+        self.keep_file = keep_file   # 로컬 파일 분석이면 원본이라 지우지 않고 디스크 사용량 집계에서도 뺌
         self.seq = seq
 
 
 class CaptionQueue:
-    """동시에 1개만 생성. 대기는 최대 queue_max개, 우선(사용자 요청) 먼저, 같은 우선순위는 들어온 순서."""
+    """설명문 작업 스레드 1개가 대기열을 차례로 처리. 대기는 최대 queue_max개, 우선(사용자 요청) 먼저,
+    같은 우선순위는 들어온 순서. 대기열에 들어간 영상 파일은 이 스레드가 생성 후 지움(keep_file이면 남김)."""
 
     def __init__(self):
         self._cond = threading.Condition()
         self._waiting: list[_Ticket] = []
         self._running: _Ticket | None = None
         self._seq = 0
+        self._worker: threading.Thread | None = None
 
     def _sort(self):
         self._waiting.sort(key=lambda t: (not t.priority, t.seq))
@@ -167,30 +170,56 @@ class CaptionQueue:
                     event, t.youtube_video_id, len(self._waiting),
                     self._running.youtube_video_id if self._running else "없음", self._held_bytes() / 2**20)
 
-    def try_enter(self, youtube_video_id: str, video_path: str, priority: bool, keep_file: bool, queue_max: int):
+    def submit(self, video_id: str, youtube_video_id: str, video_path: str, priority: bool, keep_file: bool,
+               queue_max: int) -> bool:
+        """대기열에 넣고 바로 돌아옴. 넣었으면 True(영상 파일은 이제 대기열 담당), 가득 차면 False(호출한 쪽이 지움).
+        같은 영상이 이미 대기 중이면 그 작업을 새 파일로 바꿈(다시 분석한 경우)."""
         with self._cond:
+            for t in self._waiting:
+                if t.youtube_video_id == youtube_video_id:
+                    old_path, old_keep = t.video_path, t.keep_file
+                    t.video_id, t.video_path, t.keep_file = video_id, video_path, keep_file
+                    t.priority = t.priority or priority
+                    self._sort()
+                    if not old_keep and old_path != video_path:
+                        Path(old_path).unlink(missing_ok=True)
+                    self._log("대기 중인 작업을 새 파일로 바꿈", t)
+                    return True
             if len(self._waiting) >= queue_max and (self._running is not None or self._waiting):
-                return None
+                return False
             self._seq += 1
-            t = _Ticket(youtube_video_id, video_path, priority, keep_file, self._seq)
+            t = _Ticket(video_id, youtube_video_id, video_path, priority, keep_file, self._seq)
             self._waiting.append(t)
             self._sort()
             self._log("대기열 추가" + (" (우선)" if priority else ""), t)
-            return t
-
-    def wait_turn(self, t: _Ticket) -> None:
-        with self._cond:
-            while self._running is not None or self._waiting[0] is not t:
-                self._cond.wait()
-            self._waiting.pop(0)
-            self._running = t
-            self._log("생성 시작", t)
-
-    def done(self, t: _Ticket) -> None:
-        with self._cond:
-            self._running = None
-            self._log("생성 끝", t)
+            if self._worker is None or not self._worker.is_alive():
+                self._worker = threading.Thread(target=self._run, name="caption-worker", daemon=True)
+                self._worker.start()
             self._cond.notify_all()
+            return True
+
+    def _run(self) -> None:
+        while True:
+            with self._cond:
+                while not self._waiting:
+                    self._cond.wait()
+                t = self._waiting.pop(0)
+                self._running = t
+                self._log("생성 시작", t)
+            try:
+                _process(t)
+            except Exception as e:  # 작업 스레드가 죽지 않게 함
+                logger.warning("[caption] 작업 오류 %s: %s", t.youtube_video_id, e)
+            finally:
+                with self._cond:
+                    self._running = None
+                    # 같은 파일을 쓰는 작업이 다시 대기 중이면(생성 중에 다시 분석) 그 작업이 지움
+                    if not t.keep_file and not any(w.video_path == t.video_path for w in self._waiting):
+                        try:
+                            Path(t.video_path).unlink(missing_ok=True)
+                        except OSError as e:
+                            logger.warning("[caption] 영상 파일 삭제 실패 %s: %s", t.video_path, e)
+                    self._log("생성 끝", t)
 
     def bump(self, youtube_video_id: str) -> bool:
         """대기 중인 영상을 맨 앞 우선순위로. 대기 중이면 True."""
@@ -426,31 +455,38 @@ def generate(video_id: str, youtube_video_id: str, video_path: str) -> int:
     return len(caps)
 
 
-def run_for_video(video_id: str, youtube_video_id: str, video_path: str, priority: bool = False, keep_file: bool = False) -> None:
-    """run_indexing에서 INDEXED 다음에 부름. 차례를 기다려 생성하고 끝나면 돌아옴(그동안 영상 파일 유지).
-    대기열이 가득 차면 PENDING만 기록하고 바로 돌아옴(영상 파일은 호출한 쪽이 평소처럼 지움)."""
+def _base_fields(cfg):
+    return {"caption_model": cfg["model"], "embed_model": cfg["embed_model"], "batch_size": cfg["batch_size"]}
+
+
+def submit(video_id: str, youtube_video_id: str, video_path: str, priority: bool = False, keep_file: bool = False) -> bool:
+    """run_indexing에서 INDEXED 다음에 부름. 대기열에 넣고 바로 돌아옴(생성은 작업 스레드가 함).
+    True면 영상 파일은 대기열이 생성 후 지움(keep_file이면 남김). False(꺼짐·대기열 가득 참)면 호출한 쪽이 평소처럼 지움.
+    대기열이 가득 차면 PENDING만 기록함."""
     if not enabled():
-        return
+        return False
     cfg = _cfg()
-    base = {"caption_model": cfg["model"], "embed_model": cfg["embed_model"], "batch_size": cfg["batch_size"]}
-    ticket = QUEUE.try_enter(youtube_video_id, video_path, priority, keep_file, cfg["queue_max"])
-    if ticket is None:
-        _set_status(video_id, "PENDING", **base,
-                    error_message=f"설명문 대기열이 가득 차(최대 {cfg['queue_max']}개) 만들지 않음. 다시 분석하면 생성")
-        logger.info("[caption] 대기열이 가득 차 건너뜀 %s (PENDING)", youtube_video_id)
-        return
-    _set_status(video_id, "PENDING", **base, error_message=None, started_at=None, finished_at=None)
-    QUEUE.wait_turn(ticket)
+    # 작업 스레드가 먼저 PROCESSING을 쓰지 않도록 PENDING을 넣기 전에 기록
+    _set_status(video_id, "PENDING", **_base_fields(cfg), error_message=None, started_at=None, finished_at=None)
+    if QUEUE.submit(video_id, youtube_video_id, video_path, priority, keep_file, cfg["queue_max"]):
+        return True
+    _set_status(video_id, "PENDING", **_base_fields(cfg),
+                error_message=f"설명문 대기열이 가득 차(최대 {cfg['queue_max']}개) 만들지 않음. 다시 분석하면 생성")
+    logger.info("[caption] 대기열이 가득 차 건너뜀 %s (PENDING)", youtube_video_id)
+    return False
+
+
+def _process(t: "_Ticket") -> None:
+    """작업 스레드에서 영상 하나의 설명문 생성. 상태를 PROCESSING → READY/FAILED로 기록."""
+    base = _base_fields(_cfg())
     try:
-        _set_status(video_id, "PROCESSING", **base, error_message=None, started_at=_now())
-        n = generate(video_id, youtube_video_id, video_path)
-        _set_status(video_id, "READY", **base, num_frames=n, finished_at=_now(),
-                    caption_path=_paths(youtube_video_id)[0].relative_to(ROOT).as_posix())
+        _set_status(t.video_id, "PROCESSING", **base, error_message=None, started_at=_now())
+        n = generate(t.video_id, t.youtube_video_id, t.video_path)
+        _set_status(t.video_id, "READY", **base, num_frames=n, finished_at=_now(),
+                    caption_path=_paths(t.youtube_video_id)[0].relative_to(ROOT).as_posix())
     except Exception as e:
-        logger.warning("[caption] 생성 실패 %s: %s", youtube_video_id, e)
-        _set_status(video_id, "FAILED", **base, error_message=str(e)[:500], finished_at=_now())
-    finally:
-        QUEUE.done(ticket)
+        logger.warning("[caption] 생성 실패 %s: %s", t.youtube_video_id, e)
+        _set_status(t.video_id, "FAILED", **base, error_message=str(e)[:500], finished_at=_now())
 
 
 # ===================== 검색 =====================

@@ -9,10 +9,13 @@
 
 1. 영상 받기(또는 로컬 파일) → Whisper 자막 → **INDEXED (이때부터 자막 검색 가능)**
 2. 한국어 자막이 없으면 지금처럼 Moment-DETR feature도 만듦
-3. `CAPTION_SEARCH_ENABLED=1`이면 같은 백그라운드 작업에서 이어서 설명문 생성
+3. `CAPTION_SEARCH_ENABLED=1`이면 설명문 대기열에 넣고 분석 작업은 바로 끝남. 설명문은 **작업 스레드 1개**가 차례로 생성
    - 2초마다 가운데 프레임 1장(긴 변 640px)을 Qwen3-VL-4B로 설명(화면 글자 포함 프롬프트, greedy, 최대 80토큰, 8장 묶음)
    - 연속 1~3개 설명문 창을 multilingual-e5-large로 임베딩(`passage: `)해 파일로 저장
-4. 끝나면 영상 파일 삭제(YouTube에서 받은 경우만, 로컬 파일은 남김)
+4. 설명문이 끝나면 작업 스레드가 영상 파일 삭제(YouTube에서 받은 경우만, 로컬 파일은 남김). 대기열에 못 들어가면 분석 작업이 바로 삭제
+
+(처음 구현은 분석 작업 안에서 설명문이 끝날 때까지 기다렸는데, 한 검색 요청의 여러 영상 분석이 차례로 실행되어
+다음 영상의 INDEXED가 앞 영상 설명문만큼 늦어졌음. 2026-10-17 수정, [vlm_service_compare.md](../experiments/vlm_service_compare.md))
 
 ## 대기열
 
