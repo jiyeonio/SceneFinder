@@ -196,7 +196,9 @@ def tune(a):
 
 def judge(a):
     data = json.loads(Path(a.signals).expanduser().read_text(encoding="utf-8"))
-    rows = [r for r in data["rows"] if r["group"] == "short_C"]
+    all_c = [r for r in data["rows"] if r["group"] == "short_C"]
+    rows = [r for r in all_c if r["gt"]]   # 정답 없음은 세 지표를 계산할 수 없어 판정에서 뺌 (미리 정함)
+    print(f"세트 C {len(all_c)}개 중 정답 없음 {len(all_c) - len(rows)}개 제외")
     ch = json.loads(Path(a.choice).expanduser().read_text(encoding="utf-8"))
     jm, jK, jL = ch["judge"]
     ta = totals(rows, "a")

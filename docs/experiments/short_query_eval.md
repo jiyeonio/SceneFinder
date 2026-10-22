@@ -339,3 +339,70 @@
 | 319 | piano_canon | 캐논변주곡 빨라지는 부분 | 80–170, 200–320 | 프레임으로 판단할 수 없어 오디오 온셋 밀도(10초당)가 초당 4.4 이상인 구간으로 지정(앞부분은 약 3.5) |
 | 320 | tofu_silent | 들기름에 두부 굽기 | 55–90 |  |
 | 321 | tofu_silent | 두부 뒤집는 장면 | 73–84 |  |
+
+## 세트 C 판정 결과 (한 번만 실행, 2026-10-22, CPU)
+
+- **한계: 질의는 제목만 본 별도 AI 에이전트가 작성, 정답은 AI가 프레임으로 지정, 사람 검수 없음.**
+- **GPU를 쓸 수 없는 상태라 CPU로 실행**(서비스와 근소한 순위 차이 가능)
+- 판정 후보와 기준값은 세트 C를 받기 전에 정한 그대로(M1+M4, K = 1, L = 120초)
+- 정답 없음 3개를 빼고 21개로 판정. 각 칸: hit-in-GT / R@3 / IoU≥0.3
+
+| 방법 | 세트 C (21) | (a) 대비 |
+|---|---|---|
+| (a) 현재 서비스 | 9 / 7 / 4 | - |
+| **M1+M4 (판정 후보, K = 1, L = 120초)** | **9 / 9 / 3** | **+0 / +2 / −1** |
+| M1 (참고) | 9 / 9 / 3 | +0 / +2 / −1 |
+| M4 (참고, K = 1, L = 60초) | 9 / 7 / 4 | +0 / +0 / +0 |
+
+**판정: 「개선 확인 안 됨」.** hit-in-GT 차이 0, R@3 +2로 기준(4개 이상)에 못 미쳤습니다.
+
+### 해석
+
+1. **세 번의 확인(세트 B, 세트 C)에서 모두 현재 서비스(a)보다 나은 방법을 확인하지 못했습니다.** 칸 나눠 채우기 계열(M1, M1+M4)은 짧은 질의에서 R@3을 +2~+5 올리는 경향은 계속 보였지만, 1위 정확도(hit-in-GT)는 그대로이고 기존 묘사형 질의에서는 조금 떨어집니다
+2. **1위가 바뀐 질의에서 좋아진 것과 나빠진 것이 비슷했습니다.** 예: 「조명 다는 부분」은 M1+M4(설명문 1위)가 맞혔고 (a)(자막 1위)는 틀림. 반대로 「대한민국 결승골 장면」은 (a)(자막 1위)가 맞혔고 M1+M4(설명문 1위)는 정답 바로 앞(74–80초)을 가리킴
+3. **M4(길이는 Moment-DETR)는 고른 기준값(K = 1, L = 60초)에서 결과가 (a)와 같았습니다.** 설명문 1위 가운데를 포함하면서 60초 이하인 Moment-DETR 1위 구간이 거의 없었기 때문입니다
+4. 질의 수가 21개라 ±3개 차이는 잡음 수준 안입니다
+
+### 세트 C 질의별 결과
+
+괄호는 1위 구간의 출처(caption = 설명문, subtitle = 자막, caption_detr = 설명문 위치에 Moment-DETR 길이를 쓴 구간).
+
+| # | 영상 | 질의 | (a) 1위 | M1+M4 1위 | (a) hit/R@3/IoU | M1+M4 hit/R@3/IoU |
+|---|---|---|---|---|---|---|
+| 298 | airpods_review | 노이즈 캔슬링 켜는 법 | 60–66 (caption) | 60–66 (caption) | 0/1/0 | 0/1/0 |
+| 299 | airpods_review | 에어팟 프로 귀에 끼는 장면 | 209–215 (subtitle) | 158–164 (caption) | 0/0/0 | 0/0/0 |
+| 300 | battery_lecture | 배터리 최적화 설정 끄기 | 278–284 (caption) | 278–284 (caption) | 0/0/0 | 0/0/0 |
+| 301 | battery_lecture | 고속 충전 끄는 방법 | 413–419 (subtitle) | 200–206 (caption) | 정답 없음(제외) | 정답 없음(제외) |
+| 302 | eggroll_paik | 백종원 달걀 푸는 장면 | 265–271 (subtitle) | 94–102 (caption) | 0/0/0 | 0/0/0 |
+| 303 | eggroll_paik | 계란말이 돌돌 마는 부분 | 39–45 (subtitle) | 382–388 (caption) | 0/1/0 | 0/0/0 |
+| 304 | room_vlog | 침대 조립하는 장면 | 430–438 (caption) | 428–466 (caption_detr) | 정답 없음(제외) | 정답 없음(제외) |
+| 305 | room_vlog | 조명 다는 부분 | 87–93 (subtitle) | 294–300 (caption) | 0/1/0 | 1/0/0 |
+| 306 | tofu_braise | 두부조림 양념장 만들기 | 5–12 (subtitle) | 180–186 (caption) | 0/0/0 | 0/1/0 |
+| 307 | tofu_braise | 양파 넣는 장면 | 120–128 (caption) | 120–128 (caption) | 1/1/1 | 1/1/1 |
+| 308 | wc_goals | 메시 골 장면 | 244–250 (subtitle) | 264–272 (caption) | 정답 없음(제외) | 정답 없음(제외) |
+| 309 | wc_goals | 1위 골 | 14–22 (caption) | 14–22 (caption) | 0/0/0 | 0/0/0 |
+| 310 | ag_final | 대한민국 결승골 장면 | 80–102 (subtitle) | 74–80 (caption) | 1/1/1 | 0/1/0 |
+| 311 | ag_final | 일본 골키퍼 선방 | 74–80 (subtitle) | 148–156 (caption) | 0/0/0 | 0/0/0 |
+| 312 | steak_camp | 스테이크 버터 끼얹기 | 426–434 (caption) | 426–434 (caption) | 0/0/0 | 0/1/0 |
+| 313 | steak_camp | 모닥불에 감자 굽기 | 808–816 (caption) | 768–878 (caption_detr) | 0/0/0 | 0/0/0 |
+| 314 | airpods_fake | 가짜 에어팟 케이스 비교 | 238–246 (caption) | 238–246 (caption) | 1/0/0 | 1/0/0 |
+| 315 | airpods_fake | 시리얼 번호 확인하는 법 | 348–356 (caption) | 348–356 (caption) | 1/1/1 | 1/1/1 |
+| 316 | mukbang_chicken | 뿌링클 치킨 한입 먹는 장면 | 44–54 (caption) | 44–54 (caption) | 1/0/0 | 1/1/0 |
+| 317 | mukbang_chicken | 치즈볼 먹방 | 44–52 (caption) | 44–52 (caption) | 0/0/0 | 0/0/0 |
+| 318 | piano_canon | 조지 윈스턴 피아노 치는 손 | 20–28 (caption) | 20–28 (caption) | 1/0/0 | 1/1/0 |
+| 319 | piano_canon | 캐논변주곡 빨라지는 부분 | 132–140 (caption) | 132–140 (caption) | 1/0/0 | 1/0/0 |
+| 320 | tofu_silent | 들기름에 두부 굽기 | 56–66 (caption) | 56–66 (caption) | 1/0/0 | 1/0/0 |
+| 321 | tofu_silent | 두부 뒤집는 장면 | 76–82 (caption) | 76–82 (caption) | 1/1/1 | 1/1/1 |
+
+## 재현 방법 (마지막 확인 실험)
+
+    CUDA_VISIBLE_DEVICES= python ai/experiments/short_query_eval/final_check.py signals --sets A B dev \
+        --queries ~/scenefinder_eval/labels_draft.json --features ~/scenefinder_eval/results_v2_whisper_turbo_b8 \
+        --out ~/scenefinder_eval/short_query_eval/final_signals_ABdev.json
+    python ai/experiments/short_query_eval/final_check.py tune --signals ~/scenefinder_eval/short_query_eval/final_signals_ABdev.json \
+        --save ~/scenefinder_eval/short_query_eval/final_choice.json
+    CUDA_VISIBLE_DEVICES= python ai/experiments/short_query_eval/final_check.py signals --sets C \
+        --queries ~/scenefinder_eval/labels_draft.json --features ~/scenefinder_eval/results_v2_whisper_turbo_b8 \
+        --out ~/scenefinder_eval/short_query_eval/final_signals_C.json
+    python ai/experiments/short_query_eval/final_check.py judge --signals ~/scenefinder_eval/short_query_eval/final_signals_C.json \
+        --choice ~/scenefinder_eval/short_query_eval/final_choice.json
