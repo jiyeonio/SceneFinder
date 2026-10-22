@@ -1,0 +1,75 @@
+num	video	type	source	gt_sec	gt_pct	scope	query
+119	eggroll_paik	S	human_reviewed	7.7	1.6	특정 순간	도마에서 대파 잘게 써는 장면
+120	eggroll_paik	S	human_reviewed	13.7	2.9	특정 순간	달걀 깨서 볼에 넣기
+121	eggroll_paik	S	human_reviewed	9.8	2.1	특정 순간	키친타월로 프라이팬에 기름 바르기
+122	eggroll_paik	S	human_reviewed	5.5	1.2	특정 순간	달걀말이가 찢어진 장면
+123	eggroll_paik	V	human_reviewed	8.0	1.7	특정 순간	재료 분량 표가 나오는 화면
+124	eggroll_paik	V	human_reviewed	5.6	1.2	특정 순간	완성된 달걀말이 칼로 썰기
+125	eggroll_paik	V	human_reviewed	10.7	2.3	특정 순간	접시에 담긴 완성 달걀말이
+126	eggroll_paik	V	human_reviewed	10.9	2.3	특정 순간	다음 편 예고와 엔딩 화면
+128	room_vlog	S	human_reviewed	16.0	3.0	특정 순간	러그 까는 장면
+129	room_vlog	S	human_reviewed	18.0	3.4	특정 순간	접이식 의자 비닐 벗기고 펴기
+130	room_vlog	S	human_reviewed	17.0	3.2	특정 순간	말하는 꽃 장난감
+131	room_vlog	S	human_reviewed	11.0	2.1	특정 순간	스탠드 조명 켜는 장면
+132	room_vlog	V	human_reviewed	5.0	1.0	특정 순간	바닥에 흩어진 포장 쓰레기
+133	room_vlog	V	human_reviewed	7.0	1.3	특정 순간	손으로 러그 쓸어보는 장면
+134	room_vlog	V	human_reviewed	3.0	0.6	특정 순간	유튜브 실버버튼 클로즈업
+135	room_vlog	V	human_reviewed	11.0	2.1	특정 순간	아무도 없는 원형 탁자와 의자
+155	ag_final	S	human_reviewed	6.5	3.6	특정 순간	선수 교체 장면
+156	ag_final	S	human_reviewed	28.5	15.7	넓은 장면	측면 크로스 받아 마무리하는 골 장면
+157	ag_final	S	human_reviewed	17.0	9.4	특정 순간	코너킥 상황 골문 앞 헤딩 경합
+158	ag_final	S	human_reviewed	4.5	2.5	특정 순간	드리블 후 가까운 쪽 노린 슈팅 골키퍼가 막음
+159	ag_final	V	human_reviewed	3.5	1.9	특정 순간	선수들 터널에서 입장하는 장면
+160	ag_final	V	human_reviewed	3.5	1.9	특정 순간	경기 전 대형 태극기 펼치고 선수들 도열
+161	ag_final	V	human_reviewed	5.0	2.8	특정 순간	골대 뒤 높은 곳에서 찍은 화면
+162	ag_final	V	human_reviewed	4.0	2.2	특정 순간	경기 끝나고 그라운드에 엎드린 일본 선수
+164	steak_camp	V	human_reviewed	25.0	2.8	특정 순간	절구에 통후추 넣고 빻는 장면
+165	steak_camp	V	human_reviewed	17.0	1.9	특정 순간	톱으로 통나무 자르기
+166	steak_camp	V	human_reviewed	8.0	0.9	특정 순간	개울물에 감자 씻기
+167	steak_camp	V	human_reviewed	28.0	3.2	특정 순간	도마에서 마늘 껍질 까고 썰기
+168	steak_camp	V	human_reviewed	7.0	0.8	특정 순간	냄비 속 음료를 나무 컵에 따르는 장면
+169	steak_camp	V	human_reviewed	25.0	2.8	특정 순간	스테이크에 술 부어 불길 치솟는 장면
+170	steak_camp	V	human_reviewed	16.0	1.8	특정 순간	은박지에 싼 구운 감자 갈라 열기
+171	steak_camp	V	human_reviewed	22.0	2.5	특정 순간	구운 스테이크 칼로 썰기
+173	airpods_fake	V	human_reviewed	6.7	1.1	특정 순간	자로 이어팁 크기 재는 장면
+174	airpods_fake	V	human_reviewed	57.0	9.8	특정 순간	이어폰 뺀 빈 충전 케이스 안쪽 클로즈업
+175	airpods_fake	V	human_reviewed	29.5	5.1	특정 순간	케이스 두 개 위아래로 겹쳐 충전 단자 비교
+176	airpods_fake	V	human_reviewed	27.0	4.6	특정 순간	케이스 뒷면 버튼을 엄지로 눌러보는 장면
+177	airpods_fake	V	human_reviewed	49.0	8.4	특정 순간	케이스 이음새에 빨간 화살표 표시
+178	airpods_fake	V	human_reviewed	16.0	2.7	특정 순간	이어폰에서 이어팁 벗겨내는 장면
+179	airpods_fake	V	human_reviewed	31.0	5.3	특정 순간	여분 이어팁 들어있는 종이 트레이
+180	airpods_fake	V	human_reviewed	5.5	0.9	특정 순간	마지막 검은 화면 구독 부탁 문구
+182	mukbang_chicken	S	human_reviewed	7.5	1.6	특정 순간	손 흔들며 인사하고 뿌링클 치킨 소개하는 장면
+183	mukbang_chicken	S	human_reviewed	3.5	0.7	특정 순간	다 먹고 잘 먹었다고 인사하는 마지막 장면
+184	mukbang_chicken	V	human_reviewed	10.5	2.2	특정 순간	콜라 캔을 유리 머그잔에 따르는 장면
+185	mukbang_chicken	V	human_reviewed	26.0	5.5	특정 순간	유리 머그잔으로 콜라 마시기
+186	mukbang_chicken	V	human_reviewed	5.5	1.2	특정 순간	치즈볼 반으로 갈라 속 크림 보여주기
+187	mukbang_chicken	V	human_reviewed	40.0	8.4	특정 순간	젓가락으로 새우튀김 집어 먹기
+188	mukbang_chicken	V	human_reviewed	7.0	1.5	특정 순간	검은 화면에 채널 로고 뜨는 타이틀
+203	eggroll_paik	S	human_reviewed	16.0	3.4	특정 순간	달걀말이 맛있게 하는 조미료 비법
+204	eggroll_paik	S	human_reviewed	6.1	1.3	특정 순간	대파 초록 부분 쓰는 게 나은 이유
+205	eggroll_paik	S	human_reviewed	17.0	3.6	특정 순간	기름 많이 둘러도 상관없다는 얘기
+206	eggroll_paik	S	human_reviewed	10.3	2.2	특정 순간	바닥이 익었는지 알아보는 방법
+207	eggroll_paik	S	human_reviewed	5.2	1.1	특정 순간	달걀말이가 탔을 때 대처법
+208	room_vlog	S	human_reviewed	7.6	1.4	특정 순간	컴퓨터 본체 케이스 바꾼 이유
+209	room_vlog	S	human_reviewed	7.6	1.4	특정 순간	러그 살까 말까 고민한 이유
+210	room_vlog	S	human_reviewed	4.2	0.8	특정 순간	진짜 식물 대신 조화만 사는 이유
+211	room_vlog	S	human_reviewed	6.5	1.2	특정 순간	침실에 물건 적게 두는 이유
+212	room_vlog	S	human_reviewed	9.8	1.9	특정 순간	게임방을 열심히 채운 진짜 이유
+213	ag_final	S	human_reviewed	5.0	2.8	특정 순간	일본 수비 실수가 잦다는 해설
+214	ag_final	S	human_reviewed	12.1	6.7	특정 순간	이기혁 선수 몸 상태와 교체 얘기
+215	ag_final	S	human_reviewed	5.1	2.8	특정 순간	결승은 집중력 싸움이라는 해설
+231	steak_camp	V	ai_draft	145.0	16.4	넓은 장면	날고기 스테이크를 썰고 후추로 양념하는 장면
+232	steak_camp	V	ai_draft	110.0	12.5	넓은 장면	장작을 패고 모닥불을 피우는 장면
+233	steak_camp	V	ai_draft	115.0	13.0	넓은 장면	무쇠 팬과 냄비로 소스를 만드는 장면
+234	steak_camp	V	ai_draft	80.0	9.1	넓은 장면	돌판 위에서 스테이크를 굽는 장면
+235	steak_camp	V	ai_draft	67.0	7.6	넓은 장면	남자가 숲속에 앉아 음식을 먹는 장면
+236	airpods_fake	V	ai_draft	115.0	19.7	넓은 장면	충전 케이스 겉면을 손에 들고 비교하는 장면
+237	airpods_fake	V	ai_draft	70.0	12.0	넓은 장면	에어팟 이어폰 두 개를 손가락으로 잡고 비교하는 장면
+238	eggroll_paik	S	ai_draft	215.0	45.6	넓은 장면	프라이팬에 달걀물을 부어 달걀말이를 말아 가는 장면
+239	eggroll_paik	S	ai_draft	85.0	18.0	넓은 장면	도마에서 채소를 썰고 달걀을 푸는 재료 준비 장면
+240	room_vlog	S	ai_draft	55.0	10.5	넓은 장면	침실의 침대와 인형을 보여주는 장면
+241	room_vlog	S	ai_draft	55.0	10.5	넓은 장면	선반에 인형과 소품을 정리하는 장면
+242	room_vlog	S	ai_draft	90.0	17.1	넓은 장면	모니터와 컴퓨터가 있는 게임용 책상을 보여주는 장면
+243	mukbang_chicken	V	ai_draft	114.0	24.1	넓은 장면	음식이 거의 비어 가는 테이블에서 먹는 장면
+244	ag_final	V	ai_draft	80.0	44.2	넓은 장면	멀리서 경기장 전체를 비추는 중계 화면
