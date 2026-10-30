@@ -1,0 +1,2 @@
+models/minilm/*.safetensors filter=lfs diff=lfs merge=lfs -text
+models/moment_detr/*.ckpt filter=lfs diff=lfs merge=lfs -text
