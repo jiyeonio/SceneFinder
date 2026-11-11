@@ -25,6 +25,8 @@ from urllib.parse import parse_qs, urlparse
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
 FORMAT = "scenefinder-labels/1"
+# 질의 출처: AI 초안 → 검수 완료, 처음부터 사람이 쓴 질의는 human_written (예전 파일의 human도 허용)
+SOURCES = ("ai_draft", "human_reviewed", "human_written", "human")
 VIDEO_EXT = {".mp4", ".webm", ".mov", ".mkv", ".m4v"}
 YOUTUBE_ID = re.compile(r"[A-Za-z0-9_-]{11}")
 EVAL_VIDEO_DIR = Path.home() / "scenefinder_eval/videos"
@@ -100,8 +102,8 @@ def validate(data):
             errors.append(f"#{num}: 유형은 S 또는 V")
         if not str(q.get("query", "")).strip():
             errors.append(f"#{num}: 질의가 비어 있음")
-        if q.get("source", "human") not in ("ai_draft", "human_reviewed", "human"):
-            errors.append(f"#{num}: source는 ai_draft/human_reviewed/human 중 하나")
+        if q.get("source", "human") not in SOURCES:
+            errors.append(f"#{num}: source는 {'/'.join(SOURCES)} 중 하나")
         if q.get("overlay_text") not in (None, True, False):
             errors.append(f"#{num}: overlay_text는 true/false")
         gt = q.get("gt")
@@ -109,6 +111,16 @@ def validate(data):
                             and all(isinstance(x, (int, float)) for x in g) and g[1] > g[0])
         if not isinstance(gt, list) or not gt or not all(is_seg(g) for g in gt):
             errors.append(f"#{num}: 정답 구간이 없거나 끝 ≤ 시작")
+        so = q.get("subtitle_only_spans", [])
+        if not isinstance(so, list) or not all(is_seg(g) for g in so):
+            errors.append(f"#{num}: 자막만 언급 구간(subtitle_only_spans) 형식이 틀림")
+    for q in data.get("negative_queries", []):
+        if q.get("video") not in videos:
+            errors.append(f"정답 없음 #{q.get('num')}: videos에 없는 영상 {q.get('video')!r}")
+        if not str(q.get("query", "")).strip():
+            errors.append(f"정답 없음 #{q.get('num')}: 질의가 비어 있음")
+        if q.get("source", "human") not in SOURCES:
+            errors.append(f"정답 없음 #{q.get('num')}: source는 {'/'.join(SOURCES)} 중 하나")
     return errors
 
 
