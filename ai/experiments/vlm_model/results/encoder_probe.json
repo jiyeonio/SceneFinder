@@ -1,0 +1,50 @@
+{
+ "mclip": {
+  "exact/title": 0.03333333507180214,
+  "exact/list": 0.06666667014360428,
+  "paraphrase/title": 0.0,
+  "paraphrase/list": 0.06666667014360428,
+  "frames": 450,
+  "video_sec": 900,
+  "encode_sec": 0.92,
+  "sec_per_video_min": 0.06,
+  "query_ms": 3.7,
+  "peak_gib": 0.87
+ },
+ "siglip2_base": {
+  "exact/title": 0.10000000149011612,
+  "exact/list": 0.10000000149011612,
+  "paraphrase/title": 0.10000000149011612,
+  "paraphrase/list": 0.03333333507180214,
+  "frames": 450,
+  "video_sec": 900,
+  "encode_sec": 0.93,
+  "sec_per_video_min": 0.06,
+  "query_ms": 4.7,
+  "peak_gib": 1.23
+ },
+ "siglip2_so400m": {
+  "exact/title": 0.13333334028720856,
+  "exact/list": 0.03333333507180214,
+  "paraphrase/title": 0.06666667014360428,
+  "paraphrase/list": 0.06666667014360428,
+  "frames": 450,
+  "video_sec": 900,
+  "encode_sec": 4.73,
+  "sec_per_video_min": 0.32,
+  "query_ms": 9.8,
+  "peak_gib": 2.68
+ },
+ "qwen3vl_emb2b": {
+  "exact/title": 0.8333333134651184,
+  "exact/list": 0.4000000059604645,
+  "paraphrase/title": 0.30000001192092896,
+  "paraphrase/list": 0.1666666716337204,
+  "frames": 450,
+  "video_sec": 900,
+  "encode_sec": 13.96,
+  "sec_per_video_min": 0.93,
+  "query_ms": 27.1,
+  "peak_gib": 5.54
+ }
+}
