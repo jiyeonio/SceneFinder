@@ -50,6 +50,8 @@ def ssis_list(keyword, rows=10):
     if r.status_code != 200:
         raise ApiError(f"HTTP {r.status_code}: {_redact(r.text[:300])}")
     root, code, msg = _xml_items(r.text)
+    if code == "40":   # NO DATA FOUND: 검색 결과 없음
+        return []
     if code not in (None, "0", "00", "000"):
         raise ApiError(f"결과 코드 {code}: {msg}")
     return [{c.tag: (c.text or "").strip() for c in item} for item in root.iter("servList")]

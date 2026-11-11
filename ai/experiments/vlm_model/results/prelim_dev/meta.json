@@ -1,0 +1,48 @@
+{
+ "methods": [
+  "B1",
+  "B2",
+  "B3",
+  "F-CLIP",
+  "F-VLM",
+  "F-VLM-1280",
+  "REF-SUB-VLM"
+ ],
+ "n_pos": 80,
+ "n_neg": 22,
+ "latency_sec": {
+  "B1": {
+   "median": 0.0669,
+   "p95": 0.1813
+  },
+  "B2": {
+   "median": 0.2481,
+   "p95": 0.335
+  },
+  "B3": {
+   "median": 0.0654,
+   "p95": 0.1756
+  },
+  "F-CLIP": {
+   "median": 0.0061,
+   "p95": 0.0174
+  },
+  "F-VLM": {
+   "median": 0.0287,
+   "p95": 0.0592
+  },
+  "F-VLM-1280": {
+   "median": 0.0279,
+   "p95": 0.0462
+  },
+  "REF-SUB-VLM": {
+   "median": 0.0265,
+   "p95": 1.1761
+  }
+ },
+ "gpu_peak_gib_during_queries": 9.37,
+ "extraction_sec_per_video_min": {
+  "qwen_640": 1.316,
+  "qwen_1280": 4.055
+ }
+}
