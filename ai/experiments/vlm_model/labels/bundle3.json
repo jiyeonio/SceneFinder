@@ -1,22 +1,6 @@
 {
  "format": "scenefinder-labels/1",
  "videos": {
-  "dev04": {
-   "youtube_id": "ibeZ6H7CO9U",
-   "name": "dev04",
-   "domain": "복지",
-   "title": "(신청 기간 마감) 청년 월세 특별지원으로 월 최대 20만 원 지원?! 나도?!",
-   "duration": 520.0,
-   "split": "dev"
-  },
-  "dev07": {
-   "youtube_id": "1yYTX1-p-NI",
-   "name": "dev07",
-   "domain": "복지",
-   "title": "복지로 온라인신청 'How To' 영상 『에너지바우처』편",
-   "duration": 337.0,
-   "split": "dev"
-  },
   "dev08": {
    "youtube_id": "2VYwU4zPaUc",
    "name": "dev08",
@@ -25,12 +9,20 @@
    "duration": 291.0,
    "split": "dev"
   },
-  "test07": {
-   "youtube_id": "C4rra31STNk",
-   "name": "test07",
+  "dev06": {
+   "youtube_id": "9IqJJbTEuPE",
+   "name": "dev06",
    "domain": "복지",
-   "title": "[건보인사이드] 노인장기요양보험 인정신청 절차, 건강보험공단에서 정확히 알려드립니다!",
-   "duration": 507.0,
+   "title": "국민취업지원제도 구직촉진수당 온라인으로 신청하기",
+   "duration": 161.0,
+   "split": "dev"
+  },
+  "test03": {
+   "youtube_id": "ACchjnCoZ7A",
+   "name": "test03",
+   "domain": "복지",
+   "title": "대구시 아이돌봄서비스 신청방법",
+   "duration": 253.0,
    "split": "test"
   },
   "test05": {
@@ -49,12 +41,12 @@
    "duration": 305.0,
    "split": "test"
   },
-  "test03": {
-   "youtube_id": "ACchjnCoZ7A",
-   "name": "test03",
+  "test02": {
+   "youtube_id": "g8MZ4-OJUZk",
+   "name": "test02",
    "domain": "복지",
-   "title": "대구시 아이돌봄서비스 신청방법",
-   "duration": 253.0,
+   "title": "[공식]아동수당 온라인신청 따라하기. 복지로 홈페이지에서 직접 신청하세요!",
+   "duration": 121.0,
    "split": "test"
   }
  },

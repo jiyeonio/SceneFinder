@@ -14,9 +14,10 @@ STEP, COLS, ROWS, TW, TH = 3.0, 4, 4, 480, 270
 
 
 def frames(path):
+    # fps 필터는 각 간격의 뒤쪽 프레임을 골라 표시 시각보다 1~1.5초 늦은 화면이 나옴 → select로 정확히 0, 3, 6…초
     raw = subprocess.run(["ffmpeg", "-v", "error", "-i", str(path), "-vf",
-                          f"fps=1/{STEP},scale={TW}:{TH}:force_original_aspect_ratio=decrease,pad={TW}:{TH}:(ow-iw)/2:(oh-ih)/2",
-                          "-f", "rawvideo", "-pix_fmt", "rgb24", "-"], capture_output=True, check=True).stdout
+                          f"select='gte(t\\,{STEP}*selected_n)',scale={TW}:{TH}:force_original_aspect_ratio=decrease,pad={TW}:{TH}:(ow-iw)/2:(oh-ih)/2",
+                          "-vsync", "vfr", "-f", "rawvideo", "-pix_fmt", "rgb24", "-"], capture_output=True, check=True).stdout
     n = len(raw) // (TW * TH * 3)
     return [Image.fromarray(np.frombuffer(raw, np.uint8, TW * TH * 3, i * TW * TH * 3).reshape(TH, TW, 3)) for i in range(n)]
 

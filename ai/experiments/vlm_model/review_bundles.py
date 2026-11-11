@@ -23,11 +23,12 @@ DRAFTS = Path("/nfs/team/data/scenefinder_vlm/ai_drafts")
 EVAL_VIDEOS = Path("/nfs/team/data/scenefinder_vlm/eval_videos")
 FORMAT = "scenefinder-labels/1"
 
-# 영상 단위 3묶음: 묶음마다 dev·test 영상과 총 길이를 비슷하게 (dev 약 18분 + test 약 22분)
+# 영상 단위 3묶음: 아래 예상 시간 규칙으로 묶음별 합이 같아지게 나눔(각 약 165분), 묶음마다 dev·test가 섞이게.
+# (처음에는 영상 길이로 나눴으나 시간이 영상 수에 더 좌우돼 1.8/3.0/3.5시간으로 치우쳐서 AI 초안이 나온 뒤 다시 나눔)
 BUNDLES = {
-    1: ["dev05", "dev02", "test01"],
-    2: ["dev01", "dev03", "dev06", "test08", "test06", "test02"],
-    3: ["dev04", "dev07", "dev08", "test07", "test05", "test04", "test03"],
+    1: ["dev05", "dev01", "dev03", "test08", "test07"],
+    2: ["dev04", "dev07", "dev02", "test01", "test06"],
+    3: ["dev08", "dev06", "test03", "test05", "test04", "test02"],
 }
 # 예상 시간(분) 계산 규칙: 1단계 = 영상 훑어보기(길이의 0.6배) + 직접 질문 2개 × 4분,
 # 2단계 = 정답 있는 AI 초안 1개당 2분(+자막만 언급 구간이 있으면 1분) + 정답 없음 1개당 1분
@@ -155,6 +156,9 @@ def cmd_merge(a):
     data["meta"].update(ai_drafts_merged=True, merged_at=datetime.now().isoformat(timespec="seconds"))
     write(b, data)
     print(f"묶음 {b}: AI 초안을 합쳤습니다")
+    notes = DRAFTS / "review_notes.md"
+    if notes.exists():   # 질의 내용이 들어 있어 합친 뒤에만 보여 줌
+        print("\n" + notes.read_text(encoding="utf-8"))
     cmd_status(a)
 
 
