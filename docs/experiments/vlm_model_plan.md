@@ -151,7 +151,7 @@ N3의 결합 규칙 후보는 두 가지입니다. (1) 점수 결합: 세 검색
 | B2 | 구간 검색 CLIP 버전 | 서비스 그대로: NLLB(`facebook/nllb-200-distilled-600M`, 서비스 기본값) 한→영 번역 + Moment-DETR(`scratch_clip_align_best.ckpt`), CLIP ViT-B/32 2초 특징 |
 | B3 | main 서비스 결합 | `predict_moments_fusion` 그대로 (자막 없는 영상은 B2) |
 | F-CLIP | 화면 검색, 다국어 CLIP | `clip-ViT-B-32-multilingual-v1` 질의 ↔ 2초마다 가운데 프레임 |
-| F-VLM | 화면 검색, Qwen3-VL-Embedding-2B (학습 없음) | 같은 프레임, 640×360으로 줄여 입력(0단계 실측에서 영상 1분당 0.93초로 시간 한도 안). 질의 지시문 「Retrieve images or video frames relevant to the user's query.」 |
+| F-VLM | 화면 검색, Qwen3-VL-Embedding-2B (학습 없음) | 같은 프레임, 640×360으로 줄여 입력. 특징 추출은 속도 최적화에서 채택한 설정(CPU 디코딩 + 전처리 GPU + 묶음 16, dev 실측 영상 1분당 1.32초, [vlm_speed_opt.md](vlm_speed_opt.md)). 질의 지시문 「Retrieve images or video frames relevant to the user's query.」 |
 | 참고 | 자막 검색, Qwen3-VL-Embedding-2B 텍스트 | 판정·제안서 본문에는 쓰지 않는 참고값 (MiniLM vs Qwen3-VL-Emb, 같은 자막 창·구간 보정) |
 
 - F-CLIP과 F-VLM은 **같은 코드·같은 구간 규칙**을 쓰고 인코더만 다릅니다. 구간 규칙은 기존 eval_v2 (c)와 같습니다: 프레임 유사도 평활화(`_smooth_scores`) → 상위 8칸(`VISUAL_TOP_K`) → 2칸 이상 이어진 구간 중 (길이, 평균 유사도)가 가장 큰 것. R@3·R@5는 같은 규칙으로 정렬한 다음 구간들입니다.

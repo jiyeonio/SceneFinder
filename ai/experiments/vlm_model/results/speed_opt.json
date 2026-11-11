@@ -24,19 +24,147 @@
    "decode": "cpu",
    "preprocess_backend": "torchvision",
    "preprocess_device": "cuda",
-   "batch": 8
+   "batch": 8,
+   "overlap": false
   },
   "sec_per_video_min": {
-   "decode": 0.498,
-   "prep": 0.031,
-   "fwd": 0.859,
-   "total": 1.388
+   "decode": 0.529,
+   "prep": 0.026,
+   "fwd": 0.852,
+   "total": 1.407,
+   "wall": 1.409
   },
   "cos_vs_base": {
    "mean": 0.99831,
    "min": 0.98881
   },
+  "peak_gib": 4.42,
+  "frames": 1659
+ },
+ "dec_gpu": {
+  "config": {
+   "decode": "gpu",
+   "preprocess_backend": "torchvision",
+   "preprocess_device": "cuda",
+   "batch": 8
+  },
+  "sec_per_video_min": {
+   "decode": 1.214,
+   "prep": 0.026,
+   "fwd": 0.86,
+   "total": 2.1
+  },
+  "cos_vs_base": {
+   "mean": 0.97859,
+   "min": 0.85917
+  },
   "peak_gib": 4.41,
+  "frames": 1659
+ },
+ "bs16": {
+  "config": {
+   "decode": "gpu",
+   "preprocess_backend": "torchvision",
+   "preprocess_device": "cuda",
+   "batch": 16
+  },
+  "sec_per_video_min": {
+   "decode": 1.131,
+   "prep": 0.021,
+   "fwd": 0.836,
+   "total": 1.988
+  },
+  "cos_vs_base": {
+   "mean": 0.97858,
+   "min": 0.85917
+  },
+  "peak_gib": 4.83,
+  "frames": 1659
+ },
+ "bs32": {
+  "config": {
+   "decode": "gpu",
+   "preprocess_backend": "torchvision",
+   "preprocess_device": "cuda",
+   "batch": 32
+  },
+  "sec_per_video_min": {
+   "decode": 1.127,
+   "prep": 0.019,
+   "fwd": 0.82,
+   "total": 1.966
+  },
+  "cos_vs_base": {
+   "mean": 0.97859,
+   "min": 0.85917
+  },
+  "peak_gib": 5.68,
+  "frames": 1659
+ },
+ "cpu_bs16": {
+  "config": {
+   "decode": "cpu",
+   "preprocess_backend": "torchvision",
+   "preprocess_device": "cuda",
+   "batch": 16,
+   "overlap": false
+  },
+  "sec_per_video_min": {
+   "decode": 0.442,
+   "prep": 0.025,
+   "fwd": 0.838,
+   "total": 1.305,
+   "wall": 1.306
+  },
+  "cos_vs_base": {
+   "mean": 0.99831,
+   "min": 0.98881
+  },
+  "peak_gib": 4.84,
+  "frames": 1659
+ },
+ "cpu_bs32": {
+  "config": {
+   "decode": "cpu",
+   "preprocess_backend": "torchvision",
+   "preprocess_device": "cuda",
+   "batch": 32,
+   "overlap": false
+  },
+  "sec_per_video_min": {
+   "decode": 0.414,
+   "prep": 0.018,
+   "fwd": 0.825,
+   "total": 1.257,
+   "wall": 1.259
+  },
+  "cos_vs_base": {
+   "mean": 0.99831,
+   "min": 0.98881
+  },
+  "peak_gib": 5.69,
+  "frames": 1659
+ },
+ "overlap": {
+  "config": {
+   "decode": "cpu",
+   "preprocess_backend": "torchvision",
+   "preprocess_device": "cuda",
+   "batch": 16,
+   "overlap": true
+  },
+  "sec_per_video_min": {
+   "decode": 0.42,
+   "prep": 0.025,
+   "fwd": 0.845,
+   "total": 1.29,
+   "wall": 0.963
+  },
+  "cos_vs_base": {
+   "mean": 0.99831,
+   "min": 0.98881
+  },
+  "peak_gib": 4.84,
   "frames": 1659
  }
 }

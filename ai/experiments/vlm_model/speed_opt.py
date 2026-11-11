@@ -1,7 +1,8 @@
 """Qwen3-VL-Embedding-2B 프레임 특징 추출 속도 최적화 측정 (dev 영상, 640×360).
 
 단계별 시간(프레임 읽기 / 전처리 / 모델 계산)을 영상 1분당 초로 재고, 기준 설정(extract_eval_features.py와 같은
-CPU 디코딩 + torchvision 전처리 CPU + 묶음 8)으로 만든 특징과의 코사인 유사도로 결과가 같은지 확인한다.
+CPU 디코딩 + torchvision 전처리 CPU + 묶음 8, eval_features/qwen_640_v0)으로 만든 특징과의 코사인 유사도로
+결과가 같은지 확인한다. 결과 정리: docs/experiments/vlm_speed_opt.md
 
     python ai/experiments/vlm_model/speed_opt.py --configs base,prep_gpu,dec_gpu,bs16,bs32 \
         --out ai/experiments/vlm_model/results/speed_opt.json
@@ -26,6 +27,11 @@ CONFIGS = {
     "dec_gpu":  ("gpu", "torchvision", "cuda", 8),   # 2) + NVDEC 디코딩
     "bs16":     ("gpu", "torchvision", "cuda", 16),  # 3) + 묶음 16
     "bs32":     ("gpu", "torchvision", "cuda", 32),  #    + 묶음 32
+    # GPU 디코딩이 느리고 결과도 달라져(dec_gpu) CPU 디코딩으로 되돌려 묶음 크기만 바꿈
+    "cpu_bs16": ("cpu", "torchvision", "cuda", 16),
+    "cpu_bs32": ("cpu", "torchvision", "cuda", 32),
+    # 4) 추가: 다음 영상 디코딩(CPU)을 지금 영상 계산(GPU)과 겹침. 실제 걸린 시간(wall)으로 잼
+    "overlap":  ("cpu", "torchvision", "cuda", 16, "overlap"),
 }
 
 
@@ -106,22 +112,39 @@ def main():
     emb(decode(VIDEOS / f"{rows[0]['youtube_id']}.mp4", 16, "cpu"), "torchvision", "cpu", 8)
     out = json.loads(Path(a.out).read_text()) if Path(a.out).exists() else {}
     for name in a.configs.split(","):
-        dec, backend, device, bs = CONFIGS[name]
+        dec, backend, device, bs = CONFIGS[name][:4]
+        overlap = len(CONFIGS[name]) > 4
         tot = {"decode": 0.0, "prep": 0.0, "fwd": 0.0, "video_sec": 0.0, "frames": 0}
         cos_all = []
         torch.cuda.reset_peak_memory_stats()
-        for r in rows:
-            vid = r["youtube_id"]
-            ref = torch.load(FEATS / "qwen_640" / f"{vid}.pt").float().cuda()
-            t0 = time.time(); frames = decode(VIDEOS / f"{vid}.mp4", len(ref), dec); t_dec = time.time() - t0
+        refs = {r["youtube_id"]: torch.load(FEATS / "qwen_640_v0" / f"{r['youtube_id']}.pt").float().cuda() for r in rows}
+
+        def dec_timed(vid):
+            t0 = time.time(); f = decode(VIDEOS / f"{vid}.mp4", len(refs[vid]), dec); return f, time.time() - t0
+
+        from concurrent.futures import ThreadPoolExecutor
+        pool = ThreadPoolExecutor(1)
+        wall0 = time.time()
+        nxt = pool.submit(dec_timed, rows[0]["youtube_id"]) if overlap else None
+        for i, r in enumerate(rows):
+            vid = r["youtube_id"]; ref = refs[vid]
+            if overlap:
+                frames, t_dec = nxt.result()
+                if i + 1 < len(rows):
+                    nxt = pool.submit(dec_timed, rows[i + 1]["youtube_id"])
+            else:
+                frames, t_dec = dec_timed(vid)
             e, t_prep, t_fwd = emb(frames, backend, device, bs)
             cos_all.append((e * F.normalize(ref, dim=-1)).sum(-1).cpu())
             tot["decode"] += t_dec; tot["prep"] += t_prep; tot["fwd"] += t_fwd
             tot["video_sec"] += float(r["duration_sec"]); tot["frames"] += len(ref)
+        wall = time.time() - wall0
         cos = torch.cat(cos_all)
         per_min = {k: round(tot[k] / tot["video_sec"] * 60, 3) for k in ("decode", "prep", "fwd")}
-        res = {"config": dict(zip(("decode", "preprocess_backend", "preprocess_device", "batch"), (dec, backend, device, bs))),
-               "sec_per_video_min": {**per_min, "total": round(sum(per_min.values()), 3)},
+        res = {"config": dict(zip(("decode", "preprocess_backend", "preprocess_device", "batch"), (dec, backend, device, bs)),
+                              overlap=overlap),
+               "sec_per_video_min": {**per_min, "total": round(sum(per_min.values()), 3),
+                                     "wall": round(wall / tot["video_sec"] * 60, 3)},
                "cos_vs_base": {"mean": round(float(cos.mean()), 5), "min": round(float(cos.min()), 5)},
                "peak_gib": round(torch.cuda.max_memory_allocated() / 2**30, 2), "frames": tot["frames"]}
         out[name] = res

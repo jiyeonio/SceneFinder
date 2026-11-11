@@ -8,30 +8,15 @@
 
     python ai/experiments/vlm_model/extract_eval_features.py --subset dev --kinds clip,qwen_640,qwen_1280
 """
-import argparse, csv, json, subprocess, sys, time
+import argparse, csv, json, sys, time
 from pathlib import Path
 
-import numpy as np
 import torch
-from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT)); sys.path.insert(0, str(Path(__file__).parent))
 VIDEOS = Path("/nfs/team/data/scenefinder_vlm/eval_videos")
 OUT = Path("/nfs/team/data/scenefinder_vlm/eval_features")
-CLIP_LEN = 2.0
-
-
-def mid_frames(path, n, w, h):
-    """2초 칸 i의 가운데(2i+1초) 프레임 n장. 한 번 디코딩으로 1초부터 2초 간격으로 뽑고
-    (-ss 1 + fps=1/2가 1, 3, 5…초 프레임을 뽑는 것을 시험 영상으로 확인),
-    파일이 조금 짧아 모자라면 마지막 프레임을 반복한다(칸 수는 CLIP 특징과 같게 맞춤)."""
-    raw = subprocess.run(["ffmpeg", "-v", "error", "-ss", f"{CLIP_LEN / 2}", "-i", str(path), "-vf",
-                          f"fps=1/{CLIP_LEN},scale={w}:{h}:force_original_aspect_ratio=decrease,pad={w}:{h}:(ow-iw)/2:(oh-ih)/2",
-                          "-f", "rawvideo", "-pix_fmt", "rgb24", "-"], capture_output=True, check=True).stdout
-    m = len(raw) // (w * h * 3)
-    ims = [Image.fromarray(np.frombuffer(raw, np.uint8, w * h * 3, i * w * h * 3).reshape(h, w, 3)) for i in range(m)]
-    return (ims + ims[-1:] * max(0, n - m))[:n]
 
 
 def main():
@@ -58,22 +43,22 @@ def main():
 
     qk = [k for k in kinds if k.startswith("qwen_")]
     if qk:
-        from encoder_probe import Enc
-        torch.cuda.reset_peak_memory_stats()
-        enc = Enc("qwen3vl_emb2b")
+        # 속도 최적화 결과(docs/experiments/vlm_speed_opt.md) 채택 설정: CPU 디코딩 + GPU 전처리 + 묶음 16
+        import speed_opt
+        emb = speed_opt.Embedder()
         for k in qk:
             w = int(k.split("_")[1]); h = w * 9 // 16
+            speed_opt.W, speed_opt.H = w, h
             (OUT / k).mkdir(parents=True, exist_ok=True)
             for r in rows:
-                torch.cuda.reset_peak_memory_stats(); t0 = time.time()
                 n = len(torch.load(OUT / "clip" / f"{r['youtube_id']}_clip_features.pt"))  # CLIP 칸 수와 맞춤
-                ims = mid_frames(VIDEOS / f"{r['youtube_id']}.mp4", n, w, h)
+                torch.cuda.reset_peak_memory_stats(); t0 = time.time()
+                frames = speed_opt.decode(VIDEOS / f"{r['youtube_id']}.mp4", n, "cpu")
                 t1 = time.time()
-                emb = enc.image(ims).half().cpu()
-                torch.cuda.synchronize()
-                torch.save(emb, OUT / k / f"{r['youtube_id']}.pt")
+                e, _, _ = emb(frames, "torchvision", "cuda", 16)
+                torch.save(e.half().cpu(), OUT / k / f"{r['youtube_id']}.pt")
                 timing.setdefault(r["key"], {})[k] = {"sec": round(time.time() - t0, 2), "decode_sec": round(t1 - t0, 2),
-                                                      "video_sec": float(r["duration_sec"]), "n": len(ims),
+                                                      "video_sec": float(r["duration_sec"]), "n": n,
                                                       "peak_gib": round(torch.cuda.max_memory_allocated() / 2**30, 2)}
                 print(r["key"], k, timing[r["key"]][k], flush=True)
     tpath.write_text(json.dumps(timing, ensure_ascii=False, indent=1))
