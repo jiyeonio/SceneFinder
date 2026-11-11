@@ -1,12 +1,12 @@
 split	key	youtube_id	title	duration	subtitle_source	AI초안_합침	AI초안_검수완료	사용자질문_합침	사용자질문_검수완료	예상_분
-dev	dev01	NYNnaDN9d8M	집에서 쉽고 간편하게! 기초연금 온라인 신청, 홈페이지 편	10:01	whisper_large-v3-turbo	10	0/10	3	0/3	31
-dev	dev02	HUFDJKVDIeM	내 연금 얼마나 쌓였는지 핸드폰으로 확인하는 방법!	3:11	whisper_large-v3-turbo	10	0/10	3	0/3	28
-dev	dev03	SfKD_WW0qQY	서울시 아이돌봄 서비스 신규 이용자를 위한 안내서 2차시(신청 과정)	6:28	whisper_large-v3-turbo	10	0/10	3	0/3	26
-dev	dev04	ibeZ6H7CO9U	(신청 기간 마감) 청년 월세 특별지원으로 월 최대 20만 원 지원?! 나도?!	8:40	whisper_large-v3-turbo	10	0/10	3	0/3	28
-dev	dev05	KRQgoAmtHGY	2022 NEW 실업인정일에 온라인으로 실업급여 신청하는 법!! (전과정 완벽정리)	13:55	whisper_large-v3-turbo	10	0/10	3	0/3	32
-dev	dev06	9IqJJbTEuPE	국민취업지원제도 구직촉진수당 온라인으로 신청하기	2:41	whisper_large-v3-turbo	8	0/8	3	0/3	22
-dev	dev07	1yYTX1-p-NI	복지로 온라인신청 'How To' 영상 『에너지바우처』편	5:37	whisper_large-v3-turbo	10	0/10	3	0/3	28
-dev	dev08	2VYwU4zPaUc	복지로 온라인신청 'How To' 영상 『요금감면서비스』편	4:51	whisper_large-v3-turbo	10	0/10	3	0/3	27
+dev	dev01	NYNnaDN9d8M	집에서 쉽고 간편하게! 기초연금 온라인 신청, 홈페이지 편	10:01	whisper_large-v3-turbo	10	10/10	3	3/3	31
+dev	dev02	HUFDJKVDIeM	내 연금 얼마나 쌓였는지 핸드폰으로 확인하는 방법!	3:11	whisper_large-v3-turbo	10	10/10	3	3/3	28
+dev	dev03	SfKD_WW0qQY	서울시 아이돌봄 서비스 신규 이용자를 위한 안내서 2차시(신청 과정)	6:28	whisper_large-v3-turbo	10	10/10	3	3/3	26
+dev	dev04	ibeZ6H7CO9U	(신청 기간 마감) 청년 월세 특별지원으로 월 최대 20만 원 지원?! 나도?!	8:40	whisper_large-v3-turbo	10	10/10	3	3/3	28
+dev	dev05	KRQgoAmtHGY	2022 NEW 실업인정일에 온라인으로 실업급여 신청하는 법!! (전과정 완벽정리)	13:55	whisper_large-v3-turbo	10	10/10	3	3/3	32
+dev	dev06	9IqJJbTEuPE	국민취업지원제도 구직촉진수당 온라인으로 신청하기	2:41	whisper_large-v3-turbo	8	8/8	3	3/3	22
+dev	dev07	1yYTX1-p-NI	복지로 온라인신청 'How To' 영상 『에너지바우처』편	5:37	whisper_large-v3-turbo	10	10/10	3	3/3	28
+dev	dev08	2VYwU4zPaUc	복지로 온라인신청 'How To' 영상 『요금감면서비스』편	4:51	whisper_large-v3-turbo	10	10/10	3	3/3	27
 test	test01	32mI5aXzCQk	【서면】으로 기초연금 신청하기!	23:08	whisper_large-v3-turbo					14
 test	test02	g8MZ4-OJUZk	[공식]아동수당 온라인신청 따라하기. 복지로 홈페이지에서 직접 신청하세요!	2:01	whisper_large-v3-turbo					1
 test	test03	ACchjnCoZ7A	대구시 아이돌봄서비스 신청방법	4:13	whisper_large-v3-turbo					3

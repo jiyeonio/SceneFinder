@@ -6,7 +6,7 @@
    "name": "dev01",
    "domain": "복지",
    "title": "집에서 쉽고 간편하게! 기초연금 온라인 신청, 홈페이지 편",
-   "duration": 601.0,
+   "duration": 601,
    "split": "dev"
   },
   "dev02": {
@@ -14,7 +14,7 @@
    "name": "dev02",
    "domain": "복지",
    "title": "내 연금 얼마나 쌓였는지 핸드폰으로 확인하는 방법!",
-   "duration": 191.0,
+   "duration": 191,
    "split": "dev"
   },
   "dev03": {
@@ -22,7 +22,7 @@
    "name": "dev03",
    "domain": "복지",
    "title": "서울시 아이돌봄 서비스 신규 이용자를 위한 안내서 2차시(신청 과정)",
-   "duration": 388.0,
+   "duration": 388,
    "split": "dev"
   },
   "dev04": {
@@ -30,7 +30,7 @@
    "name": "dev04",
    "domain": "복지",
    "title": "(신청 기간 마감) 청년 월세 특별지원으로 월 최대 20만 원 지원?! 나도?!",
-   "duration": 520.0,
+   "duration": 520,
    "split": "dev"
   },
   "dev05": {
@@ -38,7 +38,7 @@
    "name": "dev05",
    "domain": "복지",
    "title": "2022 NEW 실업인정일에 온라인으로 실업급여 신청하는 법!! (전과정 완벽정리)",
-   "duration": 835.0,
+   "duration": 835,
    "split": "dev"
   },
   "dev06": {
@@ -46,7 +46,7 @@
    "name": "dev06",
    "domain": "복지",
    "title": "국민취업지원제도 구직촉진수당 온라인으로 신청하기",
-   "duration": 161.0,
+   "duration": 161,
    "split": "dev"
   },
   "dev07": {
@@ -54,7 +54,7 @@
    "name": "dev07",
    "domain": "복지",
    "title": "복지로 온라인신청 'How To' 영상 『에너지바우처』편",
-   "duration": 337.0,
+   "duration": 337,
    "split": "dev"
   },
   "dev08": {
@@ -62,7 +62,7 @@
    "name": "dev08",
    "domain": "복지",
    "title": "복지로 온라인신청 'How To' 영상 『요금감면서비스』편",
-   "duration": 291.0,
+   "duration": 291,
    "split": "dev"
   },
   "test01": {
@@ -70,7 +70,7 @@
    "name": "test01",
    "domain": "복지",
    "title": "【서면】으로 기초연금 신청하기!",
-   "duration": 1388.0,
+   "duration": 1388,
    "split": "test"
   },
   "test02": {
@@ -78,7 +78,7 @@
    "name": "test02",
    "domain": "복지",
    "title": "[공식]아동수당 온라인신청 따라하기. 복지로 홈페이지에서 직접 신청하세요!",
-   "duration": 121.0,
+   "duration": 121,
    "split": "test"
   },
   "test03": {
@@ -86,7 +86,7 @@
    "name": "test03",
    "domain": "복지",
    "title": "대구시 아이돌봄서비스 신청방법",
-   "duration": 253.0,
+   "duration": 253,
    "split": "test"
   },
   "test04": {
@@ -94,7 +94,7 @@
    "name": "test04",
    "domain": "복지",
    "title": "서울 청년 월세 매달 20만원 지원! #자격요건 #신청방법 [알려줌서울 ep.8]",
-   "duration": 305.0,
+   "duration": 305,
    "split": "test"
   },
   "test05": {
@@ -102,7 +102,7 @@
    "name": "test05",
    "domain": "복지",
    "title": "LH행복주택에 대해 궁금하다면? 행복주택신청자격확인부터 입주 후 주의사항까지",
-   "duration": 308.0,
+   "duration": 308,
    "split": "test"
   },
   "test06": {
@@ -110,7 +110,7 @@
    "name": "test06",
    "domain": "복지",
    "title": "[전체] 고용보험 이직확인서 작성방법",
-   "duration": 554.0,
+   "duration": 554,
    "split": "test"
   },
   "test07": {
@@ -118,7 +118,7 @@
    "name": "test07",
    "domain": "복지",
    "title": "[건보인사이드] 노인장기요양보험 인정신청 절차, 건강보험공단에서 정확히 알려드립니다!",
-   "duration": 507.0,
+   "duration": 507,
    "split": "test"
   },
   "test08": {
@@ -126,7 +126,7 @@
    "name": "test08",
    "domain": "복지",
    "title": "2026년 3월 근로장려금 미안내자 신청방법(2025년 하반기분)",
-   "duration": 640.0,
+   "duration": 640,
    "split": "test"
   }
  },
@@ -144,7 +144,7 @@
    ],
    "overlay_text": false,
    "subtitle_only_spans": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "근거: 자막 [23.3–30.2] '만 65세 생일이 속한 달의 1개월 전 초일부터 신청'. 화면 준비사항 카드에도 같은 문구."
   },
@@ -161,7 +161,7 @@
    ],
    "overlay_text": false,
    "subtitle_only_spans": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "근거: 자막 [100.6–108.1] 월 최대 11,000원 감면, [109.2–111.4] 알뜰폰 제외. 화면 TIP 박스(1:39~1:53)와 겹침."
   },
@@ -178,7 +178,7 @@
    ],
    "overlay_text": false,
    "subtitle_only_spans": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "근거: 자막 [282.7–309.9] 필수 아님, 동의 안 하면 통보요구서 제출 후 우편 통보. 시트 sheet_005~006 TIP 박스와 동시."
   },
@@ -195,7 +195,7 @@
    ],
    "overlay_text": false,
    "subtitle_only_spans": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "근거: 자막 [443.1–458.1] 수급 희망 이력관리 = 탈락 후 5년간 이력관리로 재신청 안내."
   },
@@ -207,7 +207,7 @@
    "gt": [
     [
      62.3,
-     72.0
+     72
     ]
    ],
    "overlay_text": true,
@@ -217,7 +217,7 @@
      35.5
     ]
    ],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "근거: 프레임 t62.5~t71.5 복지로 '로그인' 페이지(금융인증서/간편인증/공동인증서 탭), t62는 메인화면, 1:12 시트는 복지급여 신청 페이지. 30.2~35.5는 인증수단 준비를 말하지만 화면은 준비사항 카드."
   },
@@ -228,13 +228,13 @@
    "query": "고유식별정보 민감정보 수집 이용 동의 체크하는 화면",
    "gt": [
     [
-     113.0,
+     113,
      141.5
     ]
    ],
    "overlay_text": true,
    "subtitle_only_spans": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "근거: 프레임 t113.5 '개인정보활용동의' 페이지 시작(t112.5는 TIP), t141 동의 체크 후 다음 클릭, t142는 '신청 전 유의사항'. 4:21~ 정보제공 동의 화면과 혼동 주의."
   },
@@ -245,8 +245,8 @@
    "query": "금융정보 등 제공 동의서 종이 서식 칸 채우는 법 보여주는 부분",
    "gt": [
     [
-     378.0,
-     416.0
+     378,
+     416
     ]
    ],
    "overlay_text": true,
@@ -256,7 +256,7 @@
      377.9
     ]
    ],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "근거: 프레임 t378.5부터 '금융정보 등(금융·신용·보험정보) 제공 동의서' 서식, 빨간 박스로 1번·2번란·날짜 강조, t416 이후 웹 화면 복귀. 361.6~377.9는 동의서 다운로드·첨부를 말하지만 화면은 첨부 UI."
   },
@@ -273,7 +273,7 @@
    ],
    "overlay_text": true,
    "subtitle_only_spans": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "근거: 프레임 t430~t437.5 '계좌정보' 탭(예금주·금융기관·계좌번호, 계좌확인 버튼), t429.5는 해외체류 화면, t438.5는 전환 공백."
   },
@@ -290,7 +290,7 @@
    ],
    "overlay_text": false,
    "subtitle_only_spans": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "근거: 자막 [19.9–21.9] '1355로 전화해서 알아봐야 할까요?' 대목. 화면은 앱 검색 장면이라 말로만 찾을 수 있음. 2초 남짓으로 짧음."
   },
@@ -307,7 +307,7 @@
    ],
    "overlay_text": false,
    "subtitle_only_spans": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "근거: 자막 [75.7–83.4] 카카오페이·공인인증·간편번호 세 가지로 로그인 가능하다는 설명."
   },
@@ -324,7 +324,7 @@
    ],
    "overlay_text": false,
    "subtitle_only_spans": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "근거: 자막 [98.3–102.1] 안드로이드는 보유 인증서, [102.1–108.1] iOS는 처음 한 번 국민연금공단 홈페이지에서 인증서를 받아야 한다는 설명."
   },
@@ -341,7 +341,7 @@
    ],
    "overlay_text": false,
    "subtitle_only_spans": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "근거: 자막 [136.5–139.7] 벌써 5년 가입, [139.7–143.2] 최소 가입기간이 5년밖에 안 남았다는 말 (최소 가입기간 10년이라는 뜻)."
   },
@@ -352,7 +352,7 @@
    "query": "앱스토어에서 국민연금 앱 찾은 검색 결과 화면",
    "gt": [
     [
-     24.0,
+     24,
      42.7
     ]
    ],
@@ -363,7 +363,7 @@
      182.5
     ]
    ],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "근거: 프레임 t24~t42.5에서 앱스토어 검색창→'내 곁에 국민연금' 결과 목록, t43부터 홈 화면. 끝부분 [178.6–182.5] '지금 바로 다운받으러'는 메모 화면만 나옴."
   },
@@ -374,13 +374,13 @@
    "query": "앱 첫 화면에서 개인조회 가입내역 메뉴 누르는 장면",
    "gt": [
     [
-     59.0,
+     59,
      67.8
     ]
    ],
    "overlay_text": true,
    "subtitle_only_spans": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "근거: t59~t67 앱 메인(개인조회/증명발급/신고·신청 탭) 확대, t66에 '가입내역' 아이콘 강조. t68부터 로딩 팝업."
   },
@@ -391,17 +391,17 @@
    "query": "카카오페이 인증할 때 지문 팝업이랑 인증 비밀번호 입력 화면",
    "gt": [
     [
-     88.0,
+     88,
      92.8
     ],
     [
      111.5,
-     114.0
+     114
     ]
    ],
    "overlay_text": false,
    "subtitle_only_spans": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "근거: t88.5 pay 인증, t89 '카톡으로 인증하세요', t89.5~t90 Touch ID 팝업, t91~t91.5 노란 인증 비밀번호 키패드, 실제 로그인 시 t112.5 Touch ID 팝업, t114 로딩."
   },
@@ -418,7 +418,7 @@
    ],
    "overlay_text": true,
    "subtitle_only_spans": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "근거: 시트 2:09~2:30 가입내역 상세 목록에 편집 자막 'V사 알바 기간 12개월', 'M사 20개월', 'G사 13개월'. 전체 해상도 프레임 t154까지 G사 박스, t155부터 예상연금 항목으로 스크롤."
   },
@@ -435,7 +435,7 @@
    ],
    "overlay_text": false,
    "subtitle_only_spans": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "근거: 자막 [42.2–55.7] 부모 모두 직장 건강보험 가입자인 맞벌이 가구와 직장보험 한부모 가구는 복지로 온라인 신청이 된다는 설명."
   },
@@ -447,12 +447,12 @@
    "gt": [
     [
      86.1,
-     105.0
+     105
     ]
    ],
    "overlay_text": false,
    "subtitle_only_spans": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "근거: 자막 [86.1–105.0] 양육 공백이 있고 중위소득 150% 이하면 가·나·다형, 공백이 없거나 150%를 넘으면 라형."
   },
@@ -469,7 +469,7 @@
    ],
    "overlay_text": false,
    "subtitle_only_spans": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "근거: 자막 [137.6–148.7] 카드사 영업점에 가거나 홈페이지 또는 콜센터로 신청하라는 안내."
   },
@@ -480,13 +480,13 @@
    "query": "돌봄 서비스 요금은 언제 결제되고 어디서 빠져나가는지",
    "gt": [
     [
-     315.0,
+     315,
      322.2
     ]
    ],
    "overlay_text": false,
    "subtitle_only_spans": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "근거: 자막 [315.0–322.2] 서비스 2일 전에 결제되며 보유 예치금에서 차감된다는 설명."
   },
@@ -497,13 +497,13 @@
    "query": "2025년부터 지원 대상이 중위소득 200%로 넓어진다는 안내 문구",
    "gt": [
     [
-     95.0,
+     95,
      105.4
     ]
    ],
    "overlay_text": true,
    "subtitle_only_spans": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "근거: 1fps 세그먼트 타일(84~107s)에서 '가구 유형 판정 기준' 화면 하단 그래프 옆에 '※2025년부터 기준중위소득 150%→200% 이하로 지원대상 확대'가 95s쯤 나타나 105.4s 전환 전까지 유지됨. 내레이션은 150%만 말하고 2025년이나 200%는 말하지 않음."
   },
@@ -520,7 +520,7 @@
    ],
    "overlay_text": true,
    "subtitle_only_spans": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "근거: 세그먼트 타일(164~199s)에서 'STEP3 정보입력' 회원가입 정보입력 폼이 171s부터 194.6s까지 이어짐(장면 전환 171.0s, 194.6s). 그 앞 165~170s는 회원 유형 선택과 약관 화면."
   },
@@ -532,12 +532,12 @@
    "gt": [
     [
      244.6,
-     262.0
+     262
     ]
    ],
    "overlay_text": true,
    "subtitle_only_spans": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "근거: 세그먼트 타일(238~267s)에서 244.6s 서약서 문서 뷰어가 열리고 252~255s에 '(서명 또는 인)' 서명 패드, 256~261s에 분홍색 서명란이 있는 문서가 나옴. 262.0s에 약관 화면으로 돌아감."
   },
@@ -554,7 +554,7 @@
    ],
    "overlay_text": true,
    "subtitle_only_spans": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "근거: 세그먼트 타일(282~305s)과 시트 4:48~4:57에서 '서비스제공기관 승인 → 정기아동: 정기이용서비스(시간제·종합형), 영아종일제서비스, 일시연계서비스, 질병감염아동지원서비스 이용 가능' 박스가 287.5s부터 301.3s 전환까지 나옴. 내레이션은 서비스 이름을 나열하지 않음."
   },
@@ -571,7 +571,7 @@
    ],
    "overlay_text": false,
    "subtitle_only_spans": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "근거: 자막 101.9–117.8 '하지만 예외도 있어요… 30세 이상, 결혼, 미혼부모, 30세 미만이지만 경제적 독립이면 원가구 소득 고려 안 함'. 시트 1:42–1:57 예외 박스와 일치."
   },
@@ -588,7 +588,7 @@
    ],
    "overlay_text": false,
    "subtitle_only_spans": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "근거: 자막 137.3–144.1 '실제 월세 범위 내 지원, 임차보증금·관리비 등은 제외'."
   },
@@ -600,12 +600,12 @@
    "gt": [
     [
      238.6,
-     266.0
+     266
     ]
    ],
    "overlay_text": false,
    "subtitle_only_spans": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "근거: 자막 238.6–266.0 다른 시·군 거주 원칙, 같은 시군이라도 보장기관 판단으로 예외 인정, 특별·광역시 내 분리거주는 원칙적으로 불인정."
   },
@@ -617,12 +617,12 @@
    "gt": [
     [
      394.1,
-     399.0
+     399
     ]
    ],
    "overlay_text": false,
    "subtitle_only_spans": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "근거: 자막 394.1–399.0 '직접 방문이 어려우면 대리신청 가능하지만 위임장 필요'. 시트 6:33–6:39 '대리신청 가능 / 위임장 필요'."
   },
@@ -639,7 +639,7 @@
    ],
    "overlay_text": true,
    "subtitle_only_spans": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "근거: 시트 2:45–2:57, 1초 간격 프레임 163–183에서 메모지 첫 장 166.5에 등장, 179.0에 장면 전환. 내레이션도 같은 시점에 같은 세 항목을 말해 화면 밖 언급은 없음. (경계는 프레임 차이 기반 컷 탐지로 실제 시각에 맞춰 재보정함.)"
   },
@@ -656,7 +656,7 @@
    ],
    "overlay_text": false,
    "subtitle_only_spans": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "근거: 시트 5:45–6:09, 0.5초 프레임 342–346·368–372에서 344.0에 얼굴 카드 등장, 370.5에 로봇 화면으로 전환. 청주 부모·성남 분당 청년 예시는 같은 시점에만 말함. (경계는 프레임 차이 기반 컷 탐지로 실제 시각에 맞춰 재보정함.)"
   },
@@ -667,13 +667,13 @@
    "query": "주거급여 분리지급 제출서류 목록 화면",
    "gt": [
     [
-     446.0,
-     458.0
+     446,
+     458
     ]
    ],
    "overlay_text": true,
    "subtitle_only_spans": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "근거: 1초 프레임 443–459. 446.0부터 사회보장급여 제공(변경) 신청서·청년 주거급여 분리지급 신청서·임차가구 증빙서류·통장사본 목록, 458.0에 엔딩 타이틀로 전환. 내레이션은 '제출서류를 살펴봅시다'만 말하고 서류 이름은 읽지 않음. (경계는 프레임 차이 기반 컷 탐지로 실제 시각에 맞춰 재보정함.)"
   },
@@ -690,7 +690,7 @@
    ],
    "overlay_text": false,
    "subtitle_only_spans": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "근거: 0.5초 프레임 492–501. 496.5 구독·알림 버튼, 498 구독 클릭, 499 좋아요 클릭, 500부터 유튜브 댓글 화면. 무음 구간이라 화면으로만 찾을 수 있음. (경계는 프레임 차이 기반 컷 탐지로 실제 시각에 맞춰 재보정함.)"
   },
@@ -707,7 +707,7 @@
    ],
    "overlay_text": false,
    "subtitle_only_spans": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "근거: 자막 [191.9–211.9] 실업크레딧은 실업급여 받는 동안 국민연금을 추가 산입하는 제도이고 선택사항이라는 설명."
   },
@@ -718,13 +718,13 @@
    "query": "1차 실업인정일에는 구직활동 안 해도 되는 이유",
    "gt": [
     [
-     318.0,
+     318,
      337.7
     ]
    ],
    "overlay_text": false,
    "subtitle_only_spans": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "근거: 자막 [318.0–337.7] 1차 실업인정일까지는 1차 실업인정 교육이 구직활동을 대체하므로 구직활동 내역 '없음'에 체크하라는 설명."
   },
@@ -735,13 +735,13 @@
    "query": "실업인정 신청서 인터넷 제출은 몇 시까지 가능해요",
    "gt": [
     [
-     554.0,
+     554,
      568.2
     ]
    ],
    "overlay_text": false,
    "subtitle_only_spans": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "근거: 자막 [558.2–563.6] 본인 실업인정일 자정부터 오후 5시까지 인터넷 전송 가능, [563.9–568.2] 그 시간에 제출. 앞의 [554.0–558.2] 유의사항 읽으라는 말 포함."
   },
@@ -762,7 +762,7 @@
    ],
    "overlay_text": false,
    "subtitle_only_spans": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "근거: 자막 [623.2–638.7] 2차 이후 계좌 변경 가능하고 변경 시에도 통장 사본 다시 첨부, [184.2–191.2] 신규 등록 후 통장 사본 반드시 첨부. 주의: 같은 시점 화면 자막(약 187.5초~, 10:33~)은 '통장사본이 준비되지 않았다면 첨부하지 않아도 됩니다'라고 말과 다름."
   },
@@ -779,7 +779,7 @@
    ],
    "overlay_text": true,
    "subtitle_only_spans": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "근거: 프레임 t96~t108 '개인 로그인 / 원하시는 인증 방법을 선택하여 주세요' 공동인증서·금융인증서·간편인증 탭, t109부터 로그인 후 메인."
   },
@@ -790,7 +790,7 @@
    "query": "지급은행 검색해서 새 계좌 등록하는 팝업",
    "gt": [
     [
-     176.0,
+     176,
      187.2
     ]
    ],
@@ -801,7 +801,7 @@
      632.2
     ]
    ],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "근거: t177~t186.5 '고용보험 - 등록계좌 조회' 팝업(은행명·계좌번호 입력), t187.5부터 통장사본 영역. 2차 부분 [623.2–632.2]은 계좌 변경을 말하지만 화면(시트 10:24~10:30)은 신청서 계좌 줄만 보이고 팝업 없음."
   },
@@ -812,7 +812,7 @@
    "query": "집체교육 자료 공지사항 첨부파일 목록 (수강확인서 다운로드)",
    "gt": [
     [
-     428.0,
+     428,
      439.6
     ],
     [
@@ -822,7 +822,7 @@
    ],
    "overlay_text": true,
    "subtitle_only_spans": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "근거: t428~t439 / t465~t472 '공지사항' 창에 실업인정 교육자료·자체학습 자료·수강확인서 등 첨부파일 6개와 다운로드 버튼. 사이(t440~t463)는 신청서 화면."
   },
@@ -839,7 +839,7 @@
    ],
    "overlay_text": true,
    "subtitle_only_spans": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "근거: t704~t715 '고용보험 - 실업인정인터넷신청 구직활동이력 워크넷 조회' 팝업(조회 결과 없음), t716부터 구직활동내역 입력란."
   },
@@ -851,12 +851,12 @@
    "gt": [
     [
      16.5,
-     27.0
+     27
     ]
    ],
    "overlay_text": true,
    "subtitle_only_spans": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "근거: 1초 간격 상단 크롭 16~26초 'Q. 국민취업지원제도 구직촉진수당이란?' 제목과 설명 카드(편집 자막), 27초부터 고용24 홈 화면 안내로 바뀜."
   },
@@ -868,12 +868,12 @@
    "gt": [
     [
      32.5,
-     49.0
+     49
     ]
    ],
    "overlay_text": true,
    "subtitle_only_spans": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "근거: 33~48초 안내문 '다음 중 신청할 회차를 선택한 후 한 번 더 [구직촉진수당 신청] 버튼' 과 앱의 1~6회차 체크박스 목록(시트 0:36~0:45). 49초부터 '신청 사유' 안내."
   },
@@ -890,7 +890,7 @@
    ],
    "overlay_text": true,
    "subtitle_only_spans": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "근거: 74~79초 '[STEP.2 활동보고] 항목에서 실제 참여 기간을 입력' 안내, 시트 1:12~1:15 참여기간 YYYY.MM 필드와 달력 팝업. 80초부터 이행등록 안내."
   },
@@ -907,7 +907,7 @@
    ],
    "overlay_text": true,
    "subtitle_only_spans": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "근거: 104~108초 '소득 발생 내역이 있는 경우 소득 유형과 소득액을 신고', 109~111초 '입증할 수 있는 서류를 첨부'. 앱 화면 '소득 발생 신고' 예/아니오, 소득유형·소득액 필드(시트 1:45~1:48). 112초부터 취업(예정) 신고."
   },
@@ -919,12 +919,12 @@
    "gt": [
     [
      115.5,
-     127.0
+     127
     ]
    ],
    "overlay_text": true,
    "subtitle_only_spans": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "근거: 116~126초 '[가족수당] 신청이 가능한 경우 [예]', '18세 이하 or 70세 이상 or 중증 장애 가구원', '참여 자격 심사 때 확정된 가구원만' 안내와 가구원 신청 체크 목록(시트 1:57~2:03). 127초부터 지급계좌."
   },
@@ -941,7 +941,7 @@
    ],
    "overlay_text": true,
    "subtitle_only_spans": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "근거: 130~141초 '지정일 전이라면 [제출예약] 항목을 [예]로', '지정일 자정(24:00)에 자동 제출', '오늘이 지정일이면 [저장] 후 [제출]' 안내와 제출예약 라디오 버튼(시트 2:09~2:18). 142초부터 신청 후 정보 확인."
   },
@@ -952,13 +952,13 @@
    "query": "에너지바우처로 어떤 연료를 살 수 있나요",
    "gt": [
     [
-     11.0,
+     11,
      27.6
     ]
    ],
    "overlay_text": false,
    "subtitle_only_spans": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "근거: 자막 11.0–27.6 '냉방비·난방비 부담… 전기, 도시가스, 지역난방, 등유, LPG, 연탄 구입 비용을 바우처로 지원'."
   },
@@ -975,7 +975,7 @@
    ],
    "overlay_text": false,
    "subtitle_only_spans": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "근거: 자막 31.9–53.2 생계·의료급여 수급자 중 노인, 영유아, 장애인, 임산부, 중증·희귀·중증난치질환자, 한부모가족, 소년소녀가정 포함 가구."
   },
@@ -992,7 +992,7 @@
    ],
    "overlay_text": false,
    "subtitle_only_spans": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "근거: 자막 214.2–223.6 '임산부가 자동 확인 안 되면 임신 사실 확인 가능한 의료기관 진단서·확인서 첨부'."
   },
@@ -1003,13 +1003,13 @@
    "query": "신청서 제출한 다음에 고칠 수 있나요",
    "gt": [
     [
-     243.0,
+     243,
      248.5
     ]
    ],
    "overlay_text": false,
    "subtitle_only_spans": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "근거: 자막 243.0–248.5 '신청서 제출 후에는 수정 불가하니 꼼꼼히 확인'. 시트 4:03–4:06 같은 문구."
   },
@@ -1026,7 +1026,7 @@
    ],
    "overlay_text": true,
    "subtitle_only_spans": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "근거: 1초 프레임 134–150. 139.0에 동의서(개인정보·유의사항) 페이지 등장, 141–143 동의함 라디오 클릭, 144–145 '저장 후 다음단계' 강조, 146.0에 바우처 제공신청 페이지로 전환. 모바일 '확인함'(276.6–281.2)은 다른 화면이라 제외. (경계는 프레임 차이 기반 컷 탐지로 실제 시각에 맞춰 재보정함.)"
   },
@@ -1043,7 +1043,7 @@
    ],
    "overlay_text": true,
    "subtitle_only_spans": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "근거: t160 원본 프레임에서 바우처 제공신청 표 동절기 칸 주황 글씨 '※에너지비용이 관리비 형태로 청구되는 아파트, 오피스텔의 경우에는 실물카드 사용이 제한될 수 있으니…' 확인. 0.5초 프레임 205–211에서 210.5부터 아래로 스크롤되어 사라짐. 내레이션은 이 내용을 말하지 않음(191.3–197.3은 실물/가상카드 선택만 말함). (경계는 프레임 차이 기반 컷 탐지로 실제 시각에 맞춰 재보정함.)"
   },
@@ -1065,7 +1065,7 @@
      315.3
     ]
    ],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "근거: 1초 프레임 247–263. 251–252 '나의 이용내역' 메뉴 강조, 253.0–256.0 '진행상태 조회' 페이지, 257.0 복지로 앱 아이콘으로 전환. 308.9–315.3은 모바일에서 나의 이용내역을 말하지만 화면엔 메뉴 목록만 나오고 조회 화면은 없음. (경계는 프레임 차이 기반 컷 탐지로 실제 시각에 맞춰 재보정함.)"
   },
@@ -1082,7 +1082,7 @@
    ],
    "overlay_text": false,
    "subtitle_only_spans": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "근거: 0.5초 프레임 261–269. 264.5에 손 그림 등장해 앱 첫 화면 '온라인신청' 탭, 267.5에 복지서비스 목록으로 넘어감(이후 손은 계속 나오지만 다른 단계). (경계는 프레임 차이 기반 컷 탐지로 실제 시각에 맞춰 재보정함.)"
   },
@@ -1099,7 +1099,7 @@
    ],
    "overlay_text": false,
    "subtitle_only_spans": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "근거: 자막 18.1–30.2 '전기요금, 도시가스요금, 지역난방비, TV수신료, 이동통신요금 등을 감면'."
   },
@@ -1116,7 +1116,7 @@
    ],
    "overlay_text": false,
    "subtitle_only_spans": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "근거: 자막 45.5–53.6 '별도로 준비해야 할 서류가 없어 PC나 모바일 앱에서 온라인으로 신청'."
   },
@@ -1133,7 +1133,7 @@
    ],
    "overlay_text": false,
    "subtitle_only_spans": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "근거: 자막 165.6–175.2 '전기요금 선택 후 고객번호를 조회하거나 조회가 어려우면 직접 입력'."
   },
@@ -1150,7 +1150,7 @@
    ],
    "overlay_text": false,
    "subtitle_only_spans": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "근거: 자막 54.6–59.4 '여기서 잠깐! 복지로 온라인 신청은 회원가입 없이도 이용 가능'. 화면 0:54–1:02 '여기서 잠깐!'·'회원가입 없이 온라인신청' 자막 그래픽도 같은 시점."
   },
@@ -1162,11 +1162,11 @@
    "gt": [
     [
      89.7,
-     93.0
+     93
     ],
     [
      225.5,
-     227.0
+     227
     ]
    ],
    "overlay_text": true,
@@ -1176,7 +1176,7 @@
      44.3
     ]
    ],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "근거: 원본 프레임 t91에서 주의사항 페이지 '지원대상' 표(전기요금 월 최대 16,000원, 이동통신 26,000원, 지역난방 월 10,000원 등) 확인. 0.5초 프레임 89.5–93.5에서 90.0 등장, 93.0 다음 항목으로 스크롤. 모바일 표는 t226.5 원본 확인, 225.5–226.5 표시·227.0 스크롤. 39.3–44.3은 '항목별 감면 내역이 다르다'고만 말하고 화면은 만화. (경계는 프레임 차이 기반 컷 탐지로 실제 시각에 맞춰 재보정함.)"
   },
@@ -1193,7 +1193,7 @@
    ],
    "overlay_text": false,
    "subtitle_only_spans": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "근거: 0.5초 프레임 111–119. 115.0에 가족 구성원 정보 팝업 등장, 118.0 확인 클릭, 118.5 팝업 닫힘. (경계는 프레임 차이 기반 컷 탐지로 실제 시각에 맞춰 재보정함.)"
   },
@@ -1204,8 +1204,8 @@
    "query": "요금감면 신청서 제출 완료 화면",
    "gt": [
     [
-     190.0,
-     192.0
+     190,
+     192
     ],
     [
      262.4,
@@ -1214,7 +1214,7 @@
    ],
    "overlay_text": true,
    "subtitle_only_spans": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "근거: 0.5초 프레임 189–193에서 PC 'Step3 신청완료/요금감면서비스 신청이 완료' 페이지 190.0–191.5, 192.0 건물 그림으로 전환. 모바일 완료 화면 0.5초 프레임 255–268에서 262.0–266.0, 266.5 메뉴로 전환. (경계는 프레임 차이 기반 컷 탐지로 실제 시각에 맞춰 재보정함.)"
   },
@@ -1231,7 +1231,7 @@
    ],
    "overlay_text": false,
    "subtitle_only_spans": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "근거: 0.5초 프레임 66–74. 69.0에 빈 검색창 등장, 70.0 '복지', 70.5 '복지로' 입력, 71.5 복지로 홈페이지로 전환. 내레이션(67.1–71.9)도 같은 시점에 말함. (경계는 프레임 차이 기반 컷 탐지로 실제 시각에 맞춰 재보정함.)"
   },
@@ -1242,13 +1242,13 @@
    "query": "공인인증서 어디서 넣어요",
    "gt": [
     [
-     62.0,
+     62,
      69.9
     ]
    ],
    "overlay_text": true,
    "subtitle_only_spans": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "simulated_user",
    "note": "복지로 '서비스 신청' 선택 후 로그인 화면에서 금융인증서·간편인증·공동인증서 중 골라 로그인하라고 안내하고, 화면에 공동인증서 탭이 보인다. 준비사항(30.2–35.5)에도 인증수단 목록이 나오지만 어디서 넣는지는 이 구간이 직접적이다.",
    "persona": "어르신"
@@ -1266,9 +1266,9 @@
    ],
    "overlay_text": true,
    "subtitle_only_spans": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "simulated_user",
-   "note": "'만 65세 생일이 속한 달의 1개월 전 초일부터 신청 가능'이라는 연령 조건만 말하고 화면에도 '1. 연령'으로 표시된다. 소득·재산 선정기준은 영상에 없어 부분 답변이다(정답 없음으로 볼 여지 있음).",
+   "note": "부분: '만 65세 생일이 속한 달의 1개월 전 초일부터 신청 가능'이라는 연령 조건만 말하고 화면에도 '1. 연령'으로 표시된다. 소득·재산 선정기준은 영상에 없어 부분 답변이다(정답 없음으로 볼 여지 있음).",
    "persona": "어르신"
   },
   {
@@ -1284,7 +1284,7 @@
    ],
    "overlay_text": true,
    "subtitle_only_spans": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "simulated_user",
    "note": "'내가 낸 국민연금이 얼마인지 조회'하려면 앱 상단 개인조회에서 가입내역 조회를 누르라고 설명하고 화면에 '가입내역 조회 클릭!' 자막이 뜬다. 이후 로그인(75.7–112.6)과 결과 화면(112.6–123.5)이 이어진다.",
    "persona": "청년"
@@ -1307,7 +1307,7 @@
      150.1
     ]
    ],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "simulated_user",
    "note": "가입내역 화면을 내리면 '예상연금월액(노령연금) - 예상연금액(현재가치기준)' 항목이 보인다. 내레이션은 '나중에 받게 될 연금액'을 말만 하고 메뉴 위치를 설명하지 않으며, 금액은 블러 처리되어 있다.",
    "persona": "어르신"
@@ -1325,7 +1325,7 @@
    ],
    "overlay_text": true,
    "subtitle_only_spans": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "simulated_user",
    "note": "설치 후 앱을 실행하면 상단 개인조회 → 가입내역 조회를 누르고, 로그인이 필요하다는 창이 뜬다는 안내다. 로그인 방법(카카오페이·공인인증·간편번호)은 75.7–112.6에 이어진다.",
    "persona": "가족대신"
@@ -1347,7 +1347,7 @@
    ],
    "overlay_text": true,
    "subtitle_only_spans": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "simulated_user",
    "note": "신청은 동주민센터에서 사회보장급여로 하고, 복지로 온라인 신청은 맞벌이·직장보험 한부모만 가능하다고 말한다(비맞벌이는 방문 신청). 정부지원 자격이 없어도 전액 본인부담 라형으로 신청·이용 가능하다는 부분도 답이 된다.",
    "persona": "부모"
@@ -1369,7 +1369,7 @@
    ],
    "overlay_text": true,
    "subtitle_only_spans": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "simulated_user",
    "note": "청년월세 특별지원은 원가구(부모님 등 가족) 소득 중위 100% 이하를 보지만, 30세 이상·혼인·미혼부모·경제적 독립 시 원가구 소득을 고려하지 않는다고 설명한다. 청년 주거급여 분리지급은 부모가 주거급여 수급가구여야 하고 가구소득 기준을 충족해야 한다(207.4–224.9).",
    "persona": "청년"
@@ -1386,12 +1386,12 @@
     ],
     [
      383.1,
-     399.0
+     399
     ]
    ],
    "overlay_text": true,
    "subtitle_only_spans": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "simulated_user",
    "note": "청년월세 특별지원은 주민센터에 '청년 본인이 방문'하거나 복지로 온라인 신청이라 본인 신청이 원칙으로 들린다. 청년 주거급여 분리지급은 가구원·친척 등이 신청할 수 있고 대리신청은 위임장이 필요하다고 한다. 제도별로 답이 다르다.",
    "persona": "가족대신"
@@ -1403,13 +1403,13 @@
    "query": "구직활동 한거 어디다 적어요",
    "gt": [
     [
-     686.0,
-     751.0
+     686,
+     751
     ]
    ],
    "overlay_text": true,
    "subtitle_only_spans": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "simulated_user",
    "note": "2차 이후 실업인정 신청의 재취업 활동 화면에서 구직활동 내역 '있음' 체크 후 워크넷 조회로 자동 입력하거나 구직활동 일자·사업체명·구직방법·결과를 직접 적고 증빙을 첨부하라고 설명함. 1차 때는 '없음' 체크(318.0–337.7)라는 설명도 있음.",
    "persona": "기타:실직한 중년"
@@ -1427,9 +1427,9 @@
    ],
    "overlay_text": true,
    "subtitle_only_spans": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "simulated_user",
-   "note": "신청서 탭의 '지정된 출석일'에 맞춰 신청해야만 정상 제출되니 날짜를 꼭 기억하라고 설명하며 화면에 출석일이 보임. 날짜를 놓쳤을 때의 구체적 결과(미지급·재지정 등)는 말하지 않아 부분 답변임.",
+   "note": "부분: 신청서 탭의 '지정된 출석일'에 맞춰 신청해야만 정상 제출되니 날짜를 꼭 기억하라고 설명하며 화면에 출석일이 보임. 날짜를 놓쳤을 때의 구체적 결과(미지급·재지정 등)는 말하지 않아 부분 답변임.",
    "persona": "청년"
   },
   {
@@ -1439,13 +1439,13 @@
    "query": "취준하는데 매달 돈 주는거 얼마에요",
    "gt": [
     [
-     51.0,
+     51,
      64.5
     ]
    ],
    "overlay_text": true,
    "subtitle_only_spans": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "simulated_user",
    "note": "구직촉진수당 신청 화면의 신청내용에 '신청금액 500,000원'이 표시되고 56–60초에 빨간 박스로 강조됨. '매달'이라는 표현은 없고 회차별 신청금액으로만 보임(내레이션 없음).",
    "persona": "청년"
@@ -1458,12 +1458,12 @@
    "gt": [
     [
      142.5,
-     155.0
+     155
     ]
    ],
    "overlay_text": true,
    "subtitle_only_spans": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "simulated_user",
    "note": "'신청을 완료한 후 정보가 맞는지 한 번 더 확인해 주세요' 캡션과 신청 내역 화면이 나옴. 질문이 국민취업지원제도 참여 신청 후 할 일(=매 회차 수당 신청·구직활동 보고, 영상 전체)을 뜻할 수도 있어 해석이 애매함.",
    "persona": "기타:실직한 중년"
@@ -1475,13 +1475,13 @@
    "query": "통장번호 넣는 칸 어디있어요",
    "gt": [
     [
-     128.0,
+     128,
      131.5
     ]
    ],
    "overlay_text": true,
    "subtitle_only_spans": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "simulated_user",
    "note": "'구직촉진수당을 지급받을 본인 명의의 계좌를 입력해 주세요' 캡션과 함께 지급계좌(은행명·계좌번호·예금주) 칸이 빨간 박스로 강조됨.",
    "persona": "부모"
@@ -1499,7 +1499,7 @@
    ],
    "overlay_text": true,
    "subtitle_only_spans": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "simulated_user",
    "note": "에너지바우처 지원 대상(생계·의료급여 수급자 중 본인 또는 세대원이 노인·영유아·장애인·임산부·중증질환자 등 포함 가구)을 내레이션과 화면 글자로 안내함.",
    "persona": "어르신"
@@ -1521,7 +1521,7 @@
    ],
    "overlay_text": true,
    "subtitle_only_spans": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "simulated_user",
    "note": "복지로 PC(온라인 신청 > 복지서비스 신청 > 에너지바우처 > 인증)와 모바일 앱 신청 시작 절차를 설명함. 다른 가족이 대신 신청하는 방법은 다루지 않으며 신청인 본인 인증 기준임.",
    "persona": "가족대신"
@@ -1539,9 +1539,9 @@
    ],
    "overlay_text": true,
    "subtitle_only_spans": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "simulated_user",
-   "note": "이용권 종류 선택 단계에서 동절기 에너지바우처는 실물카드와 가상카드 중 하나를 선택한다고 설명함. 가상카드가 요금 차감 방식이라는 설명은 없어 부분 답변임.",
+   "note": "부분: 이용권 종류 선택 단계에서 동절기 에너지바우처는 실물카드와 가상카드 중 하나를 선택한다고 설명함. 가상카드가 요금 차감 방식이라는 설명은 없어 부분 답변임.",
    "persona": "기타:장애가 있는 가족을 돌보는 사람"
   },
   {
@@ -1561,7 +1561,7 @@
    ],
    "overlay_text": true,
    "subtitle_only_spans": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "simulated_user",
    "note": "요금감면 서비스는 별도 서류 없이 PC·모바일 앱의 복지로에서 온라인 신청하며, 복지로 > 온라인 신청 > 복지서비스 신청 > 요금감면 서비스로 들어가는 경로를 안내함. 전기요금 선택 예시는 165.6–175.2.",
    "persona": "기타:장애가 있는 가족을 돌보는 사람"
@@ -1579,7 +1579,7 @@
    ],
    "overlay_text": true,
    "subtitle_only_spans": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "simulated_user",
    "note": "요금감면 대상 항목으로 전기·도시가스·지역난방·TV수신료와 함께 이동통신요금을 언급함. 대상·항목별 감면 내용이 다르다는 단서(39.3–44.3)가 있음.",
    "persona": "어르신"
@@ -1591,7 +1591,7 @@
    "video": "dev01",
    "query": "기초연금 한 달에 얼마 받을 수 있어요",
    "gt": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "자막 전체와 시트 13장 확인: 지급액 언급 없음(금액은 휴대폰 요금감면 11,000원과 상담번호 1355뿐)."
   },
@@ -1600,7 +1600,7 @@
    "video": "dev01",
    "query": "기초연금 소득인정액 선정기준액이 얼마인지",
    "gt": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "자막은 소득재산 입력 방법만 설명, 선정기준액 수치나 기준 설명 없음. 시트에도 기준액 표 없음."
   },
@@ -1609,7 +1609,7 @@
    "video": "dev02",
    "query": "국민연금 추납(추후납부) 신청하는 방법",
    "gt": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "시트 4장 전부와 자막 전체 확인: 가입내역 조회·로그인만 다루고 추납/납부예외/반납 언급이나 화면 없음."
   },
@@ -1618,7 +1618,7 @@
    "video": "dev02",
    "query": "국민연금 몇 살부터 받을 수 있나요",
    "gt": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "자막 전체에 수령 개시 나이 언급 없음('앞으로 받게 될 연금도 체크'만 있음). 2:33~2:45 예상연금 항목 화면은 흐림 처리, 나이 정보 없음."
   },
@@ -1627,7 +1627,7 @@
    "video": "dev03",
    "query": "아이돌봄 서비스 시간당 이용요금 얼마예요",
    "gt": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "자막 54줄 전체와 시트 9장을 확인함. 가구 유형별 차등 지원, 라형은 본인부담 100%, 예치금 충전 방법만 나오고 시간당 요금 금액은 말로도 화면으로도 나오지 않음."
   },
@@ -1636,7 +1636,7 @@
    "video": "dev03",
    "query": "아이돌보미 선생님 바꾸고 싶을 때 교체 신청 방법",
    "gt": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "자막 전체와 시트 9장을 확인함. 신청 절차, 회원가입, 정회원 전환, 결제까지만 다루고 돌보미 교체나 변경 내용은 없음."
   },
@@ -1645,7 +1645,7 @@
    "video": "dev04",
    "query": "청년월세 특별지원 신청 기간 언제부터 언제까지예요",
    "gt": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "자막 전체에 신청 기간 날짜 없음('신청기간 놓치지 말고 확인' 172.9–177.9만 있음). 11장 시트에도 '신청 기간 확인 필요!' 메모만 있고 날짜 표시 없음."
   },
@@ -1654,7 +1654,7 @@
    "video": "dev04",
    "query": "청년 월세 지원 최대 몇 개월까지 받을 수 있나요",
    "gt": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "지원기간은 '연속적이지 않아도 지급 기간 내 지원'(130.6–136.1, 시트 2:12 지원기간 칸)뿐이고 개월 수는 말하지도 보여주지도 않음. 전 시트·자막 확인."
   },
@@ -1663,7 +1663,7 @@
    "video": "dev05",
    "query": "실업급여 받는 중에 해외여행 가도 되나요",
    "gt": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "자막 전체와 시트 18장 확인: 해외 출국·체류 관련 말이나 화면 없음. 실업인정 신청서 작성 과정만 나옴."
   },
@@ -1672,7 +1672,7 @@
    "video": "dev05",
    "query": "고용센터 방문 상담 예약하는 방법",
    "gt": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "자막 전체 확인: 고용센터는 '따로 연락이 오지 않으면 정상 처리'(580.5–587.4)라는 말뿐, 방문·예약 안내 없음. 시트에도 예약 화면 없음."
   },
@@ -1681,7 +1681,7 @@
    "video": "dev06",
    "query": "구직촉진수당 입금일 언제 들어오나요",
    "gt": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "시트 4장 전체와 1초 간격 상단 안내문 161장을 봤음: 지급 일정이나 입금 시점 안내 없음(지정일 자동 제출과 신청 완료까지만 나옴). 자막 없는 영상."
   },
@@ -1690,7 +1690,7 @@
    "video": "dev06",
    "query": "국민취업지원제도 참여 신청할 때 소득·재산 기준",
    "gt": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "16~26초 설명 카드는 제도 소개와 I유형 참여자만 신청 가능하다는 내용뿐, 소득·재산 요건 숫자 없음. 이후는 수당 신청서 입력 과정만 나옴(104초 '소득 발생 신고'는 활동기간 중 소득 신고라 다른 내용)."
   },
@@ -1699,7 +1699,7 @@
    "video": "dev07",
    "query": "주민센터 가서 에너지바우처 신청하는 방법",
    "gt": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "자막 전체가 PC·모바일 복지로 온라인 신청만 다룸(53.2–61.6 'PC 또는 모바일'). 7장 시트에도 주민센터·방문 신청 화면 없음."
   },
@@ -1708,7 +1708,7 @@
    "video": "dev07",
    "query": "에너지바우처 지원 금액 얼마나 나와요",
    "gt": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "자막에 금액 언급 없음. 7장 시트와 원본 프레임 t160(바우처 제공신청 표)에도 금액 칸이나 금액 안내 없음. 단 작은 폼 글씨 전부를 원본 해상도로 확인하진 않았음."
   },
@@ -1717,7 +1717,7 @@
    "video": "dev08",
    "query": "요금감면 신청하면 언제부터 할인 적용되나요",
    "gt": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "자막 전체에 적용 시점·처리 기간 언급 없음. 7장 시트의 완료 화면 등에도 적용 시기 안내는 판독되지 않음(완료 화면 작은 글씨는 원본으로 확인 안 함)."
   },
@@ -1726,7 +1726,7 @@
    "video": "dev08",
    "query": "주민센터 방문해서 요금감면 신청하는 방법",
    "gt": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "ai_draft",
    "note": "자막은 PC·모바일 복지로 온라인 신청만 설명. 시트 전체에 주민센터·방문 장면 없음."
   },
@@ -1735,7 +1735,7 @@
    "video": "dev01",
    "query": "엄마 대신 기초연금 인터넷으로 신청 되나요",
    "gt": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "simulated_user",
    "note": "영상은 신청인 본인이 복지로에 로그인해 온라인 신청하는 절차만 다루고, 자녀 등 가족이 대신 신청할 수 있는지는 말하지도 보여주지도 않는다. 대리 관련 내용은 배우자의 금융정보 제공 동의뿐이다.",
    "persona": "가족대신"
@@ -1745,7 +1745,7 @@
    "video": "dev03",
    "query": "아이돌봄 신청 화면 어디서 눌러요?",
    "gt": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "simulated_user",
    "note": "영상 속 홈페이지 화면은 아이돌봄 홈페이지 회원가입(149.7–194.8)과 정회원 전환 신청(199.7–268.1)뿐이고, 실제 돌봄 신청 버튼이나 복지로 신청 화면은 나오지 않는다. '어디서 신청하나요'(17.1–55.7)는 동주민센터·복지로라는 장소만 말한다. 정회원 전환 신청 화면을 답으로 볼지 검수 필요.",
    "persona": "부모"
@@ -1755,7 +1755,7 @@
    "video": "dev03",
    "query": "손주 봐줄 사람 신청 내가 해도 되나",
    "gt": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "simulated_user",
    "note": "조부모 등 부모가 아닌 가족이 신청할 수 있는지는 말하지도 보여주지도 않는다. 신청 주체·대리 신청 언급이 없다.",
    "persona": "어르신"
@@ -1765,7 +1765,7 @@
    "video": "dev04",
    "query": "이거 아직 신청 되는거에요?",
    "gt": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "simulated_user",
    "note": "신청기간 날짜나 마감 여부를 말하지도 보여주지도 않고, '신청기간을 놓치지 말고 확인하라'(172.9–177.9)는 말만 있다. 마감 사실은 제목에만 있다.",
    "persona": "청년"
@@ -1775,7 +1775,7 @@
    "video": "dev05",
    "query": "남편 대신 실업급여 신청해줘도 돼요?",
    "gt": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "simulated_user",
    "note": "영상은 본인이 공동·금융·간편인증으로 로그인해 실업인정 신청하는 방법만 다루며, 가족 대리 신청 가능 여부는 자막·화면 어디에도 나오지 않음.",
    "persona": "가족대신"
@@ -1785,7 +1785,7 @@
    "video": "dev08",
    "query": "아빠 통신비 할인 대신 신청하는 화면",
    "gt": [],
-   "source": "ai_draft",
+   "source": "human_reviewed",
    "origin": "simulated_user",
    "note": "대리 신청 방법이나 통신비 신청 화면은 나오지 않음(예시는 전기요금). 가족정보를 불러와 '서비스 신청 대상자'를 선택하는 화면(152.3–154.9)이 있으나 같은 세대 가족 선택일 뿐 대신 신청 안내로 보기 어려움.",
    "persona": "가족대신"
@@ -1814,6 +1814,9 @@
     "dev08"
    ]
   },
-  "updated_at": "2026-11-11T08:07:03"
+  "updated_at": "2026-11-11T08:07:03",
+  "notes": [
+   "2026-11-12 dev 검수 완료(102개, 수정 0건). 부분 답 3개(5002, 5402, 5603)는 초안 메모의 「부분 답변」을 검수자 확인 뒤 메모 앞에 「부분」으로 표시"
+  ]
  }
 }
