@@ -26,6 +26,8 @@ def main():
         "merge_output_format": "mp4",
         "outtmpl": f"{out}/%(id)s.%(ext)s",
         "js_runtimes": {"node": {}},
+        # 일부 영상 서버 주소에서 IPv6 연결이 「Network is unreachable」로 실패해 IPv4로 고정
+        "source_address": "0.0.0.0",
         "quiet": True, "no_warnings": True, "noprogress": True,
     }
     first = True
