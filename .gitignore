@@ -54,3 +54,6 @@ Thumbs.db
 .vscode/
 .idea/
 !models/moment_detr/*.ckpt
+
+# 공모전 제출 전 비공개 제안서
+docs/proposal.md
