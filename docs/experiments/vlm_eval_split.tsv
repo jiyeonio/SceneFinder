@@ -1,0 +1,17 @@
+split	key	youtube_id	channel	channel_id	duration_sec	policy	title
+dev	dev01	NYNnaDN9d8M	국민연금TV	UCqNLvq_8xZM0hhw-spFnLQg	601	기초연금	집에서 쉽고 간편하게! 기초연금 온라인 신청, 홈페이지 편
+dev	dev02	HUFDJKVDIeM	국민연금TV	UCqNLvq_8xZM0hhw-spFnLQg	191	국민연금	내 연금 얼마나 쌓였는지 핸드폰으로 확인하는 방법!
+dev	dev03	SfKD_WW0qQY	서울시아이돌봄	UCwoRGJIeUDg8NuIYnYSrayg	388	아이돌봄	서울시 아이돌봄 서비스 신규 이용자를 위한 안내서 2차시(신청 과정)
+dev	dev04	ibeZ6H7CO9U	국토교통부	UC0G0Z05LATPtpUkxeOrEjOA	520	청년주거	(신청 기간 마감) 청년 월세 특별지원으로 월 최대 20만 원 지원?! 나도?!
+dev	dev05	KRQgoAmtHGY	고용노동부	UC_fFLoUU8NzaZ0G7jlE1DQA	835	실업급여·취업지원	2022 NEW 실업인정일에 온라인으로 실업급여 신청하는 법!! (전과정 완벽정리)
+dev	dev06	9IqJJbTEuPE	고용노동부	UC_fFLoUU8NzaZ0G7jlE1DQA	161	실업급여·취업지원	국민취업지원제도 구직촉진수당 온라인으로 신청하기
+dev	dev07	1yYTX1-p-NI	복지로	UCQQpfWhl9_eM0RKwqEg_4vQ	337	긴급복지·바우처	복지로 온라인신청 'How To' 영상 『에너지바우처』편
+dev	dev08	2VYwU4zPaUc	복지로	UCQQpfWhl9_eM0RKwqEg_4vQ	291	주거·생계·의료급여	복지로 온라인신청 'How To' 영상 『요금감면서비스』편
+test	test01	32mI5aXzCQk	보건복지부TV	UCRsetXyMdNsR4M9KvA-a_fg	1388	기초연금	【서면】으로 기초연금 신청하기!
+test	test02	g8MZ4-OJUZk	보건복지부TV	UCRsetXyMdNsR4M9KvA-a_fg	121	부모급여·아동수당	[공식]아동수당 온라인신청 따라하기. 복지로 홈페이지에서 직접 신청하세요!
+test	test03	ACchjnCoZ7A	대구광역시아이돌봄광역지원센터	UC7zDuY-MW_OFguFwflBiGIA	253	아이돌봄	대구시 아이돌봄서비스 신청방법
+test	test04	xRSg7tyyOFU	서울시 · Seoul	UCZUPZW5idAxYp-Asj__lVAA	305	청년주거	서울 청년 월세 매달 20만원 지원! #자격요건 #신청방법 [알려줌서울 ep.8]
+test	test05	2DoWXzsKxSw	LH 한국토지주택공사	UCzCH27zxNFmbzultWL4u-bw	308	청년주거	LH행복주택에 대해 궁금하다면? 행복주택신청자격확인부터 입주 후 주의사항까지
+test	test06	CxEpTk8nfLc	근로복지공단	UCPHSl6Wko6Bg6-i42suzTAA	554	실업급여·취업지원	[전체] 고용보험 이직확인서 작성방법
+test	test07	C4rra31STNk	국민건강보험	UC7tsTpx4Ra-oJrjIb9ItBUA	507	장기요양·돌봄	[건보인사이드] 노인장기요양보험 인정신청 절차, 건강보험공단에서 정확히 알려드립니다!
+test	test08	g1pnnFdpUXM	국세청	UCVTdK_EozBDQ7ICMPJdbpzQ	640	근로·자녀장려금	2026년 3월 근로장려금 미안내자 신청방법(2025년 하반기분)
