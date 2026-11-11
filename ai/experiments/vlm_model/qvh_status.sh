@@ -15,3 +15,7 @@ EOF
 echo "완료 조각: $(ls "$P"/*.part 2>/dev/null | wc -l) / $N"
 echo "tmux 세션 qvh: $(tmux has-session -t qvh 2>/dev/null && echo 있음 || echo 없음), 연결 수: $(pgrep -fc '^curl -sS --retry 5' || echo 0)"
 echo "로그 마지막 줄: $(tail -1 /nfs/team/data/scenefinder_vlm/qvh/download.log)"
+echo "이어서 돌 작업(tmux qvh_pipe): $(tmux has-session -t qvh_pipe 2>/dev/null && echo 있음 || echo 없음)"
+echo "파이프라인 로그 마지막 줄: $(tail -1 /nfs/team/data/scenefinder_vlm/qvh/pipeline.log 2>/dev/null)"
+F=/nfs/team/data/scenefinder_vlm/qvh/features/qwen3vl_emb2b_640
+[ -d "$F" ] && echo "특징 파일: $(ls "$F"/*.npz 2>/dev/null | wc -l) / 약 10148  ($(tail -1 "$F/progress.log" 2>/dev/null))"
