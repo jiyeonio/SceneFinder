@@ -1,0 +1,42 @@
+{
+ "base": {
+  "config": {
+   "decode": "cpu",
+   "preprocess_backend": "torchvision",
+   "preprocess_device": "cpu",
+   "batch": 8
+  },
+  "sec_per_video_min": {
+   "decode": 0.48,
+   "prep": 0.508,
+   "fwd": 0.842,
+   "total": 1.83
+  },
+  "cos_vs_base": {
+   "mean": 1.0,
+   "min": 1.0
+  },
+  "peak_gib": 4.4,
+  "frames": 1659
+ },
+ "prep_gpu": {
+  "config": {
+   "decode": "cpu",
+   "preprocess_backend": "torchvision",
+   "preprocess_device": "cuda",
+   "batch": 8
+  },
+  "sec_per_video_min": {
+   "decode": 0.498,
+   "prep": 0.031,
+   "fwd": 0.859,
+   "total": 1.388
+  },
+  "cos_vs_base": {
+   "mean": 0.99831,
+   "min": 0.98881
+  },
+  "peak_gib": 4.41,
+  "frames": 1659
+ }
+}

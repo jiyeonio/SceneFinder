@@ -1,0 +1,325 @@
+{
+ "made_by": "별도 에이전트, 영상 제목·채널·정책만 보고 작성 (도구 사용 없음, 화면·자막·기존 초안 안 봄), 2026-11-11",
+ "queries": {
+  "dev01": [
+   {
+    "query": "엄마 대신 기초연금 인터넷으로 신청 되나요",
+    "persona": "가족대신",
+    "intent": "말",
+    "vague": false
+   },
+   {
+    "query": "공인인증서 어디서 넣어요",
+    "persona": "어르신",
+    "intent": "화면",
+    "vague": false
+   },
+   {
+    "query": "나도 받을 수 있는건가",
+    "persona": "어르신",
+    "intent": "말",
+    "vague": true
+   }
+  ],
+  "dev02": [
+   {
+    "query": "내 연금 지금까지 얼마 냈는지 보는법",
+    "persona": "청년",
+    "intent": "화면",
+    "vague": false
+   },
+   {
+    "query": "나중에 한달에 얼마 받는지 폰으로 보여줘",
+    "persona": "어르신",
+    "intent": "화면",
+    "vague": false
+   },
+   {
+    "query": "엄마폰에 앱 깔았는데 뭐 눌러야돼",
+    "persona": "가족대신",
+    "intent": "화면",
+    "vague": true
+   }
+  ],
+  "dev03": [
+   {
+    "query": "아이돌봄 신청 화면 어디서 눌러요?",
+    "persona": "부모",
+    "intent": "화면",
+    "vague": false
+   },
+   {
+    "query": "맞벌이 아니어도 신청돼요?",
+    "persona": "부모",
+    "intent": "말",
+    "vague": false
+   },
+   {
+    "query": "손주 봐줄 사람 신청 내가 해도 되나",
+    "persona": "어르신",
+    "intent": "말",
+    "vague": false
+   }
+  ],
+  "dev04": [
+   {
+    "query": "이거 아직 신청 되는거에요?",
+    "persona": "청년",
+    "intent": "말",
+    "vague": true
+   },
+   {
+    "query": "부모님이랑 따로 사는데 부모님 소득도 봐요?",
+    "persona": "청년",
+    "intent": "말",
+    "vague": false
+   },
+   {
+    "query": "아들 자취하는데 대신 신청해줘도 되나요",
+    "persona": "가족대신",
+    "intent": "말",
+    "vague": false
+   }
+  ],
+  "dev05": [
+   {
+    "query": "구직활동 한거 어디다 적어요",
+    "persona": "기타:실직한 중년",
+    "intent": "화면",
+    "vague": false
+   },
+   {
+    "query": "실업급여 날짜 까먹으면 어떻게 돼",
+    "persona": "청년",
+    "intent": "말",
+    "vague": false
+   },
+   {
+    "query": "남편 대신 실업급여 신청해줘도 돼요?",
+    "persona": "가족대신",
+    "intent": "말",
+    "vague": false
+   }
+  ],
+  "dev06": [
+   {
+    "query": "취준하는데 매달 돈 주는거 얼마에요",
+    "persona": "청년",
+    "intent": "말",
+    "vague": false
+   },
+   {
+    "query": "신청하고 나서 뭐 해야 돼요",
+    "persona": "기타:실직한 중년",
+    "intent": "말",
+    "vague": true
+   },
+   {
+    "query": "통장번호 넣는 칸 어디있어요",
+    "persona": "부모",
+    "intent": "화면",
+    "vague": false
+   }
+  ],
+  "dev07": [
+   {
+    "query": "겨울 난방비 지원 우리집도 되나",
+    "persona": "어르신",
+    "intent": "말",
+    "vague": true
+   },
+   {
+    "query": "엄마 난방비 지원 인터넷으로 어떻게 신청해요",
+    "persona": "가족대신",
+    "intent": "화면",
+    "vague": false
+   },
+   {
+    "query": "카드로 받는거에요 요금에서 빠지는거에요?",
+    "persona": "기타:장애가 있는 가족을 돌보는 사람",
+    "intent": "말",
+    "vague": false
+   }
+  ],
+  "dev08": [
+   {
+    "query": "전기세 깎아주는거 어디서 신청해요",
+    "persona": "기타:장애가 있는 가족을 돌보는 사람",
+    "intent": "화면",
+    "vague": false
+   },
+   {
+    "query": "휴대폰 요금도 할인되나요",
+    "persona": "어르신",
+    "intent": "말",
+    "vague": false
+   },
+   {
+    "query": "아빠 통신비 할인 대신 신청하는 화면",
+    "persona": "가족대신",
+    "intent": "화면",
+    "vague": false
+   }
+  ],
+  "test01": [
+   {
+    "query": "주민센터 가면 뭐 해야돼요",
+    "persona": "어르신",
+    "intent": "말",
+    "vague": true
+   },
+   {
+    "query": "신청서 통장 적는 칸 어디에요",
+    "persona": "어르신",
+    "intent": "화면",
+    "vague": false
+   },
+   {
+    "query": "아버지 대신 가서 써도 돼요?",
+    "persona": "가족대신",
+    "intent": "말",
+    "vague": false
+   }
+  ],
+  "test02": [
+   {
+    "query": "아동수당 신청 화면 어디서 눌러요",
+    "persona": "부모",
+    "intent": "화면",
+    "vague": false
+   },
+   {
+    "query": "애 태어나고 언제까지 신청해야돼요",
+    "persona": "부모",
+    "intent": "말",
+    "vague": false
+   },
+   {
+    "query": "손주 아동수당 할머니가 신청해도 되나",
+    "persona": "어르신",
+    "intent": "말",
+    "vague": false
+   }
+  ],
+  "test03": [
+   {
+    "query": "대구 아이돌보미 신청 어떻게 해",
+    "persona": "부모",
+    "intent": "말",
+    "vague": true
+   },
+   {
+    "query": "시간당 얼마 내야 되는거에요",
+    "persona": "부모",
+    "intent": "말",
+    "vague": false
+   },
+   {
+    "query": "손녀 돌봄 대신 신청해주려는데 어디서 눌러요",
+    "persona": "가족대신",
+    "intent": "화면",
+    "vague": false
+   }
+  ],
+  "test04": [
+   {
+    "query": "서울 월세지원 몇살까지에요",
+    "persona": "청년",
+    "intent": "말",
+    "vague": false
+   },
+   {
+    "query": "계약서 올리는데 어디야",
+    "persona": "청년",
+    "intent": "화면",
+    "vague": false
+   },
+   {
+    "query": "딸이 서울서 자취하는데 이거 받을수있나요",
+    "persona": "가족대신",
+    "intent": "말",
+    "vague": true
+   }
+  ],
+  "test05": [
+   {
+    "query": "행복주택 나도 들어갈 수 있나",
+    "persona": "청년",
+    "intent": "말",
+    "vague": true
+   },
+   {
+    "query": "신혼부부도 신청돼요?",
+    "persona": "부모",
+    "intent": "말",
+    "vague": false
+   },
+   {
+    "query": "노인도 행복주택 들어갈수있어요?",
+    "persona": "어르신",
+    "intent": "말",
+    "vague": false
+   }
+  ],
+  "test06": [
+   {
+    "query": "회사가 퇴사서류 안 넣어주면 실업급여 못받아요?",
+    "persona": "청년",
+    "intent": "말",
+    "vague": false
+   },
+   {
+    "query": "그만둔 이유 적는 칸 어디에요",
+    "persona": "기타:직원 퇴사 처리하는 작은 가게 사장",
+    "intent": "화면",
+    "vague": false
+   },
+   {
+    "query": "남편 회사에서 서류 뭐 내야되는지",
+    "persona": "가족대신",
+    "intent": "말",
+    "vague": true
+   }
+  ],
+  "test07": [
+   {
+    "query": "엄마 요양등급 받으려면 어떻게 해요",
+    "persona": "가족대신",
+    "intent": "말",
+    "vague": true
+   },
+   {
+    "query": "신청하면 집에 누가 와요?",
+    "persona": "어르신",
+    "intent": "말",
+    "vague": false
+   },
+   {
+    "query": "등급 나오기까지 얼마나 걸려요",
+    "persona": "가족대신",
+    "intent": "말",
+    "vague": false
+   }
+  ],
+  "test08": [
+   {
+    "query": "안내문 못받았는데 신청할수있어요?",
+    "persona": "청년",
+    "intent": "말",
+    "vague": false
+   },
+   {
+    "query": "홈택스에서 신청하는거 보여줘",
+    "persona": "청년",
+    "intent": "화면",
+    "vague": false
+   },
+   {
+    "query": "애 있으면 이거 더 받는건가",
+    "persona": "부모",
+    "intent": "말",
+    "vague": true
+   }
+  ]
+ }
+}

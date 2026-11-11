@@ -47,6 +47,7 @@
   .src.human_reviewed { color: var(--s); border-color: #8fcfb0; background: #eaf7f0; }
   .src.human, .src.human_written { color: #2457a6; border-color: #9db8e6; background: #eef3fc; }
   .tag.N { background: #888; }
+  .src.sim { color: #7a3fb0; border-color: #c9a8e8; background: #f6effc; }
   .src.overlay { color: #5b3fb5; border-color: #b9a8ea; background: #f3effd; }
   #progress { font-weight: 600; }
   .listHead { display: flex; align-items: center; justify-content: space-between; margin-top: 14px; }
@@ -424,6 +425,10 @@ function resetDraft() {
   renderQueries();
 }
 
+// 질의 출처 배지: simulated_user = 제목·채널·정책만 보고 AI가 사용자처럼 쓴 질문 (persona: 사용자 유형)
+const originBadge = (q) => q.origin === "simulated_user"
+  ? `<span class="src sim" title="영상 내용을 보지 않고 쓴 사용자 질문">사용자 질문${q.persona ? " · " + esc(q.persona) : ""}</span>` : "";
+
 // 검수 상태: ai_draft(AI 초안) → human_reviewed(검수 완료). 처음부터 사람이 쓴 질의는 human_written
 // (예전 파일의 human도 같은 뜻으로 읽음)
 const SOURCE_LABEL = { ai_draft: "AI 초안", human_reviewed: "검수 완료", human_written: "직접 작성", human: "직접 작성" };
@@ -496,7 +501,7 @@ function renderQueries() {
     div.className = "q" + (draft.editing === q.num ? " editing" : "");
     const src = sourceOf(q);
     div.innerHTML = `<div><span class="tag ${q.type}">${q.type}</span><b>#${q.num}</b> ${esc(q.query)}` +
-      `<span class="src ${src}">${SOURCE_LABEL[src] || esc(src)}</span>` +
+      `<span class="src ${src}">${SOURCE_LABEL[src] || esc(src)}</span>` + originBadge(q) +
       (q.overlay_text ? '<span class="src overlay" title="화면 글자로 찾을 수 있음">화면 글자</span>' : "") + "</div>";
     const segs = document.createElement("div");
     for (const [s, e] of q.gt) {
@@ -541,7 +546,7 @@ function renderNegatives(box, key) {
     div.className = "q";
     const src = sourceOf(q);
     div.innerHTML = `<div><span class="tag N">없음</span><b>#${q.num}</b> ${esc(q.query)}` +
-      `<span class="src ${src}">${SOURCE_LABEL[src] || esc(src)}</span></div>` +
+      `<span class="src ${src}">${SOURCE_LABEL[src] || esc(src)}</span>${originBadge(q)}</div>` +
       `<div class="muted">정답 없음 질의: 영상에 이 내용이 말로도 화면으로도 없어야 함</div>` +
       (q.note ? `<div class="muted">${esc(q.note)}</div>` : "");
     const actions = document.createElement("div");
