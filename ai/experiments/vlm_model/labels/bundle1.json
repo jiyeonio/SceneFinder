@@ -1,0 +1,35 @@
+{
+ "format": "scenefinder-labels/1",
+ "videos": {
+  "dev05": {
+   "youtube_id": "KRQgoAmtHGY",
+   "name": "dev05",
+   "domain": "복지",
+   "title": "2022 NEW 실업인정일에 온라인으로 실업급여 신청하는 법!! (전과정 완벽정리)",
+   "duration": 835.0,
+   "split": "dev"
+  },
+  "dev02": {
+   "youtube_id": "HUFDJKVDIeM",
+   "name": "dev02",
+   "domain": "복지",
+   "title": "내 연금 얼마나 쌓였는지 핸드폰으로 확인하는 방법!",
+   "duration": 191.0,
+   "split": "dev"
+  },
+  "test01": {
+   "youtube_id": "32mI5aXzCQk",
+   "name": "test01",
+   "domain": "복지",
+   "title": "【서면】으로 기초연금 신청하기!",
+   "duration": 1388.0,
+   "split": "test"
+  }
+ },
+ "queries": [],
+ "negative_queries": [],
+ "meta": {
+  "bundle": 1,
+  "ai_drafts_merged": false
+ }
+}

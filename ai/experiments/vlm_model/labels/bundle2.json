@@ -1,0 +1,59 @@
+{
+ "format": "scenefinder-labels/1",
+ "videos": {
+  "dev01": {
+   "youtube_id": "NYNnaDN9d8M",
+   "name": "dev01",
+   "domain": "복지",
+   "title": "집에서 쉽고 간편하게! 기초연금 온라인 신청, 홈페이지 편",
+   "duration": 601.0,
+   "split": "dev"
+  },
+  "dev03": {
+   "youtube_id": "SfKD_WW0qQY",
+   "name": "dev03",
+   "domain": "복지",
+   "title": "서울시 아이돌봄 서비스 신규 이용자를 위한 안내서 2차시(신청 과정)",
+   "duration": 388.0,
+   "split": "dev"
+  },
+  "dev06": {
+   "youtube_id": "9IqJJbTEuPE",
+   "name": "dev06",
+   "domain": "복지",
+   "title": "국민취업지원제도 구직촉진수당 온라인으로 신청하기",
+   "duration": 161.0,
+   "split": "dev"
+  },
+  "test08": {
+   "youtube_id": "g1pnnFdpUXM",
+   "name": "test08",
+   "domain": "복지",
+   "title": "2026년 3월 근로장려금 미안내자 신청방법(2025년 하반기분)",
+   "duration": 640.0,
+   "split": "test"
+  },
+  "test06": {
+   "youtube_id": "CxEpTk8nfLc",
+   "name": "test06",
+   "domain": "복지",
+   "title": "[전체] 고용보험 이직확인서 작성방법",
+   "duration": 554.0,
+   "split": "test"
+  },
+  "test02": {
+   "youtube_id": "g8MZ4-OJUZk",
+   "name": "test02",
+   "domain": "복지",
+   "title": "[공식]아동수당 온라인신청 따라하기. 복지로 홈페이지에서 직접 신청하세요!",
+   "duration": 121.0,
+   "split": "test"
+  }
+ },
+ "queries": [],
+ "negative_queries": [],
+ "meta": {
+  "bundle": 2,
+  "ai_drafts_merged": false
+ }
+}

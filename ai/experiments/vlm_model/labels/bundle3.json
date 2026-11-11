@@ -1,0 +1,67 @@
+{
+ "format": "scenefinder-labels/1",
+ "videos": {
+  "dev04": {
+   "youtube_id": "ibeZ6H7CO9U",
+   "name": "dev04",
+   "domain": "복지",
+   "title": "(신청 기간 마감) 청년 월세 특별지원으로 월 최대 20만 원 지원?! 나도?!",
+   "duration": 520.0,
+   "split": "dev"
+  },
+  "dev07": {
+   "youtube_id": "1yYTX1-p-NI",
+   "name": "dev07",
+   "domain": "복지",
+   "title": "복지로 온라인신청 'How To' 영상 『에너지바우처』편",
+   "duration": 337.0,
+   "split": "dev"
+  },
+  "dev08": {
+   "youtube_id": "2VYwU4zPaUc",
+   "name": "dev08",
+   "domain": "복지",
+   "title": "복지로 온라인신청 'How To' 영상 『요금감면서비스』편",
+   "duration": 291.0,
+   "split": "dev"
+  },
+  "test07": {
+   "youtube_id": "C4rra31STNk",
+   "name": "test07",
+   "domain": "복지",
+   "title": "[건보인사이드] 노인장기요양보험 인정신청 절차, 건강보험공단에서 정확히 알려드립니다!",
+   "duration": 507.0,
+   "split": "test"
+  },
+  "test05": {
+   "youtube_id": "2DoWXzsKxSw",
+   "name": "test05",
+   "domain": "복지",
+   "title": "LH행복주택에 대해 궁금하다면? 행복주택신청자격확인부터 입주 후 주의사항까지",
+   "duration": 308.0,
+   "split": "test"
+  },
+  "test04": {
+   "youtube_id": "xRSg7tyyOFU",
+   "name": "test04",
+   "domain": "복지",
+   "title": "서울 청년 월세 매달 20만원 지원! #자격요건 #신청방법 [알려줌서울 ep.8]",
+   "duration": 305.0,
+   "split": "test"
+  },
+  "test03": {
+   "youtube_id": "ACchjnCoZ7A",
+   "name": "test03",
+   "domain": "복지",
+   "title": "대구시 아이돌봄서비스 신청방법",
+   "duration": 253.0,
+   "split": "test"
+  }
+ },
+ "queries": [],
+ "negative_queries": [],
+ "meta": {
+  "bundle": 3,
+  "ai_drafts_merged": false
+ }
+}
