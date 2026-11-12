@@ -1,0 +1,80 @@
+{
+ "youtubeId": "NYNnaDN9d8M",
+ "policyId": "basic-pension",
+ "status": "draft",
+ "chapters": [
+  {
+   "id": "s1",
+   "start": 0.0,
+   "end": 2.0,
+   "title": "자격 확인 장면",
+   "short": "자격 확인",
+   "step": 1,
+   "stepLabel": "1단계 · 지원 조건 확인",
+   "verification": "none",
+   "subtitle": "기초연금 신청할 때가 되셨나요?",
+   "screenTitle": "",
+   "relatedDocs": [],
+   "draft": {
+    "query": "기초연금 받을 수 있는 대상과 자격 조건",
+    "pAnswer": 0.0,
+    "pScreen": 0.133
+   }
+  },
+  {
+   "id": "s2",
+   "start": 2.0,
+   "end": 8.0,
+   "title": "서류 장면",
+   "short": "서류",
+   "step": 2,
+   "stepLabel": "2단계 · 서류 준비",
+   "verification": "none",
+   "subtitle": "기초연금 신청할 때가 되셨나요? 이제 집에서 기초연금 신청하세요.",
+   "screenTitle": "",
+   "relatedDocs": [],
+   "draft": {
+    "query": "기초연금 신청할 때 필요한 서류",
+    "pAnswer": 0.0,
+    "pScreen": 0.0
+   }
+  },
+  {
+   "id": "s3",
+   "start": 77.0,
+   "end": 86.7,
+   "title": "신청서 작성 장면",
+   "short": "신청서 작성",
+   "step": 3,
+   "stepLabel": "3단계 · 신청서 작성",
+   "verification": "screen",
+   "subtitle": "로그인하셨다면 서비스 목록에서 기초연금을 선택하고 다음 단계로 이동합니다 먼저 기초연금 신청에 대한 안내사항을 읽어보신 후 확인 버튼을 클릭하세요",
+   "screenTitle": "",
+   "relatedDocs": [],
+   "draft": {
+    "query": "기초연금 신청서 작성하는 화면",
+    "pAnswer": 0.593,
+    "pScreen": 0.593
+   }
+  },
+  {
+   "id": "s4",
+   "start": 571.3,
+   "end": 581.8,
+   "title": "결과 확인 장면",
+   "short": "결과 확인",
+   "step": 4,
+   "stepLabel": "4단계 · 결과 확인",
+   "verification": "screen",
+   "subtitle": "읽어보시고 확인 버튼을 클릭하세요. 기초연금 신청이 완료되었습니다.",
+   "screenTitle": "",
+   "relatedDocs": [],
+   "draft": {
+    "query": "기초연금 신청 결과 확인",
+    "pAnswer": 0.986,
+    "pScreen": 0.996
+   }
+  }
+ ],
+ "generatedAt": "2026-11-12 07:10"
+}

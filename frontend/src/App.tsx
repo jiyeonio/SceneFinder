@@ -13,10 +13,10 @@ export default function App() {
   let page;
   switch (route.path) {
     case '/results':
-      page = <Results query={route.params.get('q') || '기초연금 신청서 어떻게 써요?'} />;
+      page = <Results query={route.params.get('q') || '기초연금 신청서 어떻게 써요?'} policyCtx={route.params.get('policy') || undefined} />;
       break;
     case '/watch':
-      page = <Watch videoId={route.id || 'v1'} startAt={t ? Number(t) : undefined} />;
+      page = <Watch videoId={route.id || 'v1'} startAt={t ? Number(t) : undefined} jobId={route.params.get('job') || undefined} />;
       break;
     case '/guide':
       page = <Guide />;

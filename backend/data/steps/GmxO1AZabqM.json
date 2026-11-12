@@ -1,0 +1,80 @@
+{
+ "youtubeId": "GmxO1AZabqM",
+ "policyId": "basic-pension",
+ "status": "draft",
+ "chapters": [
+  {
+   "id": "s1",
+   "start": 2.0,
+   "end": 16.0,
+   "title": "자격 확인 장면",
+   "short": "자격 확인",
+   "step": 1,
+   "stepLabel": "1단계 · 지원 조건 확인",
+   "verification": "none",
+   "subtitle": "기초연금 무의계산 기초연금은 대한민국 국적을 가진 만 65세 이상인 자로 소득인정액이 선정기준액 이하이면 받을 수 있습니다. 여기서 소득인정액이란 기초연금 신청가구의 소득평가액과",
+   "screenTitle": "",
+   "relatedDocs": [],
+   "draft": {
+    "query": "기초연금 받을 수 있는 대상과 자격 조건",
+    "pAnswer": 0.407,
+    "pScreen": 0.037
+   }
+  },
+  {
+   "id": "s2",
+   "start": 40.1,
+   "end": 48.6,
+   "title": "서류 장면",
+   "short": "서류",
+   "step": 2,
+   "stepLabel": "2단계 · 서류 준비",
+   "verification": "none",
+   "subtitle": "혹시 내 소득인정액이 선정기준액을 초과할 것 같아서 기초연금 신청을 망설이고 계신가요? 그렇다면 기초연금 모의계산하세요!",
+   "screenTitle": "",
+   "relatedDocs": [],
+   "draft": {
+    "query": "기초연금 신청할 때 필요한 서류",
+    "pAnswer": 0.0,
+    "pScreen": 0.001
+   }
+  },
+  {
+   "id": "s4",
+   "start": 40.1,
+   "end": 46.1,
+   "title": "결과 확인 장면",
+   "short": "결과 확인",
+   "step": 4,
+   "stepLabel": "4단계 · 결과 확인",
+   "verification": "screen",
+   "subtitle": "혹시 내 소득인정액이 선정기준액을 초과할 것 같아서 기초연금 신청을 망설이고 계신가요? 그렇다면 기초연금 모의계산하세요!",
+   "screenTitle": "",
+   "relatedDocs": [],
+   "draft": {
+    "query": "기초연금 신청 결과 확인",
+    "pAnswer": 0.531,
+    "pScreen": 0.777
+   }
+  },
+  {
+   "id": "s3",
+   "start": 337.2,
+   "end": 347.6,
+   "title": "신청서 작성 장면",
+   "short": "신청서 작성",
+   "step": 3,
+   "stepLabel": "3단계 · 신청서 작성",
+   "verification": "screen",
+   "subtitle": "마지막 항목까지 전부 입력하셨다면 결과 보기를 눌러주세요. 입력하신 내용을 기초로 산정한 예산 기초연금 급여액과",
+   "screenTitle": "",
+   "relatedDocs": [],
+   "draft": {
+    "query": "기초연금 신청서 작성하는 화면",
+    "pAnswer": 0.755,
+    "pScreen": 0.852
+   }
+  }
+ ],
+ "generatedAt": "2026-11-12 07:10"
+}

@@ -7,15 +7,20 @@ export const basicPension: Policy = {
   name: '기초연금',
   category: '노후 소득 보장',
   target: '만 65세 이상',
-  incomeLimit: { single: '월 247만원', couple: '월 395.2만원' },
-  maxAmount: { single: 349700, couple: 559520 },
+  targetDetail: '만 65세 이상이고 소득인정액이 선정기준액 이하인 분',
+  criteria: '소득인정액이 혼자 월 247만원, 부부 월 395.2만원 이하',
+  benefit: '단독가구 최고 349,700원, 부부가구 최고 559,520원',
+  applyMethod: '복지로 온라인 · 주민센터 방문',
   applyWhen: '65세 생일 달 1개월 전부터',
-  applyWhere: '복지로 온라인 · 주민센터 방문',
-  payDay: '매월 25일',
+  requiredDocs: ['신분증', '본인 통장 사본', '금융정보 제공 동의서'],
+  contact: '보건복지상담센터/129',
+  agency: '보건복지부',
+  applyUrl: 'https://www.bokjiro.go.kr',
+  officialUrls: [],
+  amount: [{ label: '혼자 사는 경우 최대(월)', value: '349,700원' }, { label: '부부 최대(월)', value: '559,520원' }],
   source: '한국사회보장정보원 복지서비스정보 Open API',
   baseYear: 2026,
   updatedAt: '[YYYY.MM.DD]',
-  applyUrl: 'https://www.bokjiro.go.kr',
 };
 
 export const docs: DocItem[] = [
@@ -111,6 +116,9 @@ export const videoDetail: VideoDetail = {
   query: '기초연금 신청서 어떻게 써요?',
   matchedChapterId: 'c3',
   chapters,
+  policy: null,
+  docs: [],
+  officialSteps: [],
 };
 
 export const officialSteps: OfficialStep[] = [
@@ -121,15 +129,20 @@ export const officialSteps: OfficialStep[] = [
   { step: 5, title: '매월 25일 지급', note: '공식 안내 보기', verification: 'none' },
 ];
 
+videoDetail.policy = basicPension;
+videoDetail.docs = docs;
+videoDetail.officialSteps = officialSteps;
+
+// 시연 영상 세트에서 고른 장면 (backend/data/demo_videos.json, 시간은 시연 질문 시험 결과)
 export const popularScenes = [
-  { policy: '기초연금', title: '기초연금 신청 방법 총정리', duration: '14:20', thumbType: 'screen' as const,
-    scenes: [{ t: 515, label: '신청서 작성', hit: true }, { t: 270, label: '준비 서류' }] },
-  { policy: '청년월세 지원', title: '청년월세 서류 준비와 제출', duration: '09:45', thumbType: 'screen' as const,
-    scenes: [{ t: 190, label: '계약서 올리기', hit: true }, { t: 55, label: '소득 기준' }] },
-  { policy: '아이돌봄서비스', title: '아이돌봄서비스 신청하기', duration: '10:20', thumbType: 'paper' as const,
-    scenes: [{ t: 315, label: '신청서 쓰기', hit: true }, { t: 120, label: '소득 유형' }] },
-  { policy: '긴급복지 지원', title: '긴급복지 생계비 신청하기', duration: '09:30', thumbType: 'phone' as const,
-    scenes: [{ t: 425, label: '주민센터 신청', hit: true }, { t: 100, label: '지원 기준' }] },
+  { policy: '기초연금', videoId: 'KBBwdz4sidM', title: '기초연금 신청, 이렇게 하면된다!', duration: '04:38', thumbType: 'screen' as const,
+    scenes: [{ t: 114, label: '신청 서류 보기', hit: true }, { t: 44, label: '신청 기간 이야기' }] },
+  { policy: '기초연금', videoId: 'NYNnaDN9d8M', title: '기초연금 온라인 신청, 홈페이지 편', duration: '10:01', thumbType: 'screen' as const,
+    scenes: [{ t: 77, label: '서비스 목록에서 기초연금 선택', hit: true }, { t: 0, label: '온라인 신청 안내' }] },
+  { policy: '청년월세 지원', videoId: 'ibeZ6H7CO9U', title: '청년 월세 특별지원 안내', duration: '08:40', thumbType: 'paper' as const,
+    scenes: [{ t: 445, label: '제출 서류', hit: true }, { t: 120, label: '지원 금액' }] },
+  { policy: '아이돌봄서비스', videoId: 'SfKD_WW0qQY', title: '서울시 아이돌봄 서비스 신청 과정', duration: '06:28', thumbType: 'phone' as const,
+    scenes: [{ t: 15, label: '어디서 신청하나요', hit: true }, { t: 152, label: '홈페이지 가입' }] },
 ];
 
 export const audienceGroups = [

@@ -1,0 +1,80 @@
+{
+ "youtubeId": "yUhcwuj-yyk",
+ "policyId": "basic-pension",
+ "status": "draft",
+ "chapters": [
+  {
+   "id": "s1",
+   "start": 20.0,
+   "end": 28.0,
+   "title": "자격 확인 장면",
+   "short": "자격 확인",
+   "step": 1,
+   "stepLabel": "1단계 · 지원 조건 확인",
+   "verification": "none",
+   "subtitle": "",
+   "screenTitle": "",
+   "relatedDocs": [],
+   "draft": {
+    "query": "기초연금 받을 수 있는 대상과 자격 조건",
+    "pAnswer": 0.0,
+    "pScreen": 0.0
+   }
+  },
+  {
+   "id": "s4",
+   "start": 20.0,
+   "end": 30.0,
+   "title": "결과 확인 장면",
+   "short": "결과 확인",
+   "step": 4,
+   "stepLabel": "4단계 · 결과 확인",
+   "verification": "none",
+   "subtitle": "",
+   "screenTitle": "",
+   "relatedDocs": [],
+   "draft": {
+    "query": "기초연금 신청 결과 확인",
+    "pAnswer": 0.002,
+    "pScreen": 0.085
+   }
+  },
+  {
+   "id": "s2",
+   "start": 98.0,
+   "end": 108.0,
+   "title": "서류 장면",
+   "short": "서류",
+   "step": 2,
+   "stepLabel": "2단계 · 서류 준비",
+   "verification": "none",
+   "subtitle": "",
+   "screenTitle": "",
+   "relatedDocs": [],
+   "draft": {
+    "query": "기초연금 신청할 때 필요한 서류",
+    "pAnswer": 0.0,
+    "pScreen": 0.0
+   }
+  },
+  {
+   "id": "s3",
+   "start": 136.0,
+   "end": 144.0,
+   "title": "신청서 작성 장면",
+   "short": "신청서 작성",
+   "step": 3,
+   "stepLabel": "3단계 · 신청서 작성",
+   "verification": "none",
+   "subtitle": "",
+   "screenTitle": "",
+   "relatedDocs": [],
+   "draft": {
+    "query": "기초연금 신청서 작성하는 화면",
+    "pAnswer": 0.047,
+    "pScreen": 0.0
+   }
+  }
+ ],
+ "generatedAt": "2026-11-12 07:11"
+}

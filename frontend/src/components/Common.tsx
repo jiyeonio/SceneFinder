@@ -19,11 +19,12 @@ export function Thumb({ href, type = 'screen', duration, src }: {
   );
 }
 
-/** 검증 상태 배지 — 색 + 아이콘 + 글자로 구분 */
+/** 검증 상태 배지 — 색 + 아이콘 + 글자로 구분 (pending: AI가 화면을 확인하는 중) */
 export function VerifyBadge({ v, long }: { v: Verification; long?: boolean }) {
-  if (v === 'screen') return <span className="vb vb-screen"><Icon name="check" />실제 화면</span>;
-  if (v === 'subtitle') return <span className="vb vb-sub"><Icon name="text" />{long ? '자막만 · 화면 없음' : '자막만'}</span>;
-  return <span className="vb vb-none">{long ? '해당 장면 없음' : '신청 단계 아님'}</span>;
+  if (v === 'pending') return <span className="vb vb-pending" aria-live="polite"><Icon name="scan" />AI가 화면 확인 중</span>;
+  if (v === 'screen') return <span className="vb vb-screen"><Icon name="check" />화면에서 확인됨</span>;
+  if (v === 'subtitle') return <span className="vb vb-sub"><Icon name="text" />{long ? '자막에서 확인됨 · 화면 없음' : '자막에서 확인됨'}</span>;
+  return <span className="vb vb-none">{long ? '해당 장면 없음' : '확인 안 됨'}</span>;
 }
 
 /** 정보 출처 라벨 */

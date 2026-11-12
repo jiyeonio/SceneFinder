@@ -68,6 +68,9 @@ svg.f{fill:currentColor;stroke:none}
 .vb-screen{background:var(--green-50);color:var(--green);border:1.5px solid #9ED3B6}
 .vb-sub{background:var(--amber-50);color:var(--amber);border:1.5px dashed #D9A657}
 .vb-none{background:#EDEFF3;color:var(--muted);border:1.5px dashed var(--line-2)}
+.vb-pending{background:var(--blue-50,#EEF4FF);color:var(--blue,#1F5FD6);border:1.5px solid #B9CDF3;animation:vbPulse 1.4s ease-in-out infinite}
+@keyframes vbPulse{50%{opacity:.55}}
+@media (prefers-reduced-motion:reduce){.vb-pending{animation:none}}
 /* 출처 라벨 */
 .src{display:inline-flex;align-items:center;gap:.35rem;font-size:.8rem;font-weight:700;padding:.15rem .55rem;border-radius:.35rem}
 .src-gov{background:#EAF0FF;color:var(--blue-dark)}

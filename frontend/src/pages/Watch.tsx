@@ -1,73 +1,81 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useYouTubePlayer } from '../components/useYouTubePlayer';
 import '../styles/watch.css';
 import { Icon } from '../components/Icon';
 import { SourceTag, VerifyBadge } from '../components/Common';
 import { getVideo } from '../data/api';
-import { basicPension, docs, officialSteps } from '../data/mock';
-import type { VideoDetail } from '../data/types';
-import { fmt, pct, won } from '../utils';
+import type { Chapter, VideoDetail } from '../data/types';
+import { fmt, pct } from '../utils';
 
 const CIRCLED = ['①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧'];
 const SPEEDS = [0.75, 1, 1.25];
 
-export default function Watch({ videoId, startAt }: { videoId: string; startAt?: number }) {
+export default function Watch({ videoId, startAt, jobId }: { videoId: string; startAt?: number; jobId?: string }) {
   const [video, setVideo] = useState<VideoDetail | null>(null);
-  const [time, setTime] = useState(0);
-  const [playing, setPlaying] = useState(false);
+  const [loopCh, setLoopCh] = useState<Chapter | null>(null);
+  const [firstAt, setFirstAt] = useState(startAt ?? 0);
   const [repeat, setRepeat] = useState(true);
   const [bigSub, setBigSub] = useState(true);
   const [speed, setSpeed] = useState(1);
-  const [checked, setChecked] = useState<Record<string, boolean>>({ id: true });
+  const [checked, setChecked] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
-    getVideo(videoId).then((v) => {
+    getVideo(videoId, { jobId, t: startAt }).then((v) => {
       setVideo(v);
-      const matched = v.chapters.find((c) => c.id === v.matchedChapterId);
-      setTime(startAt ?? (matched ? matched.start + 65 : 0));
+      const m = v.chapters.find((c) => c.id === v.matchedChapterId) ?? null;
+      setLoopCh(m);
+      setFirstAt(startAt ?? m?.start ?? 0);
     });
-  }, [videoId, startAt]);
+  }, [videoId, startAt, jobId]);
 
+  const yt = useYouTubePlayer(video?.youtubeVideoId ?? video?.videoId, firstAt);
+  const time = yt.time;
+  const { seek: seekYt, setRate, ready: ytReady } = yt;
+  const playing = yt.playing;
   const chapters = video?.chapters ?? [];
+  const shown = chapters.filter((c) => !c.gap);
   const current = useMemo(
     () => chapters.find((c) => time >= c.start && time < c.end) ?? chapters[chapters.length - 1],
     [chapters, time],
   );
   const matched = chapters.find((c) => c.id === video?.matchedChapterId);
 
-  // 재생 흉내: 실제 영상(YouTube 등)을 붙이면 플레이어의 현재 시간으로 바꿔 주세요.
+  // 구간 반복: 마지막으로 고른 장면(loopCh)의 끝에 닿으면 처음으로
   useEffect(() => {
-    if (!playing || !current || !video) return;
-    const id = window.setInterval(() => {
-      setTime((t) => {
-        const next = t + speed;
-        if (repeat && next >= current.end) return current.start;
-        return Math.min(next, video.durationSec - 1);
-      });
-    }, 1000);
-    return () => window.clearInterval(id);
-  }, [playing, repeat, speed, current, video]);
+    if (repeat && loopCh && playing && time >= loopCh.end - 0.15) seekYt(loopCh.start);
+  }, [time, repeat, loopCh, playing, seekYt]);
+  useEffect(() => { setRate(speed); }, [speed, ytReady, setRate]);
+  const subNow = video?.subtitles?.find((x) => time >= x.start && time < x.end)?.text;
 
   if (!video || !current || !matched) {
     return <main className="page-watch"><div className="wrap top"><p style={{ color: 'var(--muted)' }}>영상을 불러오고 있어요…</p></div></main>;
   }
 
   const total = video.durationSec;
+  const policy = video.policy;
+  const docs = video.docs;
+  const officialSteps = video.officialSteps;
   const isMatched = current.id === matched.id;
   const follow = current.follow ?? [];
   const followIdx = follow.reduce((acc, f, i) => (time >= f.at ? i : acc), 0);
   const nextFollow = follow[followIdx + 1];
-  const nextChapter = chapters[chapters.indexOf(current) + 1];
-  const prevChapter = chapters[chapters.indexOf(current) - 1];
-  const seek = (t: number) => { setTime(t); setPlaying(true); };
+  const curIdx = shown.indexOf(current);
+  const nextChapter = curIdx >= 0 ? shown[curIdx + 1] : shown.find((c) => c.start > time);
+  const prevChapter = curIdx >= 0 ? shown[curIdx - 1] : [...shown].reverse().find((c) => c.end <= time);
+  const seek = (t: number) => {
+    const ch = shown.find((c) => t >= c.start - 0.5 && t < c.end);
+    if (ch) setLoopCh(ch);
+    yt.seek(t);
+  };
 
   return (
     <main className="page-watch">
       <div className="wrap top">
-        <div className="crumb"><span>홈</span>›<span>어르신 복지</span>›<span>기초연금</span>›<b>신청 안내 영상</b></div>
+        <div className="crumb"><span>홈</span>›<span>{policy?.category ?? '복지 안내'}</span>›<span>{policy?.name ?? '영상'}</span>›<b>신청 안내 영상</b></div>
         <div className="th">
           <div>
             <div style={{ display: 'flex', gap: '.4rem', flexWrap: 'wrap' }}>
-              <span className="tag tag-blue">기초연금</span><span className="tag tag-gray">자막 있음</span><span className="tag tag-gray">장면 {chapters.length}개</span>
+              {policy && <span className="tag tag-blue">{policy.name}</span>}<span className="tag tag-gray">{video.subtitles?.length ? '자막 있음' : '자막 없음'}</span><span className="tag tag-gray">장면 {shown.length}개</span>{video.stepsStatus === 'draft' && <span className="tag tag-gray">단계 카드 초안</span>}
             </div>
             <h1>{video.title}</h1>
           </div>
@@ -79,7 +87,7 @@ export default function Watch({ videoId, startAt }: { videoId: string; startAt?:
         <div className="meta">
           <span className="src src-ai"><Icon name="scan" />영상</span><b>{video.publisher}</b><span>게시 {video.publishedAt} · {fmt(total)}</span>
           <span>|</span>
-          <span className="src src-gov"><Icon name="db" />정책정보</span><span>{basicPension.baseYear}년 기준 · 수정 {basicPension.updatedAt}</span>
+          {policy && <><span className="src src-gov"><Icon name="db" />정책정보</span><span>{policy.baseYear}년 기준 · 수정 {policy.updatedAt}</span></>}
         </div>
 
         {/* 지금 위치: 찾은 장면 / 지금 / 다음 */}
@@ -87,12 +95,12 @@ export default function Watch({ videoId, startAt }: { videoId: string; startAt?:
           <div className="w1">
             <small><Icon name="search" />내가 찾은 장면</small>
             <b className="num">{fmt(matched.start)} – {fmt(matched.end)} · {matched.title.replace('복지로에서 ', '')}</b>
-            <span>“{video.query}”</span>
+            {video.query && <span>“{video.query}”</span>}
           </div>
           <div className="w2">
             <small><Icon name="play" />지금 보는 단계</small>
-            <b>{current.step ? `${current.step}단계` : current.stepLabel} · {follow[followIdx]?.title ?? current.title}</b>
-            <span><VerifyBadge v={current.verification} long /></span>
+            <b>{current.gap ? '영상 보는 중' : `${current.step ? `${current.step}단계` : current.stepLabel} · ${follow[followIdx]?.title ?? current.title}`}</b>
+            {!current.gap && <span><VerifyBadge v={current.verification} long /></span>}
           </div>
           <div className="w3">
             <small><Icon name="arrow" />다음에 할 일</small>
@@ -101,35 +109,26 @@ export default function Watch({ videoId, startAt }: { videoId: string; startAt?:
             ) : nextChapter ? (
               <><b>{nextChapter.title}</b><a href="#" onClick={(e) => { e.preventDefault(); seek(nextChapter.start); }}>{fmt(nextChapter.start)}부터 보기<Icon name="arrow" /></a></>
             ) : (
-              <><b>복지로에서 공식 신청하기</b><a href={basicPension.applyUrl} target="_blank" rel="noreferrer">신청 페이지로<Icon name="ext" /></a></>
+              <><b>공식 신청하기</b><a href={policy?.applyUrl ?? '#'} target="_blank" rel="noreferrer">신청 페이지로<Icon name="ext" /></a></>
             )}
           </div>
         </div>
 
         <div className="grid">
           <div>
-            {/* 플레이어 — 실제 영상은 여기에 YouTube iframe 등을 넣으면 돼요 */}
+            {/* 플레이어 — YouTube IFrame (useYouTubePlayer), 컨트롤은 아래 디자인 그대로 */}
             <div className="player">
               <div className="stage">
-                <div className="mon" aria-hidden="true">
-                  <div className="bb"><i /><i /><i /><span>복지로 · 복지서비스 신청</span></div>
-                  <div className="bd">
-                    <div className="sd">{[0, 1, 2, 3, 4].map((i) => <i key={i} className={i === (current.step ?? 0) - 1 ? 'on' : ''} />)}</div>
-                    <div className="mn">
-                      <span className="h">{current.screenTitle}</span>
-                      <div className="f"><i /><b /></div>
-                      <div className="hlb"><div className="f"><i /><b /><i /><b /></div></div>
-                    </div>
-                  </div>
-                </div>
+                <div className="yt" ref={yt.mountRef} />
+                {yt.error && <div className="yterr">{yt.error}</div>}
                 <div className="now">
-                  <span><i />{isMatched ? `찾은 장면 재생 중 · ${fmt(matched.start)} – ${fmt(matched.end)}` : `재생 중 · ${current.title}`}</span>
+                  <span><i />{isMatched ? `찾은 장면 재생 중 · ${fmt(matched.start)} – ${fmt(matched.end)}` : current.gap ? '재생 중' : `재생 중 · ${current.title}`}</span>
                 </div>
-                {bigSub && <div className="cc"><span>“{current.subtitle}”</span></div>}
+                {bigSub && subNow && <div className="cc"><span>“{subNow}”</span></div>}
               </div>
               <div className="ctl">
                 <div className="tl" aria-label="장면 타임라인">
-                  {chapters.map((c, i) => (
+                  {shown.map((c, i) => (
                     <span key={c.id} className={`lab${c.id === current.id ? ' on' : ''}`} style={{ left: pct(c.start, total) }}>
                       {CIRCLED[i]} {c.short}
                     </span>
@@ -137,14 +136,14 @@ export default function Watch({ videoId, startAt }: { videoId: string; startAt?:
                   <div className="track" />
                   <div className="seg" style={{ left: pct(matched.start, total), width: pct(matched.end - matched.start, total) }} />
                   <div className="done" style={{ width: pct(time, total) }} />
-                  {chapters.slice(1).map((c) => <span key={c.id} className="tick" style={{ left: pct(c.start, total) }} />)}
+                  {shown.map((c) => <span key={c.id} className="tick" style={{ left: pct(c.start, total) }} />)}
                   <span className="head" style={{ left: pct(time, total) }} />
                 </div>
                 <div className="cb">
-                  <button className="pp" aria-label={playing ? '일시정지' : '재생'} onClick={() => setPlaying(!playing)}>
+                  <button className="pp" aria-label={playing ? '일시정지' : '재생'} onClick={yt.toggle}>
                     <Icon name={playing ? 'pause' : 'play'} fill={!playing} />
                   </button>
-                  <button onClick={() => setTime(Math.max(0, time - 10))}><Icon name="rew" />10초 뒤로</button>
+                  <button onClick={() => yt.seek(Math.max(0, time - 10))}><Icon name="rew" />10초 뒤로</button>
                   <span className="tm num">{fmt(time)} / {fmt(total)}</span>
                   <span className="sp" />
                   <button aria-pressed={repeat} onClick={() => setRepeat(!repeat)}><Icon name="repeat" />이 장면 반복</button>
@@ -160,7 +159,7 @@ export default function Watch({ videoId, startAt }: { videoId: string; startAt?:
             {/* 장면 목록 */}
             <section className="card chap">
               <div className="hd"><h2>영상 장면</h2><p>누르면 그 시간부터 재생돼요.</p></div>
-              {chapters.map((c) => (
+              {shown.map((c) => (
                 <div key={c.id} className="ch" aria-current={c.id === current.id ? 'true' : undefined}>
                   <div className="t num">{fmt(c.start)} – {fmt(c.end)}<small>{c.stepLabel}{c.id === matched.id ? ' · 찾은 장면' : ''}</small></div>
                   <div>
@@ -211,25 +210,38 @@ export default function Watch({ videoId, startAt }: { videoId: string; startAt?:
             </section>
           </div>
 
-          {/* 오른쪽 공식 정책정보 */}
-          <aside className="card pp-card" aria-label="공식 정책정보">
+          {/* 오른쪽 공식 정책정보 (공공데이터 항목) */}
+          {policy && <aside className="card pp-card" aria-label="공식 정책정보">
             <div className="hd">
-              <div className="r1"><SourceTag kind="gov" /><span style={{ fontSize: '.8rem', color: 'var(--muted)' }}>{basicPension.baseYear}년 기준</span></div>
-              <h2>{basicPension.name}</h2>
-              <p>출처 {basicPension.source} · 수정 {basicPension.updatedAt}</p>
+              <div className="r1"><SourceTag kind="gov" /><span style={{ fontSize: '.8rem', color: 'var(--muted)' }}>{policy.baseYear}년 기준</span></div>
+              <h2>{policy.name}</h2>
+              <p>출처 {policy.source} · 수정 {policy.updatedAt}</p>
             </div>
             <div className="blk"><h3><span className="n">1</span>받을 수 있는 분</h3>
-              <p>만 65세 이상이고, 소득인정액이 혼자 <b>{basicPension.incomeLimit.single}</b>, 부부 <b>{basicPension.incomeLimit.couple}</b> 이하인 분</p></div>
-            <div className="blk"><h3><span className="n">2</span>받는 금액</h3>
-              <div className="money"><span>혼자 사는 경우 최대</span><b className="num">월 {won(basicPension.maxAmount.single)}원</b></div>
-              <div className="money" style={{ marginTop: '.1rem' }}><span>부부 최대</span><b className="num" style={{ fontSize: '1.1rem', color: 'var(--ink)' }}>월 {won(basicPension.maxAmount.couple)}원</b></div></div>
+              <p style={{ whiteSpace: 'pre-line' }}>{policy.targetDetail || policy.target}</p></div>
             <div className="blk"><details>
-              <summary><span className="n">3</span>신청 시기<span className="r">{basicPension.applyWhen}<Icon name="chev" /></span></summary>
-              <p>예: 1961년 4월생은 2026년 3월 1일부터 신청할 수 있어요.</p>
+              <summary><span className="n">2</span>선정 기준<span className="r">자세히<Icon name="chev" /></span></summary>
+              <p style={{ whiteSpace: 'pre-line' }}>{policy.criteria}</p>
             </details></div>
-            <div className="blk"><h3><span className="n">4</span>준비 서류 확인</h3>
+            {policy.amount && policy.amount.length > 0 ? (
+              <div className="blk"><h3><span className="n">3</span>받는 금액</h3>
+                {policy.amount.map((a, i) => (
+                  <div key={a.label} className="money" style={i ? { marginTop: '.1rem' } : undefined}><span>{a.label}</span><b className="num" style={i ? { fontSize: '1.1rem', color: 'var(--ink)' } : undefined}>{a.value}</b></div>
+                ))}
+                <details><summary>지원 내용 전체<span className="r"><Icon name="chev" /></span></summary><p style={{ whiteSpace: 'pre-line' }}>{policy.benefit}</p></details></div>
+            ) : (
+              <div className="blk"><details open>
+                <summary><span className="n">3</span>지원 내용<span className="r"><Icon name="chev" /></span></summary>
+                <p style={{ whiteSpace: 'pre-line' }}>{policy.benefit}</p>
+              </details></div>
+            )}
+            <div className="blk"><details>
+              <summary><span className="n">4</span>신청 방법·시기<span className="r">{policy.applyWhen}<Icon name="chev" /></span></summary>
+              <p style={{ whiteSpace: 'pre-line' }}>{policy.applyMethod}</p>
+            </details></div>
+            <div className="blk"><h3><span className="n">5</span>준비 서류 확인</h3>
               <div className="docs">
-                {docs.slice(0, 3).map((d) => (
+                {docs.map((d) => (
                   <label key={d.id} className={current.relatedDocs.includes(d.id) ? 'rel' : ''}>
                     <input type="checkbox" checked={!!checked[d.id]} onChange={(e) => setChecked({ ...checked, [d.id]: e.target.checked })} />
                     <span>{d.name}</span>
@@ -238,7 +250,7 @@ export default function Watch({ videoId, startAt }: { videoId: string; startAt?:
                 ))}
               </div>
               <p className="note">준비 여부를 확인하는 용도예요. 자격을 판정하지 않아요.</p></div>
-            <div className="blk"><h3><span className="n">5</span>공식 신청 단계</h3>
+            <div className="blk"><h3><span className="n">6</span>공식 신청 단계</h3>
               <ol className="flow">
                 {officialSteps.map((s) => {
                   const cur = current.step ?? 0;
@@ -249,30 +261,29 @@ export default function Watch({ videoId, startAt }: { videoId: string; startAt?:
                       <div>
                         <b>{s.title}{state === 'now' ? ' · 지금 보는 중' : ''}</b>
                         <small>
-                          {s.videoAt !== undefined && s.verification === 'screen' && <>영상 {fmt(s.videoAt)} </>}
-                          {s.verification === 'subtitle' && <span className="vb vb-sub" style={{ fontSize: '.72rem', padding: '0 .4rem' }}>자막만</span>}
-                          {s.verification === 'none' && <span className="vb vb-none" style={{ fontSize: '.72rem', padding: '0 .4rem' }}>해당 장면 없음</span>}
-                          {s.verification !== 'screen' && s.note}
+                          {s.videoAt !== undefined && <a href="#" onClick={(e) => { e.preventDefault(); seek(s.videoAt!); }}>영상 {fmt(s.videoAt)} </a>}
+                          {s.verification === 'subtitle' && <span className="vb vb-sub" style={{ fontSize: '.72rem', padding: '0 .4rem' }}>자막에서 확인됨</span>}
+                          {s.videoAt === undefined && <span className="vb vb-none" style={{ fontSize: '.72rem', padding: '0 .4rem' }}>해당 장면 없음</span>}
+                          {s.verification !== 'screen' && ` ${s.note}`}
                         </small>
                       </div>
                     </li>
                   );
                 })}
               </ol></div>
-            <div className="blk"><details>
-              <summary><Icon name="alert" style={{ color: 'var(--amber)' }} />신청 전 꼭 확인<span className="r">2가지<Icon name="chev" /></span></summary>
-              <p>부부가 함께 신청하면 배우자 본인 인증도 필요해요. 가족이 대신 신청하면 위임장이 있어야 해요.</p>
-            </details></div>
+            <div className="blk"><h3><span className="n">7</span>문의·공식 링크</h3>
+              <p>{policy.contact}</p>
+              {policy.officialUrls.map((u) => <p key={u.url}><a href={u.url} target="_blank" rel="noreferrer">{u.label}<Icon name="ext" /></a></p>)}
+            </div>
             <div className="cta">
-              <a className="btn btn-pri btn-lg btn-block" href={basicPension.applyUrl} target="_blank" rel="noreferrer">복지로에서 공식 신청하기<Icon name="ext" /></a>
+              <a className="btn btn-pri btn-lg btn-block" href={policy.applyUrl} target="_blank" rel="noreferrer">공식 신청 페이지로<Icon name="ext" /></a>
               <div className="two">
-                <a className="btn btn-line" href="#"><Icon name="pin" />주민센터 찾기</a>
+                <a className="btn btn-line" href="https://www.gov.kr" target="_blank" rel="noreferrer"><Icon name="pin" />주민센터 찾기</a>
                 <a className="btn btn-line" href="tel:129"><Icon name="phone" />129 상담</a>
               </div>
-              <a className="btn btn-soft btn-block" href="#" style={{ marginTop: '.5rem' }}><Icon name="print" />신청서·동의서 서식 받기 (HWP·PDF)</a>
-              <p>신청은 복지로에서 이뤄져요. 복지바로봄은 개인정보를 받지 않아요.</p>
+              <p>신청은 공식 기관 사이트에서 이뤄져요. 복지바로봄은 개인정보를 받지 않아요. 자격·금액·기간은 공식 정보를 기준으로 하세요.</p>
             </div>
-          </aside>
+          </aside>}
         </div>
       </div>
     </main>

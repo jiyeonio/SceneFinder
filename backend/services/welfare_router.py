@@ -135,6 +135,14 @@ def create_welfare_router() -> APIRouter:
                                  "short": "찾은 장면" if i == 0 else f"{i + 1}위 장면", "step": None, "stepLabel": "찾은 장면" if i == 0 else "다른 장면",
                                  "verification": v["verification"][i] if v else "none", "subtitle": s.ws.subtitle_text(video_id, sp, 120),
                                  "screenTitle": "", "relatedDocs": []})
+        if t is not None and not any(ch["start"] - 0.5 <= t < ch["end"] for ch in chapters):
+            # 검색 없이 시간만 받은 경우(홈 화면 장면 링크 등): 그 시간의 자막 문장들로 장면 하나
+            segs_ = s.ws.video(video_id)["segs"]
+            near = [x for x in segs_ if x["end_time"] > t and x["start_time"] < t + 12] or [{"start_time": t, "end_time": min(dur, t + 10), "text": ""}]
+            sp = (max(0.0, min(t, near[0]["start_time"])), min(dur, max(near[-1]["end_time"], t + 6)))
+            chapters.append({"id": "found1", "start": sp[0], "end": sp[1], "title": (label_of(s, video_id, sp))[:40], "short": "고른 장면",
+                             "step": None, "stepLabel": "고른 장면", "verification": "none", "subtitle": s.ws.subtitle_text(video_id, sp, 120),
+                             "screenTitle": "", "relatedDocs": []})
         chapters = fill_gaps(chapters, dur)
         target = t if t is not None else next((ch["start"] for ch in chapters if ch["id"] == "found1"), None)
         matched = next((ch for ch in chapters if not ch.get("gap") and target is not None and ch["start"] - 0.5 <= target < ch["end"]), None) \

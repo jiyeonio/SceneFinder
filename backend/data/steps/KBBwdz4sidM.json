@@ -1,0 +1,90 @@
+{
+ "youtubeId": "KBBwdz4sidM",
+ "policyId": "basic-pension",
+ "status": "draft",
+ "chapters": [
+  {
+   "id": "s4",
+   "start": 36.0,
+   "end": 56.0,
+   "title": "결과 확인 장면",
+   "short": "결과 확인",
+   "step": 4,
+   "stepLabel": "4단계 · 결과 확인",
+   "verification": "none",
+   "subtitle": "10만원 이런 거는 우리 애들한테 좀 물어봐야 돼요. 기다려봐요. 그런데 신청기간이 오늘까지입니다. 오늘까지 안 하면 못하세요. 오늘까지요? 그럼 드려야지 드려야지. 잠시만요. 띠이. 여러분 기초연금을 신청할 때는요. 갑예비와 신청비는 필요 없다는 거 무료라는 사실 꼭 기억해 두세요.",
+   "screenTitle": "",
+   "relatedDocs": [],
+   "draft": {
+    "query": "기초연금 신청 결과 확인",
+    "pAnswer": 0.223,
+    "pScreen": 0.133
+   }
+  },
+  {
+   "id": "s1",
+   "start": 46.5,
+   "end": 52.5,
+   "title": "자격 확인 장면",
+   "short": "자격 확인",
+   "step": 1,
+   "stepLabel": "1단계 · 지원 조건 확인",
+   "verification": "none",
+   "subtitle": "오늘까지요? 그럼 드려야지 드려야지. 잠시만요. 띠이. 여러분 기초연금을 신청할 때는요. 갑예비와 신청비는 필요 없다는 거 무료라는 사실 꼭 기억해 두세요.",
+   "screenTitle": "",
+   "relatedDocs": [],
+   "draft": {
+    "query": "기초연금 받을 수 있는 대상과 자격 조건",
+    "pAnswer": 0.008,
+    "pScreen": 0.148
+   }
+  },
+  {
+   "id": "s3",
+   "start": 114.0,
+   "end": 132.0,
+   "title": "신청서 작성 장면",
+   "short": "신청서 작성",
+   "step": 3,
+   "stepLabel": "3단계 · 신청서 작성",
+   "verification": "screen",
+   "subtitle": "그렇군요. 지금 이렇게 앞에 서류들이 굉장히 많은데요. 이게 바로 기초연금을 신청할 때 작성하는 신청서인가요? 네, 그렇습니다. 우선 기초연금을 받으실 통장이 필요하고요. 그다음에 본인 신분증 그리고 필수서류로 사회보장급여신청서, 소득재산신고서, 금융정보제공동의서가 필요한데 이 금융정보",
+   "screenTitle": "",
+   "relatedDocs": [
+    "basic-pension-doc1",
+    "basic-pension-doc3",
+    "basic-pension-doc4",
+    "basic-pension-doc5"
+   ],
+   "draft": {
+    "query": "기초연금 신청서 작성하는 화면",
+    "pAnswer": 0.967,
+    "pScreen": 0.622
+   }
+  },
+  {
+   "id": "s2",
+   "start": 116.0,
+   "end": 122.0,
+   "title": "서류 장면",
+   "short": "서류",
+   "step": 2,
+   "stepLabel": "2단계 · 서류 준비",
+   "verification": "subtitle",
+   "subtitle": "이게 바로 기초연금을 신청할 때 작성하는 신청서인가요? 네, 그렇습니다. 우선 기초연금을 받으실 통장이 필요하고요. 그다음에 본인 신분증 그리고 필수서류로 사회보장급여신청서, 소득재산신고서, 금융정보제공동의서가 필요한데",
+   "screenTitle": "",
+   "relatedDocs": [
+    "basic-pension-doc1",
+    "basic-pension-doc3",
+    "basic-pension-doc4",
+    "basic-pension-doc5"
+   ],
+   "draft": {
+    "query": "기초연금 신청할 때 필요한 서류",
+    "pAnswer": 0.798,
+    "pScreen": 0.01
+   }
+  }
+ ],
+ "generatedAt": "2026-11-12 07:10"
+}

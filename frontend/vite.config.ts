@@ -5,8 +5,8 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5173,
-    open: true,
-    // 백엔드가 준비되면 주석을 풀고 주소를 맞춰 주세요.
-    // proxy: { '/api': 'http://127.0.0.1:8000' },
+    open: false,
+    // 복지바로봄 백엔드(backend/welfare_app.py, 8000) — 브라우저는 5173 하나만 열면 됨
+    proxy: { '/api': 'http://127.0.0.1:8000' },
   },
 });

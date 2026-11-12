@@ -5,7 +5,7 @@ import { SceneRow, SourceTag, Thumb } from '../components/Common';
 import { audienceGroups, popularScenes } from '../data/mock';
 import { go } from '../router';
 
-const EXAMPLES = ['기초연금 신청 방법 알려줘', '월세 지원 받을 수 있어?', '아이 돌봄 신청하는 법', '틀니 지원 있어?'];
+const EXAMPLES = ['기초연금 신청할 때 뭐 챙겨가야 돼요?', '기초연금 신청하는 법', '월세 지원 받으려면 뭐 내야 돼요?', '아이돌봄 어디서 신청해요?'];
 
 export default function Home() {
   const [q, setQ] = useState('');
@@ -87,15 +87,15 @@ export default function Home() {
           <div className="pop">
             {popularScenes.map((c) => (
               <article key={c.title} className="card">
-                <Thumb href="#/watch/v1" type={c.thumbType} duration={c.duration} />
+                <Thumb href={`#/watch/${c.videoId}?t=${c.scenes[0].t}`} type={c.thumbType} duration={c.duration} src={`https://i.ytimg.com/vi/${c.videoId}/hqdefault.jpg`} />
                 <div className="bd">
                   <div className="meta"><span className="tag tag-blue">{c.policy}</span>[게시기관]</div>
                   <h3>{c.title}</h3>
                   <span className="lab">AI가 찾은 장면</span>
                   <div className="scenes">
-                    {c.scenes.map((s) => <SceneRow key={s.t} href={`#/watch/v1?t=${s.t}`} t={s.t} label={s.label} hit={'hit' in s && s.hit} />)}
+                    {c.scenes.map((s) => <SceneRow key={s.t} href={`#/watch/${c.videoId}?t=${s.t}`} t={s.t} label={s.label} hit={'hit' in s && s.hit} />)}
                   </div>
-                  <a className="btn btn-soft btn-block cta" href="#/watch/v1">장면 바로 보기</a>
+                  <a className="btn btn-soft btn-block cta" href={`#/watch/${c.videoId}?t=${c.scenes[0].t}`}>장면 바로 보기</a>
                 </div>
               </article>
             ))}
