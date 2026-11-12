@@ -5,7 +5,7 @@ import { SceneRow, SourceTag, Thumb, VerifyBadge } from '../components/Common';
 import { pollSearch, searchWelfare, type SearchResponse } from '../data/api';
 import type { SceneResult, Verification } from '../data/types';
 import { go } from '../router';
-import { fmt } from '../utils';
+import { contacts, fmt } from '../utils';
 
 const FIELD_LABEL: Record<string, string> = {
   requiredDocs: '구비서류', applyWhen: '신청 기간', updatedAt: '정보 수정일', applyMethod: '신청 방법', applyUrl: '공식 신청 페이지',
@@ -223,6 +223,16 @@ export default function Results({ query, policyCtx }: { query: string; policyCtx
           </div>
 
           <aside className="side">
+            {/* 문의: 정책 API 문의처 그대로 (맨 위, 스크롤해도 따라옴) */}
+            {policy && contacts(policy.contact).length > 0 && (
+              <section className="card">
+                <h3>문의</h3>
+                {contacts(policy.contact).map((c) => c.tel ? (
+                  <a key={c.name + c.tel} className="tel" href={`tel:${c.tel.replace(/-/g, '')}`}><span><small>{c.name}</small><b>{c.tel}</b></span><span className="c"><Icon name="phone" /></span></a>
+                ) : <p key={c.name} className="note">{c.name}</p>)}
+                <p className="note" style={{ marginTop: '.6rem' }}>출처 {policy.source} · {policy.name} 문의처 · 수정 {policy.updatedAt}</p>
+              </section>
+            )}
             {!docsInAnswer && docs.length > 0 && (
               <section className="card">
                 <h3>준비 서류 체크리스트</h3>
@@ -239,11 +249,6 @@ export default function Results({ query, policyCtx }: { query: string; policyCtx
                 {policy && <p className="note">출처 {policy.source} · 수정 {policy.updatedAt}</p>}
               </section>
             )}
-            <section className="card">
-              <h3>문의</h3>
-              <a className="tel" href="tel:129"><span><small>보건복지상담센터 · 24시간</small><b>국번 없이 129</b></span><span className="c"><Icon name="phone" /></span></a>
-              {policy?.contact && <p className="note" style={{ marginTop: '.6rem' }}>{policy.name} 문의: {policy.contact}</p>}
-            </section>
           </aside>
         </div>
       </div>

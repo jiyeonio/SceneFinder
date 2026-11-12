@@ -105,3 +105,4 @@
 .page-results .weak{margin-top:1.2rem}
 .page-results .weak .minis{margin-top:.8rem}
 @media (max-width: 900px){.page-results .ans{grid-template-columns:1fr}}
+.page-results .side{position:sticky;top:1rem}

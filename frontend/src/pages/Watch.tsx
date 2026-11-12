@@ -5,7 +5,7 @@ import { Icon } from '../components/Icon';
 import { SourceTag, VerifyBadge } from '../components/Common';
 import { getVideo, pollSearch, searchWelfare, type SearchResponse } from '../data/api';
 import type { Chapter, VideoDetail } from '../data/types';
-import { fmt, pct } from '../utils';
+import { contacts, fmt, pct } from '../utils';
 
 const CIRCLED = ['①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧'];
 const SPEEDS = [0.75, 1, 1.25];
@@ -320,14 +320,18 @@ export default function Watch({ videoId, startAt, endAt, jobId }: { videoId: str
                 })}
               </ol></div>
             <div className="blk"><h3><span className="n">7</span>문의·공식 링크</h3>
-              <p>{policy.contact}</p>
+              {contacts(policy.contact).map((c) => (
+                <p key={c.name + c.tel}>{c.name}{c.tel && <> · <a href={`tel:${c.tel.replace(/-/g, '')}`}>{c.tel}</a></>}</p>
+              ))}
               {policy.officialUrls.map((u) => <p key={u.url}><a href={u.url} target="_blank" rel="noreferrer">{u.label}<Icon name="ext" /></a></p>)}
             </div>
             <div className="cta">
               <a className="btn btn-pri btn-lg btn-block" href={policy.applyUrl} target="_blank" rel="noreferrer">공식 신청 페이지로<Icon name="ext" /></a>
               <div className="two">
                 <a className="btn btn-line" href="https://www.gov.kr" target="_blank" rel="noreferrer"><Icon name="pin" />주민센터 찾기</a>
-                <a className="btn btn-line" href="tel:129"><Icon name="phone" />129 상담</a>
+                {contacts(policy.contact).filter((c) => c.tel).slice(0, 1).map((c) => (
+                  <a key={c.tel} className="btn btn-line" href={`tel:${c.tel.replace(/-/g, '')}`}><Icon name="phone" />{c.tel} 문의</a>
+                ))}
               </div>
               <p>신청은 공식 기관 사이트에서 이뤄져요. 복지바로봄은 개인정보를 받지 않아요. 자격·금액·기간은 공식 정보를 기준으로 하세요.</p>
             </div>
