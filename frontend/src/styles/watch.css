@@ -134,3 +134,7 @@
 /* 큰 자막: 영상 위가 아니라 영상 바로 아래 칸 (영상에 박힌 자막과 겹치지 않게) */
 .page-watch .ccbar{background:#111827;color:#fff;font-size:1.35rem;font-weight:700;line-height:1.45;text-align:center;padding:.7rem 1.2rem;min-height:3.4rem}
 :root[data-fs="2"] .page-watch .ccbar,:root[data-fs="3"] .page-watch .ccbar{font-size:1.5rem}
+/* 일시정지 덮개: 유튜브 일시정지 화면의 추천 영상·관련 버튼을 가림 */
+.page-watch .stage .pausecover{position:absolute;inset:0;z-index:3;border:0;background:rgba(17,24,39,.55);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.page-watch .stage .pausecover span{width:4.5rem;height:4.5rem;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center}
+.page-watch .stage .pausecover svg{width:2rem;height:2rem}

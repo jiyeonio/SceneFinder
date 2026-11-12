@@ -74,7 +74,6 @@ export default function Watch({ videoId, startAt, endAt, jobId }: { videoId: str
   const policy = video.policy;
   const docs = video.docs;
   const officialSteps = video.officialSteps;
-  const isMatched = current.id === matched.id;
   const follow = current.follow ?? [];
   const followIdx = follow.reduce((acc, f, i) => (time >= f.at ? i : acc), 0);
   const curIdx = shown.indexOf(current);
@@ -128,9 +127,10 @@ export default function Watch({ videoId, startAt, endAt, jobId }: { videoId: str
               <div className="stage">
                 <div className="yt" ref={yt.mountRef} />
                 {yt.error && <div className="yterr">{yt.error}</div>}
-                <div className="now">
-                  <span><i />{isMatched ? `찾은 장면 재생 중 · ${fmt(matched.start)} – ${fmt(matched.end)}` : current.gap ? '재생 중' : `재생 중 · ${current.title}`}</span>
-                </div>
+                {/* 일시정지하면 유튜브 추천 화면 대신 우리 덮개 (누르면 다시 재생) */}
+                {yt.ready && !playing && (
+                  <button className="pausecover" onClick={yt.toggle} aria-label="재생"><span><Icon name="play" fill /></span></button>
+                )}
               </div>
               {bigSub && <div className="ccbar" aria-live="polite">{subNow ? `“${subNow}”` : '\u00a0'}</div>}
               <div className="ctl">

@@ -10,6 +10,7 @@ interface YTPlayer {
   getDuration: () => number;
   getPlayerState: () => number;
   setPlaybackRate: (rate: number) => void;
+  unloadModule?: (name: string) => void;
   destroy: () => void;
 }
 interface YTApi {
@@ -20,6 +21,12 @@ interface YTApi {
 }
 declare global {
   interface Window { YT?: YTApi; onYouTubeIframeAPIReady?: () => void }
+}
+
+/** YouTube 자체 자막(자동 자막 포함) 끄기 — 사용자 설정으로 켜지는 경우가 있어 모듈을 내림. 우리 큰 자막 바만 씀 */
+function hideCaptions(p: YTPlayer) {
+  try { p.unloadModule?.('captions'); } catch { /* 모듈 없음 */ }
+  try { p.unloadModule?.('cc'); } catch { /* 이전 이름 */ }
 }
 
 let apiPromise: Promise<YTApi> | null = null;
@@ -68,11 +75,14 @@ export function useYouTubePlayer(youtubeId: string | undefined, startAt: number)
       host.appendChild(el);
       created = new YT.Player(el, {
         videoId: youtubeId, width: '100%', height: '100%',
-        playerVars: { autoplay: 0, controls: 0, playsinline: 1, rel: 0, modestbranding: 1, cc_load_policy: 0, iv_load_policy: 3 },
+        // 자막·추천 최소화: cc_load_policy 0(자막 기본 끔), rel 0(추천은 같은 채널만), iv_load_policy 3(특수효과 끔),
+        // controls 0(유튜브 컨트롤 숨김, 우리 컨트롤 사용), fs 0, disablekb 1
+        playerVars: { autoplay: 0, controls: 0, playsinline: 1, rel: 0, modestbranding: 1, cc_load_policy: 0, iv_load_policy: 3, fs: 0, disablekb: 1 },
         events: {
           onReady: () => {
             if (cancelled || !created) return;
             playerRef.current = created;
+            hideCaptions(created);
             created.seekTo(startRef.current, true);
             created.playVideo();
             setReady(true);
@@ -84,6 +94,8 @@ export function useYouTubePlayer(youtubeId: string | undefined, startAt: number)
               } catch { /* 종료 중 */ }
             }, 250);
           },
+          // 재생이 시작될 때 자막 모듈이 다시 올라오는 경우가 있어 한 번 더 내림
+          onStateChange: (e) => { if (created && (e.data === 1 || e.data === 3)) hideCaptions(created); },
           onError: () => { if (!cancelled) setError('이 영상은 여기서 재생할 수 없어요. YouTube에서 직접 열어 주세요.'); },
         },
       });
