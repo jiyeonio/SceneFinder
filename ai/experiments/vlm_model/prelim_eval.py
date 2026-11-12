@@ -31,6 +31,7 @@ PAD_BEFORE, MIN_LEN = 2.0, 6.0          # 서비스 SUBTITLE_PAD_BEFORE / SUBTIT
 TOP_K_SERVICE = 5
 QWEN_Q_INSTR = "Retrieve images or video frames relevant to the user's query."
 RANDOM_SEED, RANDOM_SAMPLES = 0, 100
+LORA = {"adapter": None, "feats": None}   # --lora: 화면 검색 LoRA 적용본 평가 (질의 인코더 + dev 프레임 특징을 LoRA 모델 것으로)
 METHODS = ["B1", "B2", "B3", "F-CLIP", "F-VLM", "F-VLM-1280", "REF-SUB-VLM"]
 
 
@@ -86,7 +87,7 @@ class Methods:
             sub = json.loads((DATA / "eval_subtitles" / f"{yid}.json").read_text())
             self.subs[k] = (sub["segments"], sub["language"])
             self.vfeat[k] = {"clip": DATA / "eval_features/clip" / f"{yid}_clip_features.pt",
-                             "qwen_640": DATA / "eval_features/qwen_640" / f"{yid}.pt",
+                             "qwen_640": (Path(LORA["feats"]) if LORA["feats"] else DATA / "eval_features/qwen_640") / f"{yid}.pt",
                              "qwen_1280": DATA / "eval_features/qwen_1280" / f"{yid}.pt"}
         self._nllb = self._mclip = self._qwen = None
         self._featcache = {}
@@ -143,6 +144,9 @@ class Methods:
         if self._qwen is None:
             import speed_opt
             self._qwen = speed_opt.Embedder()
+            if LORA["adapter"]:
+                from lora import load_lora
+                load_lora(self._qwen.m, LORA["adapter"])
         p = self._qwen.proc["torchvision"]
         msgs = [[{"role": "system", "content": [{"type": "text", "text": instr}]},
                  {"role": "user", "content": [{"type": "text", "text": t}]}] for t in texts]
@@ -214,14 +218,18 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out"); ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--methods", default=",".join(METHODS))
+    ap.add_argument("--lora", help="LoRA 어댑터(adapter.pt). 같은 폴더의 dev_qwen_640 특징을 씀 (F-VLM만 의미 있음)")
     a = ap.parse_args()
+    if a.lora:
+        LORA["adapter"] = a.lora; LORA["feats"] = str(Path(a.lora).parent / "dev_qwen_640")
     import summary   # eval_v2 지표: iou, best_iou, nms_top(IoU 0.5), start_ok(±5초)
     videos, pos, neg, sim_texts = load_queries(include_unreviewed=a.dry_run)
     dev_videos = {k: v for k, v in videos.items() if v["split"] == "dev"}
     print(f"dev 영상 {len(dev_videos)}, 정답 있는 질의 {len(pos)} (사용자 질문 {sum(q['origin'] == 'simulated_user' for q in pos)}), "
           f"정답 없음 {len(neg)}" + (" [dry-run: 미검수 포함, 지표 출력 안 함]" if a.dry_run else ""))
     for k, v in dev_videos.items():
-        f = [DATA / "eval_features/clip" / f"{v['youtube_id']}_clip_features.pt", DATA / "eval_features/qwen_640" / f"{v['youtube_id']}.pt",
+        f = [DATA / "eval_features/clip" / f"{v['youtube_id']}_clip_features.pt",
+             (Path(LORA["feats"]) if LORA["feats"] else DATA / "eval_features/qwen_640") / f"{v['youtube_id']}.pt",
              DATA / "eval_subtitles" / f"{v['youtube_id']}.json"]
         assert all(p.exists() for p in f), f"{k}: 파일 없음 {[str(p) for p in f if not p.exists()]}"
     m = Methods(dev_videos)
@@ -257,7 +265,7 @@ def main():
                        "p05": sum(x >= 0.5 for x in sims) / len(sims)}
     out = Path(a.out); out.mkdir(parents=True, exist_ok=True)
     timing = json.loads((DATA / "eval_features/timing.json").read_text())
-    meta = {"methods": methods, "n_pos": len(rows), "n_neg": len(neg_rows),
+    meta = {"methods": methods, "lora": a.lora, "n_pos": len(rows), "n_neg": len(neg_rows),
             "latency_sec": {n: {"median": round(statistics.median(v), 4), "p95": round(sorted(v)[int(0.95 * (len(v) - 1))], 4)} for n, v in lat.items()},
             "gpu_peak_gib_during_queries": round(torch.cuda.max_memory_allocated() / 2**30, 2),
             "extraction_sec_per_video_min": {kind: round(sum(t[kind]["sec"] for k, t in timing.items() if k in dev_videos and kind in t) /
