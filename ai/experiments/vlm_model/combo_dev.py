@@ -59,15 +59,15 @@ def z(xs):
     return ((t - t.mean()) / (t.std() + 1e-6)).tolist() if len(xs) > 1 else [0.0] * len(xs)
 
 
-def rank_query(r, rule, K, w_frame, w_mr, widen):
+def rank_query(r, rule, K, w_frame, w_mr, widen, shift=0.0):
     import summary
     subs = r["sub"]; fb = r["frame_bins"]; fz = z(fb)
     sz = z([s[2] for s in subs]) if subs else []
     pool = [widen(s[:2]) for s in subs[:K]] + [tuple(x) for x in r["mr_top5"][:3]]
     if rule == "fusion":
-        pool += [tuple(x) for x in r["frame_spans"][:3]]
+        pool += [(max(0.0, x[0] - shift), x[1]) for x in r["frame_spans"][:3]]   # 화면 검색 구간만 시작 앞당김
     if not pool:
-        return []
+        return [], None
 
     def s_sub(c):
         ov = [sz[i] for i, s in enumerate(subs) if min(c[1], s[1]) - max(c[0], s[0]) > 0]
@@ -100,16 +100,19 @@ def grid(a):
             continue
         rows = [r for r in json.loads(p.read_text())["rows"] if not r["is_neg"]]
         res = []
-        for rule, K, wf, wm in itertools.product(("rerank", "fusion"), (5, 10), (0.0, 0.25, 0.5, 1.0, 2.0), (0.0, 0.5)):
+        grid_ = [(ru, K, wf, wm, sh) for ru, K, wf, wm, sh in itertools.product(("rerank", "fusion"), (5, 10), (0.0, 0.25, 0.5, 1.0, 2.0),
+                                                                              (0.0, 0.5), (0.0, 2.0, 4.0))
+                 if ru == "fusion" or sh == 0.0]   # rerank 풀에는 화면 검색 구간이 없어 앞당기기 해당 없음
+        for rule, K, wf, wm, sh in grid_:
             r1 = r3 = st = 0
             for r in rows:
-                top, _ = rank_query(r, rule, K, wf, wm, widen)
+                top, _ = rank_query(r, rule, K, wf, wm, widen, sh)
                 if not top:
                     continue
                 r1 += summary.best_iou(top[0], r["gt"]) >= 0.3
                 r3 += any(summary.best_iou(c, r["gt"]) >= 0.3 for c in top[:3])
                 st += summary.start_ok(top[0], r["gt"]) if hasattr(summary, "start_ok") else 0
-            res.append({"frame": frame, "rule": rule, "K": K, "w_frame": wf, "w_mr": wm, "r1": r1, "r3": r3, "start5": st, "n": len(rows)})
+            res.append({"frame": frame, "rule": rule, "K": K, "w_frame": wf, "w_mr": wm, "shift": sh, "r1": r1, "r3": r3, "start5": st, "n": len(rows)})
         res.sort(key=lambda x: (-x["r1"], -x["r3"], -x["start5"]))
         out[frame] = res
         print(f"[{frame}] 상위 5:")
@@ -118,6 +121,20 @@ def grid(a):
         base = next(x for x in res if x["rule"] == "rerank" and x["K"] == 5 and x["w_frame"] == 0 and x["w_mr"] == 0)
         print("   (B1 순서 그대로:", base, ")")
     (OUT / "grid.json").write_text(json.dumps(out, ensure_ascii=False, indent=1))
+    # 화면 점수 종류까지 포함해 같은 기준으로 하나 고르고, 그 규칙의 질의별 결과를 저장 (보조 지표·정답 없음 임계값용)
+    best = sorted([x for v in out.values() for x in v], key=lambda x: (-x["r1"], -x["r3"], -x["start5"]))[0]
+    sig = json.loads((OUT / f"signals_{best['frame']}.json").read_text())["rows"]
+    rows, negs = [], []
+    for r in sig:
+        top, sc = rank_query(r, best["rule"], best["K"], best["w_frame"], best["w_mr"], widen, best["shift"]) or ([], None)
+        if r["is_neg"]:
+            negs.append({"num": r["num"], "video": r["video"], "origin": r["origin"], "N3": sc}); continue
+        rows.append({k: r[k] for k in ("num", "video", "type", "origin", "overlay_text", "gt")} |
+                    {"N3": {"top5": top, "iou": summary.best_iou(top[0], r["gt"]) if top else 0.0, "score": sc}})
+    (OUT / "rows.json").write_text(json.dumps(rows, ensure_ascii=False, indent=1))
+    (OUT / "negatives.json").write_text(json.dumps(negs, ensure_ascii=False, indent=1))
+    (OUT / "selected.json").write_text(json.dumps(best, ensure_ascii=False, indent=1))
+    print("고른 규칙:", best)
 
 
 def main():
