@@ -33,11 +33,12 @@ export async function pollSearch(jobId: string): Promise<SearchResponse> {
   return res.json();
 }
 
-export async function getVideo(videoId: string, opts: { jobId?: string; t?: number } = {}): Promise<VideoDetail> {
+export async function getVideo(videoId: string, opts: { jobId?: string; t?: number; e?: number } = {}): Promise<VideoDetail> {
   if (BASE) {
     const q = new URLSearchParams();
     if (opts.jobId) q.set('jobId', opts.jobId);
     if (opts.t !== undefined) q.set('t', String(opts.t));
+    if (opts.e !== undefined) q.set('e', String(opts.e));
     const res = await fetch(`${BASE}/api/videos/${videoId}?${q}`);
     if (!res.ok) throw new Error('영상 정보를 불러오지 못했어요');
     return res.json();

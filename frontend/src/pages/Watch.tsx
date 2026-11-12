@@ -10,11 +10,11 @@ import { fmt, pct } from '../utils';
 const CIRCLED = ['①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧'];
 const SPEEDS = [0.75, 1, 1.25];
 
-export default function Watch({ videoId, startAt, jobId }: { videoId: string; startAt?: number; jobId?: string }) {
+export default function Watch({ videoId, startAt, endAt, jobId }: { videoId: string; startAt?: number; endAt?: number; jobId?: string }) {
   const [video, setVideo] = useState<VideoDetail | null>(null);
   const [loopCh, setLoopCh] = useState<Chapter | null>(null);
   const [firstAt, setFirstAt] = useState(startAt ?? 0);
-  const [repeat, setRepeat] = useState(true);
+  const [repeat, setRepeat] = useState(false);
   const [bigSub, setBigSub] = useState(true);
   const [speed, setSpeed] = useState(1);
   const [checked, setChecked] = useState<Record<string, boolean>>({});
@@ -23,13 +23,22 @@ export default function Watch({ videoId, startAt, jobId }: { videoId: string; st
   const [asking, setAsking] = useState(false);
 
   useEffect(() => {
-    getVideo(videoId, { jobId, t: startAt }).then((v) => {
+    getVideo(videoId, { jobId, t: startAt, e: endAt }).then((v) => {
       setVideo(v);
       const m = v.chapters.find((c) => c.id === v.matchedChapterId) ?? null;
       setLoopCh(m);
       setFirstAt(startAt ?? m?.start ?? 0);
     });
-  }, [videoId, startAt, jobId]);
+  }, [videoId, startAt, endAt, jobId]);
+
+  // 검색 결과 확인(VLM)이 끝나기 전에 들어온 경우: 배지만 갱신 (재생 위치는 그대로)
+  useEffect(() => {
+    if (!video || !jobId || !video.chapters.some((c) => c.verification === 'pending')) return;
+    const id = window.setTimeout(() => {
+      getVideo(videoId, { jobId, t: startAt, e: endAt }).then((v) => setVideo((old) => (old ? { ...old, chapters: v.chapters } : v)));
+    }, 1500);
+    return () => window.clearTimeout(id);
+  }, [video, videoId, jobId, startAt, endAt]);
 
   const yt = useYouTubePlayer(video?.youtubeVideoId ?? video?.videoId, firstAt);
   const time = yt.time;
@@ -55,13 +64,19 @@ export default function Watch({ videoId, startAt, jobId }: { videoId: string; st
   }
 
   const total = video.durationSec;
+  // 진행바 위 장면 이름: 서로 가까우면(전체의 12% 안) 하나만 보임 — 지금 보는 장면·찾은 장면을 먼저
+  const labelShown = (() => {
+    const order = [...shown].sort((a, b) => Number(b.id === current.id) - Number(a.id === current.id) || Number(b.id === matched.id) - Number(a.id === matched.id) || a.start - b.start);
+    const kept: Chapter[] = [];
+    for (const c of order) if (kept.every((k) => Math.abs(k.start - c.start) / total >= 0.12)) kept.push(c);
+    return new Set(kept.map((k) => k.id));
+  })();
   const policy = video.policy;
   const docs = video.docs;
   const officialSteps = video.officialSteps;
   const isMatched = current.id === matched.id;
   const follow = current.follow ?? [];
   const followIdx = follow.reduce((acc, f, i) => (time >= f.at ? i : acc), 0);
-  const nextFollow = follow[followIdx + 1];
   const curIdx = shown.indexOf(current);
   const nextChapter = curIdx >= 0 ? shown[curIdx + 1] : shown.find((c) => c.start > time);
   const prevChapter = curIdx >= 0 ? shown[curIdx - 1] : [...shown].reverse().find((c) => c.end <= time);
@@ -70,8 +85,8 @@ export default function Watch({ videoId, startAt, jobId }: { videoId: string; st
     if (ch) setLoopCh(ch);
     yt.seek(t);
   };
-  /** 신청 단계 카드: 그 장면으로 가서 큰 자막·구간 반복을 켬 */
-  const seekStep = (t: number) => { setBigSub(true); setRepeat(true); seek(t); };
+  /** 신청 단계 카드: 그 장면으로 가서 큰 자막을 켬 (구간 반복은 사용자가 버튼을 누를 때만) */
+  const seekStep = (t: number) => { setBigSub(true); seek(t); };
   /** 이 정책 맥락에서 질문 (예: 「이거 아직 신청 되는 거예요?」) — 공식 정보 답 + 영상 장면 */
   const onAsk = (e: React.FormEvent) => {
     e.preventDefault();
@@ -106,30 +121,6 @@ export default function Watch({ videoId, startAt, jobId }: { videoId: string; st
           {policy && <><span className="src src-gov"><Icon name="db" />정책정보</span><span>{policy.baseYear}년 기준 · 수정 {policy.updatedAt}</span></>}
         </div>
 
-        {/* 지금 위치: 찾은 장면 / 지금 / 다음 */}
-        <div className="where" aria-label="지금 위치">
-          <div className="w1">
-            <small><Icon name="search" />내가 찾은 장면</small>
-            <b className="num">{fmt(matched.start)} – {fmt(matched.end)} · {matched.title.replace('복지로에서 ', '')}</b>
-            {video.query && <span>“{video.query}”</span>}
-          </div>
-          <div className="w2">
-            <small><Icon name="play" />지금 보는 단계</small>
-            <b>{current.gap ? '영상 보는 중' : `${current.step ? `${current.step}단계` : current.stepLabel} · ${follow[followIdx]?.title ?? current.title}`}</b>
-            {!current.gap && <span><VerifyBadge v={current.verification} long /></span>}
-          </div>
-          <div className="w3">
-            <small><Icon name="arrow" />다음에 할 일</small>
-            {nextFollow ? (
-              <><b>{nextFollow.title}</b><a href="#" onClick={(e) => { e.preventDefault(); seek(nextFollow.at); }}>{fmt(nextFollow.at)}부터 보기<Icon name="arrow" /></a></>
-            ) : nextChapter ? (
-              <><b>{nextChapter.title}</b><a href="#" onClick={(e) => { e.preventDefault(); seek(nextChapter.start); }}>{fmt(nextChapter.start)}부터 보기<Icon name="arrow" /></a></>
-            ) : (
-              <><b>공식 신청하기</b><a href={policy?.applyUrl ?? '#'} target="_blank" rel="noreferrer">신청 페이지로<Icon name="ext" /></a></>
-            )}
-          </div>
-        </div>
-
         <div className="grid">
           <div>
             {/* 플레이어 — YouTube IFrame (useYouTubePlayer), 컨트롤은 아래 디자인 그대로 */}
@@ -140,19 +131,19 @@ export default function Watch({ videoId, startAt, jobId }: { videoId: string; st
                 <div className="now">
                   <span><i />{isMatched ? `찾은 장면 재생 중 · ${fmt(matched.start)} – ${fmt(matched.end)}` : current.gap ? '재생 중' : `재생 중 · ${current.title}`}</span>
                 </div>
-                {bigSub && subNow && <div className="cc"><span>“{subNow}”</span></div>}
               </div>
+              {bigSub && <div className="ccbar" aria-live="polite">{subNow ? `“${subNow}”` : '\u00a0'}</div>}
               <div className="ctl">
                 <div className="tl" aria-label="장면 타임라인">
                   {shown.map((c, i) => (
-                    <span key={c.id} className={`lab${c.id === current.id ? ' on' : ''}`} style={{ left: pct(c.start, total) }}>
+                    <span key={c.id} className={`lab${c.id === current.id ? ' on' : ''}${labelShown.has(c.id) ? '' : ' hid'}`} style={{ left: pct(c.start, total) }}>
                       {CIRCLED[i]} {c.short}
                     </span>
                   ))}
                   <div className="track" />
                   <div className="seg" style={{ left: pct(matched.start, total), width: pct(matched.end - matched.start, total) }} />
                   <div className="done" style={{ width: pct(time, total) }} />
-                  {shown.map((c) => <span key={c.id} className="tick" style={{ left: pct(c.start, total) }} />)}
+                  {shown.map((c, i) => <span key={c.id} className="tick" title={`${CIRCLED[i]} ${c.short} · ${fmt(c.start)}`} style={{ left: pct(c.start, total) }} />)}
                   <span className="head" style={{ left: pct(time, total) }} />
                 </div>
                 <div className="cb">
@@ -204,7 +195,7 @@ export default function Watch({ videoId, startAt, jobId }: { videoId: string; st
                         <div><b>{sc.title}</b><p>{fmt(sc.found.start)} · {sc.found.label}</p><VerifyBadge v={sc.found.verification} /></div>
                         {sc.videoId === video.videoId
                           ? <a className="lk" href="#" onClick={(e) => { e.preventDefault(); seek(sc.found.start); }}><Icon name="play" fill /><span className="num">{fmt(sc.found.start)}</span></a>
-                          : <a className="lk" href={`#/watch/${sc.videoId}?t=${sc.found.start}${asked.jobId ? `&job=${asked.jobId}` : ''}`}><Icon name="play" fill /><span className="num">{fmt(sc.found.start)}</span></a>}
+                          : <a className="lk" href={`#/watch/${sc.videoId}?t=${sc.found.start}&e=${sc.found.end}${asked.jobId ? `&job=${asked.jobId}` : ''}`}><Icon name="play" fill /><span className="num">{fmt(sc.found.start)}</span></a>}
                       </div>
                     ))}
                   </div>

@@ -128,3 +128,9 @@
 .page-watch .stage .yt iframe{width:100%;height:100%;border:0;display:block}
 .page-watch .stage .now,.page-watch .stage .cc{pointer-events:none;z-index:2}
 .page-watch .stage .yterr{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;padding:1.5rem;text-align:center;z-index:3}
+/* 진행바 장면 이름: 가까운 것은 숨기고, 마우스를 올리면 보임 */
+.page-watch .tl .lab.hid{opacity:0;pointer-events:none;transition:opacity .15s}
+.page-watch .tl .tick{cursor:help}
+/* 큰 자막: 영상 위가 아니라 영상 바로 아래 칸 (영상에 박힌 자막과 겹치지 않게) */
+.page-watch .ccbar{background:#111827;color:#fff;font-size:1.35rem;font-weight:700;line-height:1.45;text-align:center;padding:.7rem 1.2rem;min-height:3.4rem}
+:root[data-fs="2"] .page-watch .ccbar,:root[data-fs="3"] .page-watch .ccbar{font-size:1.5rem}

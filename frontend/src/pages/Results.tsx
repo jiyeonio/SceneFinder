@@ -156,7 +156,7 @@ export default function Results({ query, policyCtx }: { query: string; policyCtx
               {scenes.map((s) => {
                 const sub = s.found.verification === 'subtitle' || s.found.verification === 'none';
                 const job = data.jobId ? `&job=${data.jobId}` : '';
-                const href = `#/watch/${s.videoId}?t=${s.found.start}${job}`;
+                const href = `#/watch/${s.videoId}?t=${s.found.start}&e=${s.found.end}${job}`;
                 return (
                   <article key={s.videoId} className="card vr">
                     <div className="meta"><b>{s.publisher}</b><span>게시 {s.publishedAt}</span><span>· 전체 {s.duration}</span></div>
@@ -175,7 +175,7 @@ export default function Results({ query, policyCtx }: { query: string; policyCtx
                         </div>
                         {s.otherScenes && (
                           <div className="others">
-                            {s.otherScenes.map((o) => <SceneRow key={o.start} href={`#/watch/${s.videoId}?t=${o.start}${job}`} t={o.start} label={o.label} />)}
+                            {s.otherScenes.map((o) => <SceneRow key={o.start} href={`#/watch/${s.videoId}?t=${o.start}${o.end ? `&e=${o.end}` : ''}${job}`} t={o.start} label={o.label} />)}
                           </div>
                         )}
                       </div>

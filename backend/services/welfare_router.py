@@ -113,7 +113,9 @@ def create_welfare_router() -> APIRouter:
         return response(s, out)
 
     @r.get("/api/videos/{video_id}")
-    def video(video_id: str, jobId: str | None = None, t: float | None = None, policy: str | None = None):
+    def video(video_id: str, jobId: str | None = None, t: float | None = None, e: float | None = None, policy: str | None = None):
+        """찾은 장면 = 사용자가 누른 장면(t~e)이 항상 우선. 이 검색의 다른 장면, 단계 카드는 그와 겹치지 않을 때만 타임라인에 넣음
+        (타임라인 장면이 서로 겹치지 않게). 오른쪽 공식 신청 단계는 단계 카드 파일에서 바로 만듦."""
         from welfare_service import POLICIES, POLICY_OF_HINT
         s = searcher(); cat = s.ws.catalog
         if video_id not in cat:
@@ -123,31 +125,37 @@ def create_welfare_router() -> APIRouter:
         pid = (job or {}).get("policyId") or policy or POLICY_OF_HINT.get(c["policy_hint"])
         p = POLICIES.get(pid)
         st = steps_file(video_id)
+        v = next((x for x in (job or {}).get("videos", []) if x["youtubeId"] == video_id), None)
+        tops = [(tuple(sp), (v["verification"][i] if v and i < len(v["verification"]) else "none")) for i, sp in enumerate((v or {}).get("top", [])[:3])]
+
+        def scene(cid, sp, short, label, ver):
+            return {"id": cid, "start": sp[0], "end": sp[1], "title": label_of(s, video_id, sp)[:40], "short": short, "step": None,
+                    "stepLabel": label, "verification": ver, "subtitle": s.ws.subtitle_text(video_id, sp, 120), "screenTitle": "", "relatedDocs": []}
+
+        cands = []   # 우선순위 순
+        if t is not None:
+            if e is None or e <= t:   # 끝을 모르면: 이 검색 결과 중 시작이 같은 장면, 없으면 그 시간의 자막 문장들
+                hit = next((sp for sp, _ in tops if abs(sp[0] - t) < 0.6), None)
+                if hit:
+                    e = hit[1]
+                else:
+                    segs_ = s.ws.video(video_id)["segs"]
+                    near = [x for x in segs_ if x["end_time"] > t and x["start_time"] < t + 12]
+                    e = min(dur, max([x["end_time"] for x in near] + [t + 6]))
+            ver = next((vv for sp, vv in tops if abs(sp[0] - t) < 0.6), "none")
+            cands.append(scene("found1", (t, e), "찾은 장면" if job else "고른 장면", "찾은 장면" if job else "고른 장면", ver))
+        for i, (sp, ver) in enumerate(tops):
+            cands.append(scene(f"found{i + 1}" if t is None and i == 0 else f"other{i + 1}", sp,
+                               "찾은 장면" if t is None and i == 0 else "다른 장면", "찾은 장면" if t is None and i == 0 else "다른 장면", ver))
+        if st:
+            cands += [dict(ch) for ch in sorted(st["chapters"], key=lambda x: x["step"] or 9)]
         chapters = []
-        if st:   # 검수(또는 초안) 단계 카드
-            chapters = [dict(ch) for ch in st["chapters"]]
-        if job:  # 이 검색에서 찾은 장면 (단계 카드와 겹치지 않는 것만 추가)
-            v = next((x for x in job["videos"] if x["youtubeId"] == video_id), None)
-            for i, sp in enumerate((v or {}).get("top", [])[:3]):
-                if any(min(sp[1], ch["end"]) - max(sp[0], ch["start"]) > 0.5 * (sp[1] - sp[0]) for ch in chapters):
-                    continue
-                chapters.append({"id": f"found{i + 1}", "start": sp[0], "end": sp[1], "title": label_of(s, video_id, sp)[:40],
-                                 "short": "찾은 장면" if i == 0 else f"{i + 1}위 장면", "step": None, "stepLabel": "찾은 장면" if i == 0 else "다른 장면",
-                                 "verification": v["verification"][i] if v else "none", "subtitle": s.ws.subtitle_text(video_id, sp, 120),
-                                 "screenTitle": "", "relatedDocs": []})
-        if t is not None and not any(ch["start"] - 0.5 <= t < ch["end"] for ch in chapters):
-            # 검색 없이 시간만 받은 경우(홈 화면 장면 링크 등): 그 시간의 자막 문장들로 장면 하나
-            segs_ = s.ws.video(video_id)["segs"]
-            near = [x for x in segs_ if x["end_time"] > t and x["start_time"] < t + 12] or [{"start_time": t, "end_time": min(dur, t + 10), "text": ""}]
-            sp = (max(0.0, min(t, near[0]["start_time"])), min(dur, max(near[-1]["end_time"], t + 6)))
-            chapters.append({"id": "found1", "start": sp[0], "end": sp[1], "title": (label_of(s, video_id, sp))[:40], "short": "고른 장면",
-                             "step": None, "stepLabel": "고른 장면", "verification": "none", "subtitle": s.ws.subtitle_text(video_id, sp, 120),
-                             "screenTitle": "", "relatedDocs": []})
+        for ch in cands:   # 앞(우선) 장면과 겹치면 넣지 않음
+            if all(min(ch["end"], k["end"]) - max(ch["start"], k["start"]) <= 0.5 for k in chapters):
+                chapters.append(ch)
         chapters = fill_gaps(chapters, dur)
-        target = t if t is not None else next((ch["start"] for ch in chapters if ch["id"] == "found1"), None)
-        matched = next((ch for ch in chapters if not ch.get("gap") and target is not None and ch["start"] - 0.5 <= target < ch["end"]), None) \
-            or next((ch for ch in chapters if not ch.get("gap")), chapters[0])
-        steps_map = {ch["step"]: ch for ch in chapters if ch.get("step")}
+        matched = next((ch for ch in chapters if ch["id"] == "found1"), None) or next((ch for ch in chapters if not ch.get("gap")), chapters[0])
+        steps_map = {ch["step"]: ch for ch in (st or {}).get("chapters", []) if ch.get("step")}
         official_steps = [{"step": k, "title": STEP_TITLES[k],
                            "note": {1: (p or {}).get("target", ""), 2: f"구비서류 {len((p or {}).get('requiredDocs', []))}가지",
                                     3: (p or {}).get("applyMethod", "")[:80], 4: f"문의 {(p or {}).get('contact', '')}"}[k],
