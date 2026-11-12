@@ -1,0 +1,32 @@
+{
+ "selected": {
+  "name": "K5_A_mix",
+  "K": 5,
+  "prompt": "A",
+  "comb": "mix",
+  "r1": 46,
+  "r3": 56,
+  "start5": 39,
+  "early": 26,
+  "user_r1": 5,
+  "user_r3": 9,
+  "subonly_hit": 0,
+  "subonly_n": 7,
+  "v_wrong_subonly": 6,
+  "v_n": 38
+ },
+ "n3": {
+  "r1": 40,
+  "r3": 54,
+  "start5": 35,
+  "early": 24,
+  "user_r1": 4,
+  "user_r3": 9,
+  "subonly_hit": 0,
+  "subonly_n": 7,
+  "v_wrong_subonly": 6,
+  "v_n": 38
+ },
+ "final_candidate_rule": "고른 설정이 N3보다 R@1 3개 넘게 높으면 N3+VLM",
+ "final_candidate": "N3+VLM 재판별"
+}
