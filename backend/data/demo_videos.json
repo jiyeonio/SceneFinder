@@ -1,0 +1,142 @@
+[
+ {
+  "youtube_id": "NYNnaDN9d8M",
+  "title": "집에서 쉽고 간편하게! 기초연금 온라인 신청, 홈페이지 편",
+  "channel": "국민연금TV",
+  "policy_hint": "기초연금",
+  "published": "2022-08-18",
+  "duration_sec": 601,
+  "origin": "eval_dev",
+  "bins": 300
+ },
+ {
+  "youtube_id": "HUFDJKVDIeM",
+  "title": "내 연금 얼마나 쌓였는지 핸드폰으로 확인하는 방법!",
+  "channel": "국민연금TV",
+  "policy_hint": "국민연금",
+  "published": "2018-12-26",
+  "duration_sec": 191,
+  "origin": "eval_dev",
+  "bins": 95
+ },
+ {
+  "youtube_id": "SfKD_WW0qQY",
+  "title": "서울시 아이돌봄 서비스 신규 이용자를 위한 안내서 2차시(신청 과정)",
+  "channel": "서울시아이돌봄",
+  "policy_hint": "아이돌봄",
+  "published": "2024-10-10",
+  "duration_sec": 388,
+  "origin": "eval_dev",
+  "bins": 194
+ },
+ {
+  "youtube_id": "ibeZ6H7CO9U",
+  "title": "(신청 기간 마감) 청년 월세 특별지원으로 월 최대 20만 원 지원?! 나도?!",
+  "channel": "국토교통부",
+  "policy_hint": "청년주거",
+  "published": "2025-03-03",
+  "duration_sec": 520,
+  "origin": "eval_dev",
+  "bins": 260
+ },
+ {
+  "youtube_id": "KRQgoAmtHGY",
+  "title": "2022 NEW 실업인정일에 온라인으로 실업급여 신청하는 법!! (전과정 완벽정리)",
+  "channel": "고용노동부",
+  "policy_hint": "실업급여·취업지원",
+  "published": "2022-03-22",
+  "duration_sec": 835,
+  "origin": "eval_dev",
+  "bins": 417
+ },
+ {
+  "youtube_id": "9IqJJbTEuPE",
+  "title": "국민취업지원제도 구직촉진수당 온라인으로 신청하기",
+  "channel": "고용노동부",
+  "policy_hint": "실업급여·취업지원",
+  "published": "2026-07-23",
+  "duration_sec": 161,
+  "origin": "eval_dev",
+  "bins": 80
+ },
+ {
+  "youtube_id": "1yYTX1-p-NI",
+  "title": "복지로 온라인신청 'How To' 영상 『에너지바우처』편",
+  "channel": "복지로",
+  "policy_hint": "긴급복지·바우처",
+  "published": "2021-01-15",
+  "duration_sec": 337,
+  "origin": "eval_dev",
+  "bins": 168
+ },
+ {
+  "youtube_id": "2VYwU4zPaUc",
+  "title": "복지로 온라인신청 'How To' 영상 『요금감면서비스』편",
+  "channel": "복지로",
+  "policy_hint": "주거·생계·의료급여",
+  "published": "2021-01-08",
+  "duration_sec": 291,
+  "origin": "eval_dev",
+  "bins": 145
+ },
+ {
+  "youtube_id": "KBBwdz4sidM",
+  "title": "기초연금 신청, 이렇게 하면된다!",
+  "channel": "국민연금TV",
+  "policy_hint": "기초연금",
+  "published": "2018-04-09",
+  "duration_sec": 278,
+  "origin": "demo_new",
+  "bins": 139
+ },
+ {
+  "youtube_id": "GmxO1AZabqM",
+  "title": "모바일도 홈페이지도 모두 OK~ 기초연금 모의계산 활용 방법!",
+  "channel": "국민연금TV",
+  "policy_hint": "기초연금",
+  "published": "2022-09-08",
+  "duration_sec": 438,
+  "origin": "demo_new",
+  "bins": 219
+ },
+ {
+  "youtube_id": "yUhcwuj-yyk",
+  "title": "기초연금 신청에 도움이 될 바로 이 노래! 영상보고 기초연금 지금 바로 신청하세요!",
+  "channel": "국민연금TV",
+  "policy_hint": "기초연금",
+  "published": "2023-11-13",
+  "duration_sec": 161,
+  "origin": "demo_new",
+  "bins": 80
+ },
+ {
+  "youtube_id": "cFHJkRDNPr0",
+  "title": "서울시 아이돌봄 서비스 신규 이용자를 위한 안내서 4차시(이용가정 에티켓)",
+  "channel": "서울시아이돌봄",
+  "policy_hint": "아이돌봄",
+  "published": "2024-10-10",
+  "duration_sec": 178,
+  "origin": "demo_new",
+  "bins": 89
+ },
+ {
+  "youtube_id": "u82jxJiAdSw",
+  "title": "#종지부부 가 알려주는 #아이돌봄서비스 신청 방법💡📱",
+  "channel": "성평등가족부",
+  "policy_hint": "아이돌봄",
+  "published": "2024-12-02",
+  "duration_sec": 61,
+  "origin": "demo_new",
+  "bins": 30
+ },
+ {
+  "youtube_id": "ZUQkLBNQSyk",
+  "title": "2026년 아이돌봄서비스 이용 안내",
+  "channel": "안양시 가족센터",
+  "policy_hint": "아이돌봄",
+  "published": "2026-01-08",
+  "duration_sec": 139,
+  "origin": "demo_new",
+  "bins": 69
+ }
+]
