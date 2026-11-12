@@ -137,11 +137,37 @@ def grid(a):
     print("고른 규칙:", best)
 
 
+def no_n1(a):
+    """2026-11-12 사용자 결정: 시간 한도(특징 추출 1.5초/영상 1분) 때문에 N1 후보를 풀에서 뺀 N3.
+    고른 규칙의 나머지(화면 점수 LoRA, K, 가중치, 앞당기기)는 그대로 두고 다시 고르지 않는다."""
+    import summary
+    from prelim_eval import widen
+    best = json.loads((OUT / "selected.json").read_text())
+    sig = json.loads((OUT / f"signals_{best['frame']}.json").read_text())["rows"]
+    out = OUT.parent / "combo_dev_noN1"; out.mkdir(parents=True, exist_ok=True)
+    rows, negs = [], []
+    for r in sig:
+        r = {**r, "mr_top5": []}
+        top, sc = rank_query(r, best["rule"], best["K"], best["w_frame"], best["w_mr"], widen, best["shift"])
+        if not r["gt"]:
+            negs.append({"num": r["num"], "video": r["video"], "origin": r["origin"], "N3": sc}); continue
+        rows.append({k: r[k] for k in ("num", "video", "type", "origin", "overlay_text", "gt")} |
+                    {"N3": {"top5": top, "iou": summary.best_iou(top[0], r["gt"]), "score": sc}})
+    (out / "rows.json").write_text(json.dumps(rows, ensure_ascii=False, indent=1))
+    (out / "negatives.json").write_text(json.dumps(negs, ensure_ascii=False, indent=1))
+    (out / "selected.json").write_text(json.dumps({**best, "n1_in_pool": False, "note": "시간 한도 때문에 N1 후보 제외(2026-11-12 사용자 결정)"}, ensure_ascii=False, indent=1))
+    sig_out = json.loads((OUT / f"signals_{best['frame']}.json").read_text())
+    for r in sig_out["rows"]:
+        r["mr_top5"] = []
+    (out / f"signals_{best['frame']}.json").write_text(json.dumps(sig_out, ensure_ascii=False))
+    print("N1 후보 없는 N3:", sum(r["N3"]["iou"] >= 0.3 for r in rows), "/", len(rows), "→", out)
+
+
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("cmd", choices=["dump", "grid"]); ap.add_argument("--frame", choices=["zero", "lora"], default="zero")
+    ap.add_argument("cmd", choices=["dump", "grid", "no_n1"]); ap.add_argument("--frame", choices=["zero", "lora"], default="zero")
     a = ap.parse_args()
-    dump(a) if a.cmd == "dump" else grid(a)
+    {"dump": dump, "grid": grid, "no_n1": no_n1}[a.cmd](a)
 
 
 if __name__ == "__main__":

@@ -22,6 +22,9 @@ D = Path("/nfs/team/data/scenefinder_vlm")
 FRAMES = D / "eval_frames_640"
 OUT = HERE / "results/vlm_rejudge_dev"
 COMBO = HERE / "results/combo_dev"
+# --pool noN1: 시간 한도 때문에 N1 후보를 뺀 N3 풀 (2026-11-12 사용자 결정)
+POOLS = {"withN1": (HERE / "results/combo_dev", HERE / "results/vlm_rejudge_dev"),
+         "noN1": (HERE / "results/combo_dev_noN1", HERE / "results/vlm_rejudge_dev_noN1")}
 MODEL = "Qwen/Qwen3-VL-4B-Instruct"
 CLIP_LEN = 2
 KMAX = 5
@@ -218,8 +221,11 @@ def cmd_grid(a):
 
 
 def main():
+    global COMBO, OUT
     ap = argparse.ArgumentParser(); ap.add_argument("cmd", choices=["frames", "score", "latency", "grid"])
+    ap.add_argument("--pool", choices=list(POOLS), default="withN1")
     a = ap.parse_args()
+    COMBO, OUT = POOLS[a.pool]
     {"frames": cmd_frames, "score": cmd_score, "latency": cmd_latency, "grid": cmd_grid}[a.cmd](a)
 
 
