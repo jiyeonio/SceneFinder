@@ -61,6 +61,8 @@ def compute_mr_ap(submission, ground_truth, iou_thds=np.linspace(0.5, 0.95, 10),
 
     # print(f"compute_average_precision_detection {time.time() - start_time:.2f} seconds.")
     ap_array = np.array(list(qid2ap_list.values()))  # (#queries, #thd)
+    if len(ap_array) == 0:  # 이 길이 구간에 정답이 하나도 없음(예: 복지 짧은 구간만 있는 val) → 0으로 기록
+        ap_array = np.zeros((1, len(iou_thds)))
     ap_thds = ap_array.mean(0)  # mAP at different IoU thresholds.
     iou_thd2ap = dict(zip([str(e) for e in iou_thds], ap_thds))
     iou_thd2ap["average"] = np.mean(ap_thds)
@@ -87,6 +89,8 @@ def compute_mr_r1(submission, ground_truth, iou_thds=np.linspace(0.5, 0.95, 10))
         gt_qid2window[cur_qid] = cur_gt_windows[cur_max_iou_idx]
 
     qids = list(pred_qid2window.keys())
+    if not qids:  # 이 길이 구간에 정답이 하나도 없음 → 0으로 기록
+        return {str(thd): 0.0 for thd in iou_thds}
     pred_windows = np.array([pred_qid2window[k] for k in qids]).astype(float)
     gt_windows = np.array([gt_qid2window[k] for k in qids]).astype(float)
     pred_gt_iou = compute_temporal_iou_batch_paired(pred_windows, gt_windows)

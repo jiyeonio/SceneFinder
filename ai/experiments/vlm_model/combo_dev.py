@@ -44,7 +44,7 @@ def dump(a):
         qv = m._qwen_text([q["query"]], pe.QWEN_Q_INSTR)[0]
         fs = m.smooth(m._feat(k, "qwen_640") @ qv)
         frame_spans, _ = m._frame_rank(k, qv, "qwen_640")
-        sig.append({"num": q["num"], "video": k, "is_neg": "gt" not in q, "gt": q.get("gt"), "type": q.get("type"),
+        sig.append({"num": q["num"], "video": k, "is_neg": not q.get("gt"), "gt": q.get("gt"), "type": q.get("type"),
                     "origin": q["origin"], "overlay_text": bool(q.get("overlay_text")), "duration": dev[k]["duration"],
                     "sub": m._sub_ranked(k, q["query"]),               # [(s, e, score)] 점수순 (원래 자막 창)
                     "frame_bins": fs.tolist(), "frame_spans": frame_spans[:4],
@@ -98,7 +98,7 @@ def grid(a):
         p = OUT / f"signals_{frame}.json"
         if not p.exists():
             continue
-        rows = [r for r in json.loads(p.read_text())["rows"] if not r["is_neg"]]
+        rows = [r for r in json.loads(p.read_text())["rows"] if r["gt"]]
         res = []
         grid_ = [(ru, K, wf, wm, sh) for ru, K, wf, wm, sh in itertools.product(("rerank", "fusion"), (5, 10), (0.0, 0.25, 0.5, 1.0, 2.0),
                                                                               (0.0, 0.5), (0.0, 2.0, 4.0))
@@ -127,7 +127,7 @@ def grid(a):
     rows, negs = [], []
     for r in sig:
         top, sc = rank_query(r, best["rule"], best["K"], best["w_frame"], best["w_mr"], widen, best["shift"]) or ([], None)
-        if r["is_neg"]:
+        if not r["gt"]:
             negs.append({"num": r["num"], "video": r["video"], "origin": r["origin"], "N3": sc}); continue
         rows.append({k: r[k] for k in ("num", "video", "type", "origin", "overlay_text", "gt")} |
                     {"N3": {"top5": top, "iou": summary.best_iou(top[0], r["gt"]) if top else 0.0, "score": sc}})

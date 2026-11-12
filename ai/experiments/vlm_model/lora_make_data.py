@@ -228,6 +228,16 @@ def jacc(a, b):
     return len(a & b) / max(1, len(a | b))
 
 
+# 질의 앞 화자 표시("자녀:", "70대 어르신:", "(부모)" 등)를 지움. 사용자 유형 이름에 쓰인 낱말만 대상으로 해서
+# 화면 글자 질의의 「1단계: …」 같은 표기는 건드리지 않음.
+SPEAKER = re.compile(r"^\s*[\(\[]?\s*(?:\d+대\s*)?(?:어르신|노인|청년|부모|엄마|아빠|자녀|아들|딸|직장인|보호자|가족|사용자|질문자|질문|Q)"
+                     r"(?:\s*\d+)?\s*[\)\]]?\s*[:：]\s*")
+
+
+def strip_speaker(q):
+    return SPEAKER.sub("", q, count=1).strip()
+
+
 def filt(out):
     rows = train_rows(); vids = {r["youtube_id"] for r in rows}
     seen = set()
@@ -238,12 +248,15 @@ def filt(out):
     evg = [grams(q) for q in ev]
     ev_ids = {v["youtube_id"] for v in labels["videos"].values()}
     assert not (vids & ev_ids), "평가 영상이 학습 데이터에 있음"
-    pairs, drop = [], {"parse": 0, "leak": 0, "copy_screen": 0, "empty": 0, "dup": 0}
+    pairs, drop = [], {"parse": 0, "leak": 0, "copy_screen": 0, "empty": 0, "dup": 0, "speaker_tag_stripped": 0}
 
     def add(vid, kind, q, s, e, bins, **kw):
         if not isinstance(q, str) or len(q.strip()) < 4:
             drop["empty"] += 1; return
-        q = q.strip().strip('"')
+        q0 = q.strip().strip('"')
+        q = strip_speaker(q0)
+        if q != q0:
+            drop["speaker_tag_stripped"] += 1   # 지운 것(버린 것 아님)
         if (vid, q) in seen:   # 같은 영상 안 같은 질의(두 사용자 질문이 똑같이 나온 경우 등)
             drop["dup"] += 1; return
         seen.add((vid, q))

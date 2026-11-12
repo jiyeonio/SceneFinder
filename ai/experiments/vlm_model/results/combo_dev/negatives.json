@@ -1,0 +1,134 @@
+[
+ {
+  "num": 1009,
+  "video": "dev01",
+  "origin": "ai_draft",
+  "N3": 3.5188924223184586
+ },
+ {
+  "num": 1010,
+  "video": "dev01",
+  "origin": "ai_draft",
+  "N3": 2.5733559489250184
+ },
+ {
+  "num": 1109,
+  "video": "dev02",
+  "origin": "ai_draft",
+  "N3": 1.940148152410984
+ },
+ {
+  "num": 1110,
+  "video": "dev02",
+  "origin": "ai_draft",
+  "N3": 1.8948531746864319
+ },
+ {
+  "num": 1209,
+  "video": "dev03",
+  "origin": "ai_draft",
+  "N3": 2.870751105248928
+ },
+ {
+  "num": 1210,
+  "video": "dev03",
+  "origin": "ai_draft",
+  "N3": 2.3150969489943236
+ },
+ {
+  "num": 1309,
+  "video": "dev04",
+  "origin": "ai_draft",
+  "N3": 3.294157282449305
+ },
+ {
+  "num": 1310,
+  "video": "dev04",
+  "origin": "ai_draft",
+  "N3": 3.19412185890334
+ },
+ {
+  "num": 1409,
+  "video": "dev05",
+  "origin": "ai_draft",
+  "N3": 2.562323234975338
+ },
+ {
+  "num": 1410,
+  "video": "dev05",
+  "origin": "ai_draft",
+  "N3": 2.401808649301529
+ },
+ {
+  "num": 1507,
+  "video": "dev06",
+  "origin": "ai_draft",
+  "N3": 0.31632421910762787
+ },
+ {
+  "num": 1508,
+  "video": "dev06",
+  "origin": "ai_draft",
+  "N3": 0.30019135773181915
+ },
+ {
+  "num": 1609,
+  "video": "dev07",
+  "origin": "ai_draft",
+  "N3": 2.4602231308817863
+ },
+ {
+  "num": 1610,
+  "video": "dev07",
+  "origin": "ai_draft",
+  "N3": 2.662510819733143
+ },
+ {
+  "num": 1709,
+  "video": "dev08",
+  "origin": "ai_draft",
+  "N3": 2.9888557866215706
+ },
+ {
+  "num": 1710,
+  "video": "dev08",
+  "origin": "ai_draft",
+  "N3": 2.1096694907173514
+ },
+ {
+  "num": 5003,
+  "video": "dev01",
+  "origin": "simulated_user",
+  "N3": 3.4033722082773843
+ },
+ {
+  "num": 5202,
+  "video": "dev03",
+  "origin": "simulated_user",
+  "N3": 3.6037381580099463
+ },
+ {
+  "num": 5203,
+  "video": "dev03",
+  "origin": "simulated_user",
+  "N3": 3.5563764154940145
+ },
+ {
+  "num": 5303,
+  "video": "dev04",
+  "origin": "simulated_user",
+  "N3": 3.8287042751908302
+ },
+ {
+  "num": 5403,
+  "video": "dev05",
+  "origin": "simulated_user",
+  "N3": 2.558996055807386
+ },
+ {
+  "num": 5703,
+  "video": "dev08",
+  "origin": "simulated_user",
+  "N3": 2.5214752584695814
+ }
+]

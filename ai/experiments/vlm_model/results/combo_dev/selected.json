@@ -1,0 +1,12 @@
+{
+ "frame": "lora",
+ "rule": "fusion",
+ "K": 5,
+ "w_frame": 0.25,
+ "w_mr": 0.0,
+ "shift": 4.0,
+ "r1": 40,
+ "r3": 54,
+ "start5": 35,
+ "n": 80
+}
