@@ -141,6 +141,7 @@ export default function Results({ query, policyCtx }: { query: string; policyCtx
                 <p>{notice?.message || '영상에서 확인된 장면이 없어요. 공식 정보를 확인하세요.'}</p>
               </article>
             ))}
+            <div className="ans-col">
             {(answerItems.length > 0 || policy) && (
               <article className="card pol ans-off">
                 <div className="strip"><SourceTag kind="gov" />공식 답변</div>
@@ -172,10 +173,37 @@ export default function Results({ query, policyCtx }: { query: string; policyCtx
                 </div>
               </article>
             )}
+            {/* 문의: 정책 API 문의처 그대로 */}
+            {policy && contacts(policy.contact).length > 0 && (
+              <section className="card">
+                <h3>문의</h3>
+                {contacts(policy.contact).map((c) => c.tel ? (
+                  <a key={c.name + c.tel} className="tel" href={`tel:${c.tel.replace(/-/g, '')}`}><span><small>{c.name}</small><b>{c.tel}</b></span><span className="c"><Icon name="phone" /></span></a>
+                ) : <p key={c.name} className="note">{c.name}</p>)}
+                <p className="note" style={{ marginTop: '.6rem' }}>출처 {policy.source} · {policy.name} 문의처 · 수정 {policy.updatedAt}</p>
+              </section>
+            )}
+            {!docsInAnswer && docs.length > 0 && (
+              <section className="card">
+                <h3>준비 서류 체크리스트</h3>
+                <p className="note">준비했는지 확인하는 용도예요. 자격 판정이 아니에요.</p>
+                <div className="docs">
+                  {docs.map((d) => (
+                    <label key={d.id}>
+                      <input type="checkbox" checked={!!checked[d.id]} onChange={(e) => setChecked({ ...checked, [d.id]: e.target.checked })} />
+                      <span>{d.name}</span>
+                    </label>
+                  ))}
+                </div>
+                <div className="prog"><div><i style={{ width: `${(doneCount / docs.length) * 100}%` }} /></div>{docs.length}개 중 {doneCount}개 준비</div>
+                {policy && <p className="note">출처 {policy.source} · 수정 {policy.updatedAt}</p>}
+              </section>
+            )}
+            </div>
           </section>
         )}
 
-        <div className="grid">
+        <div className="grid one">
           <div>
             {/* 다른 영상 장면 */}
             {data && showScenes && rest.length > 0 && (
@@ -222,34 +250,6 @@ export default function Results({ query, policyCtx }: { query: string; policyCtx
             )}
           </div>
 
-          <aside className="side">
-            {/* 문의: 정책 API 문의처 그대로 (맨 위, 스크롤해도 따라옴) */}
-            {policy && contacts(policy.contact).length > 0 && (
-              <section className="card">
-                <h3>문의</h3>
-                {contacts(policy.contact).map((c) => c.tel ? (
-                  <a key={c.name + c.tel} className="tel" href={`tel:${c.tel.replace(/-/g, '')}`}><span><small>{c.name}</small><b>{c.tel}</b></span><span className="c"><Icon name="phone" /></span></a>
-                ) : <p key={c.name} className="note">{c.name}</p>)}
-                <p className="note" style={{ marginTop: '.6rem' }}>출처 {policy.source} · {policy.name} 문의처 · 수정 {policy.updatedAt}</p>
-              </section>
-            )}
-            {!docsInAnswer && docs.length > 0 && (
-              <section className="card">
-                <h3>준비 서류 체크리스트</h3>
-                <p className="note">준비했는지 확인하는 용도예요. 자격 판정이 아니에요.</p>
-                <div className="docs">
-                  {docs.map((d) => (
-                    <label key={d.id}>
-                      <input type="checkbox" checked={!!checked[d.id]} onChange={(e) => setChecked({ ...checked, [d.id]: e.target.checked })} />
-                      <span>{d.name}</span>
-                    </label>
-                  ))}
-                </div>
-                <div className="prog"><div><i style={{ width: `${(doneCount / docs.length) * 100}%` }} /></div>{docs.length}개 중 {doneCount}개 준비</div>
-                {policy && <p className="note">출처 {policy.source} · 수정 {policy.updatedAt}</p>}
-              </section>
-            )}
-          </aside>
         </div>
       </div>
     </main>
