@@ -25,6 +25,9 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--root", required=True); ap.add_argument("--out", required=True)
     ap.add_argument("--models", help="쉼표로 구분 (기본: state의 모든 학습 변형)")
+    ap.add_argument("--win", type=int, default=0, help="창 크기(2초 칸 수). 0이면 영상 전체를 한 번에 (서비스 방식). QVH 학습 영상은 75칸(150초)")
+    ap.add_argument("--stride", type=int, default=0, help="창 이동 칸 수 (기본: win, 겹침 없음)")
+    ap.add_argument("--ckpt", default="", help="name=체크포인트 경로,... (state 대신 이 체크포인트 사용, 추가 학습 비교용)")
     a = ap.parse_args()
     import summary
     from prelim_eval import load_queries
@@ -37,6 +40,10 @@ def main():
     assert all(q["video"] in dev for q in pos + neg) and all(v["split"] == "dev" for v in dev.values())
     states = {p.stem: json.loads(p.read_text()) for p in sorted((Path(a.root) / "state").glob("*.json"))
               if p.stem != "selected_text_feat"}
+    for kv in filter(None, a.ckpt.split(",")):
+        n_, c_ = kv.split("="); states[n_] = {"ckpt": c_}
+    stride = a.stride or a.win
+    print(f"창: {'영상 전체' if a.win == 0 else f'{a.win}칸({a.win * CLIP_LEN}초), 이동 {stride}칸'}", flush=True)
     names = a.models.split(",") if a.models else list(states)
     print(f"dev 질의 {len(pos)} + 정답 없음 {len(neg)}, 모델 {names}", flush=True)
 
@@ -49,8 +56,15 @@ def main():
             yid = dev[k]["youtube_id"]
             p = DATA / "eval_features" / ("clip" if kind == "clip" else "qwen_640") / (f"{yid}_clip_features.pt" if kind == "clip" else f"{yid}.pt")
             v = F.normalize(torch.load(p, map_location="cuda").float(), dim=-1, eps=1e-5)
-            n = len(v); st = torch.arange(n, device="cuda", dtype=torch.float32) / n
-            vf_cache[key] = (torch.cat([v, torch.stack([st, st + 1.0 / n], 1)], 1)[None], n)
+            n = len(v)
+            if a.win == 0 or n <= a.win:
+                starts = [0]; w = n
+            else:   # 창마다 학습 때처럼 창 안에서 TEF를 다시 계산. 마지막 창은 영상 끝에 맞춤 (모든 창 길이 같음)
+                w = a.win; starts = list(range(0, n - w + 1, stride))
+                if starts[-1] != n - w: starts.append(n - w)
+            st = torch.arange(w, device="cuda", dtype=torch.float32) / w
+            tef = torch.stack([st, st + 1.0 / w], 1)
+            vf_cache[key] = (torch.stack([torch.cat([v[b:b + w], tef], 1) for b in starts]), starts, w)
         return vf_cache[key]
 
     def qfeat(q, kind):
@@ -78,18 +92,20 @@ def main():
     lat = {}
     for name in names:
         s = states[name]
-        model = build_inference_model(str(Path(s["run_dir"]) / "model_best.ckpt")).cuda().eval()
-        vkind = "clip" if name == "clip_repro" else "qwen"
-        tkind = "clip" if name == "clip_repro" else name.split("_")[1]
+        model = build_inference_model(s.get("ckpt") or str(Path(s["run_dir"]) / "model_best.ckpt")).cuda().eval()
+        vkind = "clip" if name.startswith("clip") else "qwen"
+        tkind = "clip" if name.startswith("clip") else name.split("_")[1]
         lat[name] = []
         for q in pos + neg:
             torch.cuda.synchronize(); t0 = time.time()
-            v, n = vfeat(q["video"], vkind); t, tm = qfeat(q["query"], tkind)
+            v, starts, w = vfeat(q["video"], vkind); t, tm = qfeat(q["query"], tkind)
+            nw = len(starts)
             with torch.no_grad():
-                o = model(src_vid=v, src_vid_mask=torch.ones(1, n, device="cuda"), src_txt=t, src_txt_mask=tm)
-            sc = F.softmax(o["pred_logits"], -1)[0, :, 0].cpu()
-            dur = n * CLIP_LEN
-            spans = (span_cxw_to_xx(o["pred_spans"][0].cpu()) * dur).clamp(0, dur)
+                o = model(src_vid=v, src_vid_mask=torch.ones(nw, w, device="cuda"),
+                          src_txt=t.expand(nw, -1, -1), src_txt_mask=tm.expand(nw, -1))
+            sc = F.softmax(o["pred_logits"], -1)[..., 0].cpu().flatten()   # 창 전체의 후보를 점수로 한 줄 세움
+            off = torch.tensor(starts, dtype=torch.float32).repeat_interleave(o["pred_spans"].shape[1]) * CLIP_LEN
+            spans = (span_cxw_to_xx(o["pred_spans"].cpu()).reshape(-1, 2) * (w * CLIP_LEN)).clamp(0, w * CLIP_LEN) + off[:, None]
             order = torch.argsort(sc, descending=True).tolist()
             ranked = [(float(spans[i, 0]), float(max(spans[i, 1], spans[i, 0]))) for i in order]
             torch.cuda.synchronize(); lat[name].append(time.time() - t0)
@@ -107,7 +123,7 @@ def main():
     out = Path(a.out); out.mkdir(parents=True, exist_ok=True)
     (out / "rows.json").write_text(json.dumps(list(rows.values()), ensure_ascii=False, indent=1))
     (out / "negatives.json").write_text(json.dumps(list(negs.values()), ensure_ascii=False, indent=1))
-    meta = {"methods": names, "latency_sec": {n: {"median": round(statistics.median(v), 4), "p95": round(sorted(v)[int(0.95 * (len(v) - 1))], 4)} for n, v in lat.items()},
+    meta = {"methods": names, "win": a.win, "stride": stride, "latency_sec": {n: {"median": round(statistics.median(v), 4), "p95": round(sorted(v)[int(0.95 * (len(v) - 1))], 4)} for n, v in lat.items()},
             "gpu_peak_gib_during_queries": round(torch.cuda.max_memory_allocated() / 2**30, 2),
             "extraction_sec_per_video_min": json.loads((ROOT / "ai/experiments/vlm_model/results/prelim_dev/meta.json").read_text())["extraction_sec_per_video_min"]}
     (out / "meta.json").write_text(json.dumps(meta, ensure_ascii=False, indent=1))
