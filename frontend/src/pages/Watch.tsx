@@ -3,7 +3,7 @@ import { useYouTubePlayer } from '../components/useYouTubePlayer';
 import '../styles/watch.css';
 import { Icon } from '../components/Icon';
 import { SourceTag, VerifyBadge } from '../components/Common';
-import { getVideo } from '../data/api';
+import { getVideo, pollSearch, searchWelfare, type SearchResponse } from '../data/api';
 import type { Chapter, VideoDetail } from '../data/types';
 import { fmt, pct } from '../utils';
 
@@ -18,6 +18,9 @@ export default function Watch({ videoId, startAt, jobId }: { videoId: string; st
   const [bigSub, setBigSub] = useState(true);
   const [speed, setSpeed] = useState(1);
   const [checked, setChecked] = useState<Record<string, boolean>>({});
+  const [ask, setAsk] = useState('');
+  const [asked, setAsked] = useState<SearchResponse | null>(null);
+  const [asking, setAsking] = useState(false);
 
   useEffect(() => {
     getVideo(videoId, { jobId, t: startAt }).then((v) => {
@@ -66,6 +69,19 @@ export default function Watch({ videoId, startAt, jobId }: { videoId: string; st
     const ch = shown.find((c) => t >= c.start - 0.5 && t < c.end);
     if (ch) setLoopCh(ch);
     yt.seek(t);
+  };
+  /** 신청 단계 카드: 그 장면으로 가서 큰 자막·구간 반복을 켬 */
+  const seekStep = (t: number) => { setBigSub(true); setRepeat(true); seek(t); };
+  /** 이 정책 맥락에서 질문 (예: 「이거 아직 신청 되는 거예요?」) — 공식 정보 답 + 영상 장면 */
+  const onAsk = (e: React.FormEvent) => {
+    e.preventDefault();
+    const q = ask.trim(); if (!q) return;
+    setAsking(true); setAsked(null);
+    searchWelfare(q, policy?.policyId).then((d) => {
+      setAsked(d); setAsking(false);
+      const poll = (n: number) => { if (d.jobId && n < 40) window.setTimeout(() => pollSearch(d.jobId!).then((x) => { setAsked(x); if (x.status === 'pending') poll(n + 1); }), 800); };
+      if (d.status === 'pending') poll(0);
+    }).catch(() => setAsking(false));
   };
 
   return (
@@ -156,6 +172,46 @@ export default function Watch({ videoId, startAt, jobId }: { videoId: string; st
               </div>
             </div>
 
+            {/* 이 정책에 대해 물어보기 — 영상에 없는 내용은 공식 정보로 답함 */}
+            {policy && (
+              <section className="card follow" aria-label="이 정책에 대해 물어보기">
+                <div className="hd"><h2>{policy.name}에 대해 물어보기</h2><p>영상에 없는 내용은 공식 정보로 답해요.</p></div>
+                <form onSubmit={onAsk} style={{ display: 'flex', gap: '.5rem', marginTop: '.6rem' }}>
+                  <input type="search" value={ask} onChange={(e) => setAsk(e.target.value)} placeholder="예: 이거 아직 신청 되는 거예요?"
+                    aria-label="질문" style={{ flex: 1, fontSize: '1.05rem', padding: '.6rem .8rem', border: '1.5px solid var(--line-2)', borderRadius: '.6rem' }} />
+                  <button className="btn btn-pri" type="submit" disabled={asking}>{asking ? '찾는 중…' : '물어보기'}</button>
+                </form>
+                {asked && (
+                  <div style={{ marginTop: '.8rem' }}>
+                    {asked.notice?.show && (
+                      <div className="warn" role="status"><Icon name="alert" style={{ color: 'var(--amber)' }} /><span><b>영상에는 해당 내용이 없어요.</b> 공식 정보를 확인하세요.</span></div>
+                    )}
+                    {asked.official && asked.official.items.length > 0 && (
+                      <div style={{ marginTop: '.6rem' }}>
+                        <SourceTag kind="gov" />
+                        {asked.official.items.map((it) => (
+                          <p key={it.field} style={{ whiteSpace: 'pre-line', margin: '.4rem 0' }}>
+                            <b>{({ applyWhen: '신청 기간', updatedAt: '정보 수정일', requiredDocs: '구비서류', applyMethod: '신청 방법', applyUrl: '공식 신청 페이지', targetDetail: '지원 대상', criteria: '선정 기준', amount: '금액', benefit: '지원 내용' } as Record<string, string>)[it.field] ?? it.field}</b>{' '}
+                            {Array.isArray(it.value) ? (it.value as (string | { name?: string; label?: string; value?: string })[]).map((x) => typeof x === 'string' ? x : x.name ?? `${x.label} ${x.value}`).join(' · ') : String(it.value)}
+                          </p>
+                        ))}
+                        <small style={{ color: 'var(--muted)' }}>출처 {asked.official.source} · {asked.official.baseYear}년 기준 · 수정 {asked.official.updatedAt}</small>
+                      </div>
+                    )}
+                    {!asked.notice?.show && asked.scenes.slice(0, 3).map((sc) => (
+                      <div key={sc.videoId} className="fs" style={{ marginTop: '.5rem' }}>
+                        <span className="n"><Icon name="play" fill /></span>
+                        <div><b>{sc.title}</b><p>{fmt(sc.found.start)} · {sc.found.label}</p><VerifyBadge v={sc.found.verification} /></div>
+                        {sc.videoId === video.videoId
+                          ? <a className="lk" href="#" onClick={(e) => { e.preventDefault(); seek(sc.found.start); }}><Icon name="play" fill /><span className="num">{fmt(sc.found.start)}</span></a>
+                          : <a className="lk" href={`#/watch/${sc.videoId}?t=${sc.found.start}${asked.jobId ? `&job=${asked.jobId}` : ''}`}><Icon name="play" fill /><span className="num">{fmt(sc.found.start)}</span></a>}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </section>
+            )}
+
             {/* 장면 목록 */}
             <section className="card chap">
               <div className="hd"><h2>영상 장면</h2><p>누르면 그 시간부터 재생돼요.</p></div>
@@ -169,7 +225,7 @@ export default function Watch({ videoId, startAt, jobId }: { videoId: string; st
                       {c.id === current.id && <span className="tag tag-dark">재생 중</span>}
                     </div>
                   </div>
-                  <button className="go" onClick={() => seek(c.start)}><Icon name="play" fill />{c.id === current.id ? '처음부터' : '여기부터'}</button>
+                  <button className="go" onClick={() => (c.step ? seekStep(c.start) : seek(c.start))}><Icon name="play" fill />{c.id === current.id ? '처음부터' : '여기부터'}</button>
                 </div>
               ))}
               <div className="fb"><span>장면 구분과 검증 상태는 AI 분석 결과라 틀릴 수 있어요.</span><a href="#">장면이 다르면 알려주기</a></div>
@@ -256,12 +312,13 @@ export default function Watch({ videoId, startAt, jobId }: { videoId: string; st
                   const cur = current.step ?? 0;
                   const state = s.step < cur ? 'done' : s.step === cur ? 'now' : '';
                   return (
-                    <li key={s.step} className={state}>
+                    <li key={s.step} className={state} style={s.videoAt !== undefined ? { cursor: 'pointer' } : undefined}
+                      onClick={s.videoAt !== undefined ? () => seekStep(s.videoAt!) : undefined}>
                       <span className="d">{state === 'done' ? <Icon name="check" style={{ width: '.8rem', height: '.8rem' }} /> : s.step}</span>
                       <div>
                         <b>{s.title}{state === 'now' ? ' · 지금 보는 중' : ''}</b>
                         <small>
-                          {s.videoAt !== undefined && <a href="#" onClick={(e) => { e.preventDefault(); seek(s.videoAt!); }}>영상 {fmt(s.videoAt)} </a>}
+                          {s.videoAt !== undefined && <a href="#" onClick={(e) => { e.preventDefault(); e.stopPropagation(); seekStep(s.videoAt!); }}>영상 {fmt(s.videoAt)}부터 보기 </a>}
                           {s.verification === 'subtitle' && <span className="vb vb-sub" style={{ fontSize: '.72rem', padding: '0 .4rem' }}>자막에서 확인됨</span>}
                           {s.videoAt === undefined && <span className="vb vb-none" style={{ fontSize: '.72rem', padding: '0 .4rem' }}>해당 장면 없음</span>}
                           {s.verification !== 'screen' && ` ${s.note}`}
