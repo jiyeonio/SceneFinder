@@ -78,3 +78,30 @@
 .page-results .pager{display:flex;justify-content:center;gap:.4rem;margin-top:1.4rem}
 .page-results .pager span{width:2.6rem;height:2.6rem;border-radius:.5rem;border:1.5px solid var(--line-2);background:#fff;display:flex;align-items:center;justify-content:center;font-weight:700}
 .page-results .pager .on{background:var(--ink);border-color:var(--ink);color:#fff}
+/* 바로 답: 왼쪽 1위 장면 / 오른쪽 공식 답변 (팀원 디자인 토큰 그대로, 배치만) */
+.page-results .ans{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:1.2rem;margin-top:1.6rem;align-items:start}
+.page-results .ans-scene{margin:0}
+.page-results .ans-scene .vh0{display:flex;align-items:center;gap:.5rem;font-size:.85rem;font-weight:700;color:var(--muted);margin-bottom:.8rem}
+.page-results .ans-scene .thumb{width:100%;aspect-ratio:16/9;height:auto}
+.page-results .ans-scene h3{margin-top:.9rem}
+.page-results .ans-scene .meta{margin:.4rem 0 0}
+.page-results .ans-off .ai{padding:.6rem 0;border-top:1px solid var(--line)}
+.page-results .ans-off .ai:first-child{border-top:0;padding-top:0}
+.page-results .ans-off .ai .k{font-size:.85rem;font-weight:700;color:var(--muted)}
+.page-results .ans-off .ai .k span{font-weight:600}
+.page-results .ans-off .ai .v{margin-top:.3rem;font-size:1.1rem;font-weight:800}
+.page-results .ans-off .chips{display:flex;flex-wrap:wrap;gap:.45rem;margin-top:.5rem}
+.page-results .ans-off .chips .chip[aria-pressed="true"]{background:var(--blue-50);border-color:var(--blue);color:var(--blue-dark)}
+.page-results .ans-off .note{margin:.6rem 0 0;font-size:.85rem;color:var(--muted)}
+.page-results .ans-off .src1{margin:.9rem 0 0;font-size:.8rem;color:var(--muted)}
+/* 다른 영상 장면: 작은 카드 가로 */
+.page-results .minis{display:grid;grid-template-columns:repeat(auto-fill,minmax(15rem,1fr));gap:1rem}
+.page-results .vr.mini{padding:1rem;margin:0;display:flex;flex-direction:column;gap:.45rem}
+.page-results .vr.mini .thumb{width:100%;aspect-ratio:16/9;height:auto}
+.page-results .vr.mini h3{font-size:1rem;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.page-results .vr.mini .meta{margin:0}
+.page-results .vr.mini .tm{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
+.page-results .vr.mini .btn{align-self:flex-start}
+.page-results .weak{margin-top:1.2rem}
+.page-results .weak .minis{margin-top:.8rem}
+@media (max-width: 900px){.page-results .ans{grid-template-columns:1fr}}
