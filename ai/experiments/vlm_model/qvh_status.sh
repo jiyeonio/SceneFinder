@@ -19,3 +19,5 @@ echo "이어서 돌 작업(tmux qvh_pipe): $(tmux has-session -t qvh_pipe 2>/dev
 echo "파이프라인 로그 마지막 줄: $(tail -1 /nfs/team/data/scenefinder_vlm/qvh/pipeline.log 2>/dev/null)"
 F=/nfs/team/data/scenefinder_vlm/qvh/features/qwen3vl_emb2b_640
 [ -d "$F" ] && echo "특징 파일: $(ls "$F"/*.npz 2>/dev/null | wc -l) / 약 10148  ($(tail -1 "$F/progress.log" 2>/dev/null))"
+echo "다음 단계(tmux qvh_next): $(tmux has-session -t qvh_next 2>/dev/null && echo 있음 || echo 없음), 마지막: $(grep '\[next\]' /nfs/team/data/scenefinder_vlm/qvh/pipeline.log | tail -1)"
+ls /nfs/team/data/scenefinder_vlm/mr_runs/state/stage_*.done 2>/dev/null | xargs -n1 basename 2>/dev/null | sed 's/^stage_//;s/\.done$//' | tr '\n' ' ' | sed 's/^/끝난 단계: /'; echo

@@ -13,7 +13,11 @@ import summary  # noqa: E402
 
 LABEL = {"B1": "B1 자막 검색 (MiniLM)", "B2": "B2 구간 검색 CLIP 버전 (NLLB 번역 + Moment-DETR)", "B3": "B3 main 서비스 결합",
          "F-CLIP": "화면 검색: 다국어 CLIP", "F-VLM": "화면 검색: Qwen3-VL-Embedding-2B (학습 없음)",
-         "F-VLM-1280": "(참고) 화면 검색 Qwen3-VL-Emb 1280×720", "REF-SUB-VLM": "(참고) 자막 검색 Qwen3-VL-Emb 텍스트"}
+         "F-VLM-1280": "(참고) 화면 검색 Qwen3-VL-Emb 1280×720", "REF-SUB-VLM": "(참고) 자막 검색 Qwen3-VL-Emb 텍스트",
+         "clip_repro": "구간 검색 CLIP 버전 (재현 학습, NLLB 번역)",
+         "vlm_tok_enko": "구간 검색 VLM 버전 (질의 토큰, 영어+한국어 학습)", "vlm_pooled_enko": "구간 검색 VLM 버전 (질의 1벡터, 영어+한국어 학습)",
+         "vlm_tok_en": "구간 검색 VLM 버전 (질의 토큰, 영어만 학습)", "vlm_tok_ko": "구간 검색 VLM 버전 (질의 토큰, 한국어만 학습)",
+         "vlm_pooled_en": "구간 검색 VLM 버전 (질의 1벡터, 영어만 학습)", "vlm_pooled_ko": "구간 검색 VLM 버전 (질의 1벡터, 한국어만 학습)"}
 
 
 def metrics(rows, n):
@@ -83,7 +87,7 @@ def main():
         L.append("|---|---|---|---|---|---|---|")
         for n in methods:
             m = metrics(sub, n)
-            L.append(f"| {LABEL[n]} | {pct(m['r1_03'], m['n'])} | {pct(m['r1_05'], m['n'])} | {pct(m['r3'], m['n'])} | "
+            L.append(f"| {LABEL.get(n, n)} | {pct(m['r1_03'], m['n'])} | {pct(m['r1_05'], m['n'])} | {pct(m['r3'], m['n'])} | "
                      f"{pct(m['r5'], m['n'])} | {pct(m['start5'], m['n'])} | {m['miou']:.3f} |")
         rm = rand_metrics(sub)
         L.append(f"| 무작위 기준선 (기댓값) | {rm['r1_03'] / rm['n'] * 100:.0f}% | {rm['r1_05'] / rm['n'] * 100:.0f}% | – | – | – | {rm['miou']:.3f} |\n")
@@ -92,12 +96,12 @@ def main():
     vids = sorted({r["video"] for r in rows})
     L.append("| 방식 | " + " | ".join(vids) + " |"); L.append("|---|" + "---|" * len(vids))
     for n in methods:
-        L.append(f"| {LABEL[n]} | " + " | ".join(f"{sum(r[n]['iou'] >= 0.3 for r in rows if r['video'] == v)}/{sum(r['video'] == v for r in rows)}" for v in vids) + " |")
+        L.append(f"| {LABEL.get(n, n)} | " + " | ".join(f"{sum(r[n]['iou'] >= 0.3 for r in rows if r['video'] == v)}/{sum(r['video'] == v for r in rows)}" for v in vids) + " |")
     # 시간·메모리
     L.append("\n### 시간·메모리\n")
     L.append("| 방식 | 질의당 응답 중앙값 | 95% |"); L.append("|---|---|---|")
     for n in methods:
-        t = meta["latency_sec"][n]; L.append(f"| {LABEL[n]} | {t['median'] * 1000:.0f} ms | {t['p95'] * 1000:.0f} ms |")
+        t = meta["latency_sec"][n]; L.append(f"| {LABEL.get(n, n)} | {t['median'] * 1000:.0f} ms | {t['p95'] * 1000:.0f} ms |")
     L.append(f"\n- Qwen3-VL-Embedding-2B 프레임 특징 추출(dev 실측): 640×360 영상 1분당 {meta['extraction_sec_per_video_min']['qwen_640']}초, "
              f"1280×720 {meta['extraction_sec_per_video_min']['qwen_1280']}초")
     L.append(f"- 질의 실행 중 GPU 최대 할당: {meta['gpu_peak_gib_during_queries']} GiB (평가 스크립트에 올린 모든 모델 합)")
@@ -107,7 +111,7 @@ def main():
     for n in methods:
         ns = [x[n] for x in negs if x.get(n) is not None]; ps = [r[n]["score"] for r in rows if r[n].get("score") is not None]
         if ns and ps:
-            L.append(f"| {LABEL[n]} | {statistics.median(ns):.3f} [{min(ns):.3f}–{max(ns):.3f}] | {statistics.median(ps):.3f} [{min(ps):.3f}–{max(ps):.3f}] |")
+            L.append(f"| {LABEL.get(n, n)} | {statistics.median(ns):.3f} [{min(ns):.3f}–{max(ns):.3f}] | {statistics.median(ps):.3f} [{min(ps):.3f}–{max(ps):.3f}] |")
     L += sim_no_answer(rows, negs)
     Path(a.out).write_text("\n".join(L) + "\n", encoding="utf-8")
     print(f"→ {a.out}")
