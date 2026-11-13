@@ -78,6 +78,33 @@
 .page-results .pager{display:flex;justify-content:center;gap:.4rem;margin-top:1.4rem}
 .page-results .pager span{width:2.6rem;height:2.6rem;border-radius:.5rem;border:1.5px solid var(--line-2);background:#fff;display:flex;align-items:center;justify-content:center;font-weight:700}
 .page-results .pager .on{background:var(--ink);border-color:var(--ink);color:#fff}
+/* ===== KRDS 느낌 ===== */
+.page-results .sbar{border-bottom:1px solid var(--line-2)}
+.page-results .srow .in{border:2px solid var(--navy);border-radius:8px}
+.page-results .filters{gap:0;border-bottom:0;margin-top:1.2rem}
+.page-results .filters .chip{border:0;border-radius:0;background:none;min-height:2.8rem;padding:0 1.1rem;font-size:1.02rem;font-weight:600;color:var(--muted);border-bottom:3px solid transparent}
+.page-results .filters .chip[aria-pressed="true"]{background:none;color:var(--navy);border-bottom-color:var(--navy)}
+.page-results .sbar .wrap{padding-bottom:0}
+.page-results .pol .strip{background:var(--tint);border-bottom:1px solid var(--line)}
+.page-results .pol h2{font-size:1.6rem;font-weight:700}
+.page-results .fact{border-radius:8px;background:#fff}
+.page-results .fact .k{font-size:.85rem;color:var(--muted);font-weight:600}
+.page-results .fact .v.blue{color:var(--blue-dark)}
+.page-results .vh h2{font-size:1.35rem;font-weight:700}
+.page-results .vr{border-radius:12px}
+.page-results .vr h3{font-size:1.12rem;font-weight:700}
+.page-results .found{border:1px solid var(--blue);border-radius:8px;background:#F5F8FE}
+.page-results .found.sub{border:1px dashed #D2A94B;background:#FFFCF3}
+.page-results .side .card{padding:0;overflow:hidden}
+.page-results .side .card h3{margin:0;padding:.85rem 1.2rem;background:#F4F5F6;border-bottom:1px solid var(--line);font-size:1rem;font-weight:700}
+.page-results .side .card > *:not(h3){margin-left:1.2rem;margin-right:1.2rem}
+.page-results .side .card > *:last-child{margin-bottom:1.2rem}
+.page-results .side .docs{margin-top:1rem !important}
+.page-results .side .docs label{background:#fff;border:1px solid var(--line);border-radius:8px}
+.page-results .calc{background:#fff !important}
+.page-results .calc .btn{margin-top:1rem !important}
+.page-results .side .tel{margin-top:1rem;border-radius:8px}
+.page-results .side .card > .btn-block{width:auto;display:flex}
 /* 바로 답: 왼쪽 1위 장면 / 오른쪽 공식 답변 (팀원 디자인 토큰 그대로, 배치만) */
 .page-results .ans{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:1.2rem;margin-top:1.6rem;align-items:start}
 .page-results .ans-scene{margin:0}

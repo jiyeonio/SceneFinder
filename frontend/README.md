@@ -1,12 +1,14 @@
 # 복지바로봄 웹 (프론트엔드 시제품)
 
-파란색 2안 디자인을 React + Vite + TypeScript로 옮긴 프로젝트예요.
-지금은 **가짜 데이터(mock)** 로 동작해서 백엔드 없이도 모든 화면을 눌러볼 수 있어요.
+팀 투표로 정한 **최종 디자인(포털형)** 을 입힌 복지바로봄 프론트예요. React + Vite + TypeScript.
+- `VITE_API_BASE_URL` 이 있으면 복지바로봄 백엔드(`backend/welfare_app.py`), 없으면 **가짜 데이터(mock)** 로 동작해요.
+- 디자인은 `src/styles/theme.css` · `src/styles/theme-final.css` 에 있고, `main.tsx` 에서 페이지 CSS 다음에 불러와요 (순서 바꾸지 마세요).
+- 기능(검색·VLM 화면 확인·공식 답변·단계 카드·YouTube 플레이어)은 welfare/service 그대로예요.
 
 ## 1. 실행 방법
 
 1. **Node.js 설치** (처음 한 번만) — https://nodejs.org 에서 LTS 버전 설치
-2. zip을 풀고 VS Code에서 `파일 → 폴더 열기`로 이 폴더(`bokjibarobom-web`)를 열기
+2. zip을 풀고 VS Code에서 `파일 → 폴더 열기`로 이 폴더(`frontend`)를 열기
 3. VS Code 메뉴 `터미널 → 새 터미널`을 열고 아래 두 줄 입력
 
 ```bash

@@ -1,0 +1,72 @@
+/* =========================================================
+   공공 서비스 테마 (KRDS 느낌) — base.css 위에 덮어쓰기
+   단정한 남색·파랑, 회색 면, 얇은 테두리, 큰 글씨, 그라데이션·보라색 없음
+   ========================================================= */
+:root{
+  --blue:#256EF4; --blue-dark:#0B50D0; --blue-50:#ECF2FE; --blue-100:#D8E5FD;
+  --navy:#1D2F4E; --navy-2:#2B3F63; --tint:#E8EEF7;
+  --ink:#1E2124; --ink-2:#33363D; --muted:#58616A; --line:#E1E4E8; --line-2:#C9CED4;
+  --bg:#F4F5F6; --surface:#FFFFFF;
+  --green:#1E7A35; --green-50:#EAF5EC;
+  --amber:#7A4F00; --amber-50:#FFF6DC;
+  font-size:17px;
+}
+:root[data-contrast="high"]{--muted:#1E2124;--ink-2:#1E2124;--line:#58616A;--line-2:#1E2124;--bg:#FFFFFF;--blue:#0B4CC4;--blue-dark:#083A99;--navy:#0F1C33}
+body{background:var(--bg);letter-spacing:-.01em}
+.card{border:1px solid var(--line);border-radius:12px;box-shadow:none}
+.btn{border-radius:8px}
+.btn-pri{background:var(--blue)}
+.btn-dark{background:var(--navy)}
+.btn-line{border-color:var(--line-2)}
+.chip{border-radius:8px;border:1px solid var(--line-2);font-weight:500}
+.tag{border-radius:4px}
+.tag-blue{background:var(--blue-50);color:var(--blue-dark)}
+.sec-h h2{font-size:1.55rem;font-weight:700;letter-spacing:-.03em}
+
+/* 출처 라벨: 보라색 제거, 둘 다 차분하게 */
+.src{border-radius:4px;font-weight:600}
+.src-gov{background:var(--tint);color:var(--navy)}
+.src-ai{background:#EEF0F3;color:var(--ink-2)}
+
+/* 검증 배지: 테두리 + 글자 */
+.vb{border-radius:4px;font-weight:700}
+.vb-screen{background:#fff;color:var(--green);border:1px solid #8CC79A}
+.vb-sub{background:#fff;color:var(--amber);border:1px dashed #D2A94B}
+.vb-none{background:#fff;color:var(--muted);border:1px dashed var(--line-2)}
+
+/* 썸네일 */
+.thumb{border-radius:8px;background:#26303F}
+.thumb .play{background:rgba(255,255,255,.95);color:var(--navy)}
+.scene{border-radius:8px;background:#F4F5F6}
+.scene .pl{background:var(--navy)}
+.scene.hit{background:#fff;border:1px solid var(--blue)}
+
+/* ---------- 상단 유틸리티 줄 ---------- */
+.a11y{background:#fff;border-bottom:1px solid var(--line);color:var(--ink-2)}
+.a11y .wrap{min-height:2.9rem;justify-content:flex-end;gap:.4rem}
+.a11y .sp{display:none}
+.a11y .lb{font-weight:600;color:var(--muted);font-size:.85rem;margin-right:.1rem}
+.a11y .seg{border:1px solid var(--line-2);border-radius:6px;padding:2px}
+.a11y .fs-btn{height:1.9rem;border-radius:4px;font-weight:600;font-size:.85rem}
+.a11y .fs-btn[aria-pressed="true"]{background:var(--navy)}
+.a11y .tog{height:2.2rem;border-radius:6px;border:1px solid var(--line-2);font-weight:600;font-size:.85rem}
+.a11y .tog[aria-pressed="true"]{background:var(--navy);border-color:var(--navy)}
+.a11y .links{gap:.2rem;font-size:.85rem;font-weight:500;margin-left:.6rem;padding-left:.8rem;border-left:1px solid var(--line)}
+.a11y .links a{padding:0 .4rem;color:var(--ink-2)}
+
+/* ---------- 헤더: 로고 줄 + 메뉴 줄 ---------- */
+.hdr{background:#fff;border-bottom:1px solid var(--line-2)}
+.hdr .top{display:flex;align-items:center;gap:1rem;min-height:5rem}
+.hdr .logo{gap:0;flex-direction:column;align-items:flex-start}
+.hdr .logo b{font-size:1.65rem;font-weight:800;letter-spacing:-.04em;color:var(--navy);line-height:1.1}
+.hdr .logo small{font-size:.72rem;color:var(--muted);margin-top:.2rem}
+.hdr .top .end{margin-left:auto;display:flex;gap:.5rem}
+.hdr .menu{border-top:1px solid var(--line)}
+.hdr .menu .wrap{display:flex;gap:0;min-height:3.6rem;align-items:stretch}
+.hdr .menu a{display:flex;align-items:center;gap:.35rem;padding:0 1.6rem 0 0;margin-right:1.6rem;font-size:1.12rem;font-weight:700;color:var(--ink-2);border-bottom:3px solid transparent}
+.hdr .menu a[aria-current="page"]{color:var(--navy);border-bottom-color:var(--navy)}
+.hdr .menu a svg{width:.9em;height:.9em;color:var(--muted)}
+
+/* ---------- 푸터 ---------- */
+.ft{background:#fff;border-top:1px solid var(--line-2)}
+.ft .logo b{font-size:1.25rem;color:var(--navy)}
