@@ -97,17 +97,19 @@ export default function Results({ query, policyCtx }: { query: string; policyCtx
 
   return (
     <main className="page-results">
-      <section className="sbar"><div className="wrap">
+      <section className="sbar sg-band"><div className="wrap">
+        <h1 className="sg-title">{query}</h1>
+        <div className="sg-meta">
+          <span><Icon name="play" fill />영상 장면 {data?.scenes.length ?? 0}개</span><i />
+          <span><Icon name="db" />공식 정책 {data?.policies.length ?? 0}건</span>
+          {pending && <><i /><VerifyBadge v="pending" /></>}
+        </div>
         <form className="srow" role="search" onSubmit={onSubmit}>
           <label className="in"><span className="sr-only">검색어</span><Icon name="search" />
             <input type="search" value={q} onChange={(e) => setQ(e.target.value)} />
           </label>
           <button className="btn btn-pri btn-lg" type="submit">다시 검색</button>
         </form>
-        <div className="summ">
-          <h1><em>‘{query}’</em> 영상 장면 {data?.scenes.length ?? 0}개 · 공식 정책 {data?.policies.length ?? 0}건</h1>
-          {pending && <VerifyBadge v="pending" />}
-        </div>
         <div className="filters">
           {([['all', '전체'], ['scenes', '영상 장면'], ['policy', '공식 정책'], ['screen', '화면에서 확인된 것만']] as [Filter, string][]).map(([k, label]) => (
             <button key={k} className="chip" aria-pressed={filter === k} onClick={() => setFilter(k)}>{k === 'screen' && <Icon name="check" />}{label}</button>

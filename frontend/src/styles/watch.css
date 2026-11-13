@@ -123,6 +123,38 @@
 .page-watch .cta p{margin:.7rem 0 0;font-size:.8rem;color:var(--muted);text-align:center}
 .page-watch .blk summary .n{width:1.45rem;height:1.45rem;border-radius:.35rem;background:var(--ink);color:#fff;font-size:.8rem;display:flex;align-items:center;justify-content:center}
 .page-watch .follow .nx > span:empty{flex:1}
+/* ===== KRDS 느낌 ===== */
+.page-watch .th h1{font-size:1.9rem;font-weight:700}
+.page-watch .where{gap:0;border:1px solid var(--line);border-radius:12px;background:#fff;overflow:hidden}
+.page-watch .where > div{border:0;border-radius:0;border-left:1px solid var(--line)}
+.page-watch .where > div:first-child{border-left:0}
+.page-watch .where .w1{background:var(--tint);border:0}
+.page-watch .where .w1 small{color:var(--navy)}
+.page-watch .player{border-radius:12px;background:#1B2333}
+.page-watch .stage .now span{border-radius:6px}
+.page-watch .cb button{border-radius:6px}
+.page-watch .cb [aria-pressed="true"]{background:#fff;color:var(--navy);border-color:#fff}
+.page-watch .tl .seg{background:#7FA7F8}
+.page-watch .chap,.page-watch .follow{border-radius:12px}
+.page-watch .chap h2,.page-watch .follow h2{font-size:1.2rem;font-weight:700}
+.page-watch .ch{border-radius:0;border:0;border-top:1px solid var(--line);margin-top:0;padding:1rem .4rem}
+.page-watch .ch[aria-current="true"]{border:0;border-top:1px solid var(--line);background:#F5F8FE;box-shadow:inset 4px 0 0 var(--blue)}
+.page-watch .ch .go{border-radius:6px}
+.page-watch .ch[aria-current="true"] .go{background:var(--navy);border-color:var(--navy)}
+.page-watch .fs{border-radius:8px}
+.page-watch .fs.now{border:1px solid var(--blue);background:#F5F8FE}
+.page-watch .fs.now .n,.page-watch .fs.done .n{border-radius:50%}
+.page-watch .pp-card{border-radius:12px}
+.page-watch .pp-card .hd{background:var(--navy);color:#fff;border-bottom:0}
+.page-watch .pp-card .hd h2{color:#fff;font-weight:700}
+.page-watch .pp-card .hd .src-gov{background:rgba(255,255,255,.14);color:#fff}
+.page-watch .pp-card .hd span{color:#C2CDDF !important}
+.page-watch .blk h3{font-size:.95rem;font-weight:700;color:var(--ink-2)}
+.page-watch .money b{color:var(--navy)}
+.page-watch .docs label{background:#fff;border:1px solid var(--line);border-radius:8px}
+.page-watch .docs label.rel{background:#F5F8FE;outline:0;border-color:var(--blue)}
+.page-watch .flow li.now .d{background:var(--navy);border-color:var(--navy)}
+.page-watch .flow li.now b{color:var(--navy)}
 /* 실제 YouTube 플레이어 (디자인의 화면 자리를 그대로 씀) */
 .page-watch .stage .yt{position:absolute;inset:0}
 .page-watch .stage .yt iframe{width:100%;height:100%;border:0;display:block}

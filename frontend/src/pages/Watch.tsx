@@ -100,14 +100,14 @@ export default function Watch({ videoId, startAt, endAt, jobId }: { videoId: str
 
   return (
     <main className="page-watch">
-      <div className="wrap top">
+      <section className="sg-band"><div className="wrap">
         <div className="crumb"><span>홈</span>›<span>{policy?.category ?? '복지 안내'}</span>›<span>{policy?.name ?? '영상'}</span>›<b>신청 안내 영상</b></div>
         <div className="th">
           <div>
             <div style={{ display: 'flex', gap: '.4rem', flexWrap: 'wrap' }}>
               {policy && <span className="tag tag-blue">{policy.name}</span>}<span className="tag tag-gray">{video.subtitles?.length ? '자막 있음' : '자막 없음'}</span><span className="tag tag-gray">장면 {shown.length}개</span>{video.stepsStatus === 'draft' && <span className="tag tag-gray">단계 카드 초안</span>}
             </div>
-            <h1>{video.title}</h1>
+            <h1 className="sg-title">{video.title}</h1>
           </div>
           <div className="acts">
             <button className="btn btn-line"><Icon name="bookmark" />저장</button>
@@ -120,6 +120,9 @@ export default function Watch({ videoId, startAt, endAt, jobId }: { videoId: str
           {policy && <><span className="src src-gov"><Icon name="db" />정책정보</span><span>{policy.baseYear}년 기준 · 수정 {policy.updatedAt}</span></>}
         </div>
 
+      </div></section>
+
+      <div className="wrap top">
         <div className="grid">
           <div>
             {/* 플레이어 — YouTube IFrame (useYouTubePlayer), 컨트롤은 아래 디자인 그대로 */}

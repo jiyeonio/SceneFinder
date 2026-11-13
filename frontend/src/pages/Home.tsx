@@ -1,113 +1,145 @@
 import { useState, type FormEvent } from 'react';
 import '../styles/home.css';
 import { Icon, type IconName } from '../components/Icon';
-import { SceneRow, SourceTag, Thumb } from '../components/Common';
-import { audienceGroups, popularScenes } from '../data/mock';
 import { go } from '../router';
+import { fmt } from '../utils';
+import { popularScenes } from '../data/mock';
 
-const EXAMPLES = ['기초연금 신청할 때 뭐 챙겨가야 돼요?', '기초연금 신청하는 법', '월세 지원 받으려면 뭐 내야 돼요?', '아이돌봄 어디서 신청해요?'];
+const CATEGORIES = ['전체', '어르신', '장애인', '가족·육아', '청년', '저소득'];
+
+const QUICK: { icon: IconName; label: string; q: string }[] = [
+  { icon: 'coin', label: '기초연금', q: '기초연금 신청 방법' },
+  { icon: 'care', label: '장기요양', q: '노인장기요양보험 신청' },
+  { icon: 'brief', label: '노인일자리', q: '노인일자리 신청' },
+  { icon: 'brain', label: '치매 지원', q: '치매안심센터' },
+  { icon: 'bolt', label: '에너지바우처', q: '에너지바우처 신청' },
+  { icon: 'heart', label: '아이돌봄', q: '아이돌봄 신청' },
+  { icon: 'house', label: '청년 월세', q: '청년월세 지원' },
+  { icon: 'wheel', label: '장애인연금', q: '장애인연금 신청' },
+];
+
+// 시연 영상 세트 (data/mock.ts popularScenes — 실제 영상 ID와 시연 질문으로 시험한 장면 시간)
+const AUDIENCE: Record<string, number> = { 기초연금: 1, '청년월세 지원': 2, 아이돌봄서비스: 2 };
+const TABS = ['전체', '어르신', '청년·가족'];
+const RECENT = popularScenes.flatMap((c) => c.scenes.filter((x) => 'hit' in x && x.hit).map((x) => ({
+  tab: AUDIENCE[c.policy] ?? 0, title: `${c.policy.replace(' 지원', '').replace('서비스', '')} ${x.label}`, href: `#/watch/${c.videoId}?t=${x.t}`, t: x.t,
+})));
+
+const HELP: { icon: IconName; label: string; href: string }[] = [
+  { icon: 'phone', label: '129 상담', href: 'tel:129' },
+  { icon: 'pin', label: '주민센터', href: '#' },
+  { icon: 'info', label: '이용 안내', href: '#/guide' },
+  { icon: 'text', label: '손말이음', href: 'tel:107' },
+];
+
+// 시연 질문 (팀이 백엔드로 시험한 질문) + 그 질문의 대표 영상 장면
+const ICON_OF: Record<string, IconName> = { 기초연금: 'coin', '청년월세 지원': 'house', 아이돌봄서비스: 'heart' };
+const ASKS = ['기초연금 신청할 때\n뭐 챙겨가야 돼요?', '기초연금\n신청하는 법', '월세 지원 받으려면\n뭐 내야 돼요?', '아이돌봄\n어디서 신청해요?'];
+const CARDS = popularScenes.slice(0, 4).map((c, i) => ({
+  cat: c.policy.replace(' 지원', '').replace('서비스', ''), icon: ICON_OF[c.policy] ?? 'play', q: ASKS[i], videoId: c.videoId,
+  links: c.scenes.map((x) => ({ t: x.t, label: x.label })),
+}));
 
 export default function Home() {
   const [q, setQ] = useState('');
+  const [cat, setCat] = useState('전체');
   const [tab, setTab] = useState(0);
 
   const search = (text: string) => go(`/results?q=${encodeURIComponent(text || '기초연금 신청서 어떻게 써요?')}`);
   const onSubmit = (e: FormEvent) => { e.preventDefault(); search(q); };
+  const list = RECENT.filter((r) => tab === 0 || r.tab === tab);
 
   return (
-    <main className="page-home">
-      <section className="hero"><div className="wrap">
-        <span className="lbl"><i />공식 정책정보 · 안내 영상 장면 검색</span>
-        <h1>나에게 필요한 복지혜택,<br /><em>영상 속 신청 장면</em>까지 한 번에 바로봄</h1>
-        <p className="sub">궁금한 것을 물어보면, 공식 정책정보와 안내 영상 속 필요한 장면을 함께 찾아드려요.</p>
-        <form className="sbox" role="search" onSubmit={onSubmit}>
-          <div className="row">
-            <label className="in">
-              <span className="sr-only">검색어</span>
-              <Icon name="search" />
-              <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="예: 기초연금 신청서 어떻게 써요?" />
-              <button type="button" className="mic"><Icon name="mic" />말로 묻기</button>
-            </label>
-            <button className="btn btn-pri go" type="submit">검색</button>
+    <main className="page-home np">
+      <section className="np-hero"><div className="wrap">
+        <div className="np-copy">
+          <p className="ey">복지 안내 영상, 필요한 장면만</p>
+          <h1>신청 장면까지<br />바로 보여드려요</h1>
+          <a className="lk" href="#/guide">이용 안내 보기 &gt;&gt;</a>
+        </div>
+        <div className="np-vis" aria-hidden="true">
+          <div className="fr">
+            <div className="scr"><i className="t" /><i /><i className="hl" /><i /></div>
+            <div className="tl"><span className="seg" /><span className="hd" /></div>
           </div>
-          <p className="help"><Icon name="info" />정책 이름을 몰라도 괜찮아요. 평소 말하듯 물어보세요.</p>
-        </form>
-        <div className="ex">
-          <span>이렇게 물어보세요</span>
-          {EXAMPLES.map((t) => (
-            <button key={t} className="chip" onClick={() => search(t)}>{t}</button>
-          ))}
+          <div className="pin"><Icon name="play" fill />01:54 신청 서류 보기</div>
+        </div>
+        <div className="np-cards">
+          <section className="np-box">
+            <div className="hd"><h2>많이 찾는 신청 장면</h2><a className="more" href="#/results">더보기<Icon name="plus" /></a></div>
+            <div className="tb" role="tablist">
+              {TABS.map((t, i) => <button key={t} role="tab" aria-selected={tab === i} onClick={() => setTab(i)}>{t}</button>)}
+            </div>
+            <ul>
+              {list.slice(0, 3).map((r) => (
+                <li key={r.href}><a href={r.href}><span>{r.title}</span><em className="num"><Icon name="play" fill />{fmt(r.t)}</em></a></li>
+              ))}
+            </ul>
+          </section>
+          <section className="np-box">
+            <div className="hd"><h2>혼자 하기 어려우세요?</h2></div>
+            <div className="help">
+              {HELP.map((h) => <a key={h.label} href={h.href}><span className="ic"><Icon name={h.icon} /></span>{h.label}</a>)}
+            </div>
+          </section>
         </div>
       </div></section>
 
-      <div className="wrap">
-        <section className="how">
-          <div className="intro">
-            <div className="eyebrow">이렇게 찾아드려요</div>
-            <h2>긴 영상을 처음부터<br />볼 필요 없어요</h2>
-            <p>질문에 맞는 장면을 찾아 그 시점부터 재생해요.</p>
-          </div>
-          {([
-            { n: 1, icon: 'db', title: '공식 정책정보 확인', desc: '지원 대상·금액·기간을 공공데이터로 보여드려요.' },
-            { n: 2, icon: 'scan', title: '영상 속 장면 바로 보기', desc: 'AI가 찾은 장면부터 바로 재생해요.' },
-            { n: 3, icon: 'ext', title: '공식 신청 페이지로', desc: '복지로·정부24 신청 화면으로 이동해요.' },
-          ] as { n: number; icon: IconName; title: string; desc: string }[]).map((s) => (
-            <div key={s.n} className="card st">
-              <div className="n"><b>{s.n}</b><Icon name={s.icon} /></div>
-              <h3>{s.title}</h3>
-              <p>{s.desc}</p>
-            </div>
+      <div className="wrap np-float">
+        <div className="pills"><span className="on">자주 찾는 복지</span></div>
+        <nav className="bar" aria-label="자주 찾는 복지">
+          {QUICK.map((it) => (
+            <button key={it.label} onClick={() => search(it.q)}><Icon name={it.icon} /><span>{it.label}</span></button>
           ))}
-        </section>
-
-        <section className="section">
-          <div className="sec-h"><div><h2>누구의 복지혜택을 찾으세요?</h2><p>대상을 고르면 관련 정책과 영상 장면을 모아 보여드려요.</p></div></div>
-          <div className="tabs3" role="tablist" aria-label="찾는 방법">
-            {audienceGroups.map((g, i) => (
-              <button key={g.label} role="tab" aria-selected={tab === i} onClick={() => setTab(i)}>{g.label}</button>
-            ))}
-          </div>
-          <div className="who">
-            {audienceGroups[tab].items.map((it) => (
-              <a key={it.title} className="card" href={`#/results?q=${encodeURIComponent(it.policies[0])}`}>
-                <div className="top"><span className="ic"><Icon name={it.icon as IconName} /></span><span className="tag tag-gray">{it.tag}</span></div>
-                <h3>{it.title}</h3>
-                <div className="tags">{it.policies.map((p) => <span key={p}>{p}</span>)}</div>
-                <span className="go">정책 보기<Icon name="arrow" /></span>
-              </a>
-            ))}
-          </div>
-        </section>
-
-        <section className="section">
-          <div className="sec-h">
-            <div><h2>많이 찾는 신청 장면</h2><p>시간을 누르면 그 장면부터 바로 재생돼요.</p></div>
-            <a className="btn btn-line" href="#/results">전체 보기</a>
-          </div>
-          <div className="pop">
-            {popularScenes.map((c) => (
-              <article key={c.title} className="card">
-                <Thumb href={`#/watch/${c.videoId}?t=${c.scenes[0].t}`} type={c.thumbType} duration={c.duration} src={`https://i.ytimg.com/vi/${c.videoId}/hqdefault.jpg`} />
-                <div className="bd">
-                  <div className="meta"><span className="tag tag-blue">{c.policy}</span>[게시기관]</div>
-                  <h3>{c.title}</h3>
-                  <span className="lab">AI가 찾은 장면</span>
-                  <div className="scenes">
-                    {c.scenes.map((s) => <SceneRow key={s.t} href={`#/watch/${c.videoId}?t=${s.t}`} t={s.t} label={s.label} hit={'hit' in s && s.hit} />)}
-                  </div>
-                  <a className="btn btn-soft btn-block cta" href={`#/watch/${c.videoId}?t=${c.scenes[0].t}`}>장면 바로 보기</a>
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <div className="trust">
-          <SourceTag kind="gov" /><SourceTag kind="ai" />
-          두 정보를 나눠서 보여드리고, 다르면 공식 정보를 먼저 안내해요.
-          <a href="#/guide">이용 안내 보기<Icon name="arrow" /></a>
-        </div>
+        </nav>
       </div>
+
+      <section className="np-ask"><div className="wrap">
+        <h2>어떤 도움이 필요하세요?</h2>
+        <form className="pill" role="search" onSubmit={onSubmit}>
+          <label className="sel">
+            <span className="sr-only">분류</span>
+            <select value={cat} onChange={(e) => setCat(e.target.value)}>
+              {CATEGORIES.map((c) => <option key={c}>{c}</option>)}
+            </select>
+            <Icon name="chev" />
+          </label>
+          <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="말하듯 물어보세요. 예: 기초연금 신청서 어떻게 써요?" aria-label="검색어" />
+          <button type="button" className="mic" aria-label="말로 묻기"><Icon name="mic" /></button>
+          <button type="submit" className="go" aria-label="검색"><Icon name="search" /></button>
+        </form>
+      </div></section>
+
+      <section className="wrap np-menu">
+        <div className="intro">
+          <h2>이렇게<br />찾아요</h2>
+          <ol>
+            <li><b>1</b>말하듯 물어보기</li>
+            <li><b>2</b>찾은 장면 보기</li>
+            <li><b>3</b>복지로에서 신청</li>
+          </ol>
+        </div>
+        <div className="row">
+          {CARDS.map((c) => (
+            <article key={c.videoId} className="mc">
+              <div className="top"><small>{c.cat}</small><span className="ic"><Icon name={c.icon} /></span></div>
+              <h3><a className="qa" href={`#/results?q=${encodeURIComponent(c.q.replace('\n', ' '))}`}>{c.q.split('\n').map((l, i) => <span key={i}>{l}<br /></span>)}</a></h3>
+              {c.links.map((l) => (
+                <a key={l.label} href={`#/watch/${c.videoId}?t=${l.t}`}><span><em className="num">{fmt(l.t)}</em>{l.label}</span><Icon name="arrow" /></a>
+              ))}
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="wrap np-promo">
+        <a className="pm p1" href="#/guide"><b>처음 오셨나요?</b><i className="btn-s">이용 안내</i></a>
+        <a className="pm p2" href="#/guide"><b>자주 묻는 질문</b><i className="btn-s">바로가기</i></a>
+        <div className="pm p3"><b>편하게 보기</b>
+          <div className="mini"><span><b>가</b>큰 글씨</span><span><Icon name="contrast" />고대비</span><span><Icon name="speaker" />읽어주기</span><span><Icon name="text" />큰 자막</span></div>
+        </div>
+        <a className="pm p4" href="tel:129"><small>보건복지상담센터</small><b className="big">국번 없이 129</b></a>
+      </section>
     </main>
   );
 }

@@ -9,6 +9,7 @@ export function IconSprite() {
       <symbol id="i-phone" viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z" /></symbol>
       <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z" /></symbol>
       <symbol id="i-pause" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14" /></symbol>
+      <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></symbol>
       <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 5 5 9-10" /></symbol>
       <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></symbol>
       <symbol id="i-back" viewBox="0 0 24 24"><path d="M19 12H5" /><path d="m11 6-6 6 6 6" /></symbol>
@@ -33,6 +34,13 @@ export function IconSprite() {
       <symbol id="i-share" viewBox="0 0 24 24"><circle cx="18" cy="5" r="2.5" /><circle cx="6" cy="12" r="2.5" /><circle cx="18" cy="19" r="2.5" /><path d="m8.2 10.8 7.6-4.4M8.2 13.2l7.6 4.4" /></symbol>
       <symbol id="i-db" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="3" /><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5" /><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3" /></symbol>
       <symbol id="i-scan" viewBox="0 0 24 24"><path d="M3 7V4h3M21 7V4h-3M3 17v3h3M21 17v3h-3" /><rect x="7" y="8" width="10" height="8" rx="1" /></symbol>
+      <symbol id="i-coin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path d="M9 9.5h4.5a2 2 0 0 1 0 4H9" /><path d="M9 7v10" /></symbol>
+      <symbol id="i-house" viewBox="0 0 24 24"><path d="M3 11 12 4l9 7" /><path d="M5 10v10h14V10" /><path d="M10 20v-6h4v6" /></symbol>
+      <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z" /></symbol>
+      <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 3 5 14h6l-1 7 8-11h-6z" /></symbol>
+      <symbol id="i-brief" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2" /><path d="M9 7V5h6v2" /><path d="M3 12h18" /></symbol>
+      <symbol id="i-brain" viewBox="0 0 24 24"><path d="M9 4a3 3 0 0 0-3 3 3 3 0 0 0-2 5 3 3 0 0 0 2 5 3 3 0 0 0 3 3V4z" /><path d="M15 4a3 3 0 0 1 3 3 3 3 0 0 1 2 5 3 3 0 0 1-2 5 3 3 0 0 1-3 3V4z" /></symbol>
+      <symbol id="i-care" viewBox="0 0 24 24"><path d="M3 14h4l3 3h6a2 2 0 0 0 0-4h-4" /><path d="M7 14l3-3h3" /><path d="M14 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z" /></symbol>
     </svg>
   );
 }
@@ -40,7 +48,7 @@ export function IconSprite() {
 export type IconName =
   | 'search' | 'mic' | 'phone' | 'play' | 'pause' | 'check' | 'arrow' | 'back' | 'ext' | 'speaker'
   | 'alert' | 'info' | 'contrast' | 'rew' | 'full' | 'pin' | 'print' | 'elder' | 'family' | 'cap'
-  | 'wheel' | 'logo' | 'repeat' | 'text' | 'chev' | 'bookmark' | 'share' | 'db' | 'scan';
+  | 'wheel' | 'logo' | 'coin' | 'house' | 'heart' | 'bolt' | 'brief' | 'brain' | 'care' | 'repeat' | 'text' | 'chev' | 'bookmark' | 'share' | 'db' | 'scan' | 'plus';
 
 /** 아이콘. fill=true 면 채운 모양(재생 버튼 등) */
 export function Icon({ name, fill, style }: { name: IconName; fill?: boolean; style?: CSSProperties }) {

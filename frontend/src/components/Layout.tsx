@@ -64,21 +64,20 @@ const NAV = [
 
 function Header({ current }: { current: string }) {
   return (
-    <header className="hdr"><div className="wrap">
-      <a className="logo" href="#/">
-        <span className="mk"><Icon name="logo" /></span>
-        <span><b>복지바로봄</b><small>공모전 시제품</small></span>
-      </a>
-      <nav className="nav" aria-label="주요 메뉴">
+    <header className="hdr np-hdr">
+      <div className="wrap top">
+        <a className="logo" href="#/"><b>복지바로봄</b></a>
+        <div className="end">
+          <a href="tel:129"><Icon name="phone" />상담 129</a>
+          <a className="login" href="#/"><Icon name="arrow" />로그인</a>
+        </div>
+      </div>
+      <nav className="gnb" aria-label="주요 메뉴"><div className="wrap">
         {NAV.map((n) => (
           <a key={n.to} href={`#${n.to}`} aria-current={current === n.to ? 'page' : undefined}>{n.label}</a>
         ))}
-      </nav>
-      <div className="end">
-        <a className="btn btn-line" href="tel:129"><Icon name="phone" />상담 129</a>
-        <a className="btn btn-dark" href="#/">로그인</a>
-      </div>
-    </div></header>
+      </div></nav>
+    </header>
   );
 }
 
@@ -86,9 +85,8 @@ function Footer() {
   return (
     <footer className="ft"><div className="wrap">
       <div>
-        <a className="logo" href="#/"><span className="mk"><Icon name="logo" /></span><b>복지바로봄</b></a>
-        <p>공공데이터포털 사회보장 Open API와 공개된 안내 영상을 연결한 공모전 시제품이에요. 정부 공식 서비스가 아니며, 신청은 복지로·정부24·주민센터에서 이뤄져요.</p>
-        <p>화면의 금액·날짜·영상 시간은 시연용 예시예요. · 혜택발굴단 · 2026 사회보장 데이터 활용 AI 혁신 아이디어 경진대회</p>
+        <a className="logo" href="#/"><b>복지바로봄</b></a>
+        <p>공모전 시제품 · 정부 공식 서비스가 아니에요. 화면의 금액·시간은 예시예요.</p>
       </div>
       <div className="calls">
         <span>보건복지상담센터<b>국번 없이 129</b></span>

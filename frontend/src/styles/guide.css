@@ -53,3 +53,17 @@
 .page-guide .tel small{display:block;font-size:.8rem;color:var(--muted)}
 .page-guide .tel b{font-size:1.15rem;font-weight:800}
 .page-guide .tel .c{width:2.4rem;height:2.4rem;border-radius:50%;background:#fff;border:1px solid var(--line-2);display:flex;align-items:center;justify-content:center}
+/* ===== KRDS 느낌 ===== */
+.page-guide .gh{border-bottom:1px solid var(--line-2)}
+.page-guide .gh h1{font-weight:700}
+.page-guide .toc .chip{border:0;background:none;font-weight:600;color:var(--ink-2);border-radius:6px}
+.page-guide .toc .chip:hover{background:#F4F5F6}
+.page-guide .blockh h2{font-weight:700}
+.page-guide .blockh .no{color:var(--navy)}
+.page-guide .flow3 .k b{background:var(--navy);border-radius:50%}
+.page-guide .legend .c h3,.page-guide .data h3{font-weight:700}
+.page-guide .data thead th{background:#F4F5F6;padding-top:.85rem}
+.page-guide .data table{border-top:2px solid var(--navy)}
+.page-guide .feat .ic{background:var(--tint);color:var(--navy);border-radius:50%}
+.page-guide .feat .where{background:none;padding:0;color:var(--muted)}
+.page-guide .limit{border-radius:8px}
